@@ -1,0 +1,1923 @@
+\documentclass[a4paper,11pt]{article}
+\newcommand{\smite}{\emph{\textbf{Smite{}}}}
+\usepackage{graphicx}
+
+\begin{document}
+
+% do: set formatoptions+=t to have it formatted
+% set tw=79
+
+
+
+% {{{1 Introduction
+%
+% how to give header page
+
+% how to automatically fill regions
+% when editing tex/latex files
+%
+
+
+\section{Introduction}
+
+\smite{} is a tool for extracting and rearranging knowledge from documents in
+a way which makes it more suitable for understanding and learning. It uses a
+special markup language to mark the interesting parts of a document
+and then extracts those parts and presents them in way that can be exported
+to flash-card programs like SuperMemo, Mnemosyne or Mentor.
+
+For example, let's assume here is a text you want to get some info from:
+\textit{Christoph Columbus was a great adventurer. America was discovered by Columbus in 1492.}
+
+If you want to learn the important facts from given text, you modify it slightly by adding smite markup:
+\begin{verbatim}
+\begin{cloze}
+Christoph Columbus was a \?{great adventurer}. America was discovered by
+\?{Christoph Columbus} in \?{1492}.
+\end{cloze}
+\end{verbatim}
+
+Running smite over thusly modified text, will result in the following:
+\begin{verbatim}
+q: Christoph Columbus was a ....
+a: great adventurer
+
+q: America was discovered by ... in 1492
+a: Christoph Columbus
+
+q: America was discovered by Christoph Columbus in ...
+a: 1492
+\end{verbatim}
+
+The resulting items may now be exported to a flashcard program for later memorizing.
+
+
+reorganizing knowledge into format more suitable for
+learningfrom data and presenting it in a
+way which is more suitable for learning.
+
+\smite{} is a tool to automate creation of SuperMemo items.  The name is
+abbreviation for \emph{SuperMemo EXport}.
+
+SuperMemo is a program for improving the learning process by keeping track of
+your repetition schedule. It's mainly used in foreign language study, although
+it can be applied to any kind of knowledge.
+
+TODO here add some more
+
+The idea of the program is to split the knowledge into distinct items with a
+question and answer e.g. \emph{Q: mother A: die Mutti} for german vocabulary
+item or \emph{Q: when did II World War begin A: 1939} for historical item.  The
+user has to review the items regularly by looking at the questions and trying
+to come up with the answer in his head. Then the program displays the answer
+and user has to assign himself a score basing on the quality of his answer.
+Then the item is scheduled to be reviewed in some future time and user selects
+another item and so on.
+
+The great part about SuperMemo is the scheduling algorithm which tries to
+optimize the time break needed for next review, basing on user-assigned score,
+item difficulty, general user profile and database difficulty. The optimal
+schedule time is just before the item is about to be forgotten so that the
+review provides most benefits to user memory and items are not stacked up too
+quickly.  It is not uncommon for SuperMemo users to have tens of thousands of
+items in their databases and yet not spending more than a couple of minutes
+each day to have the scheduled items reviewed.
+
+\subsubsection{\smite{} name}
+
+This should really go in the reference below: for one SMITE is an acronym for
+SuperMemo ITEms which is a common-sense name for SuperMemo add-on tool.  The
+second meaning might be in \emph{smiting dark evil} which is a metaphore for
+bringing light to dark minds and trying to lighten the path of no-knowledge.
+And the last which comes to my mind is , obviously, the required recursive
+acronym name which may be \emph{smite is the elite} or \emph{smite might
+include teaching erudite}.  This is just a crude comment, please don't take it
+too seriously.. .
+
+
+
+
+
+
+
+
+
+
+\subsubsection{\smite{} goal}
+
+The purpose quickly generating lots of items for supermemo  and i'm testing
+this great purpose editor and i'm not sure how it works
+
+
+
+Generally I should be able to just paste cheatsheet then apply some little/mall
+markup rules to better transform learning process There should be as little
+changes to the original texts as possible - the XML markups just go out of
+question
+
+I will create cheatsheets and out of this cheatsheets -> just a little command
+to generate supermemo items as well
+
+The stynax colors should make the additional words not really visible just like
+ocmments The idea The syntax is generally based on TEX/LATEX markups
+
+
+The most time-consuming part of SuperMemo usage is the creation of those item
+databases. There already exist plenty of ready-made database for most foreign
+languages (on different difficulty levels) and for common knowledge areas like
+geography, literature etc. but it is often useful or required to create
+custom-made databases. This is especially true for non-language databases, e.g.
+when one wants to learn facts from some articles or tutorials. Manual input of
+data to SuperMemo is quite cumbersome and impractical if one wants to learn
+lots of knowledge.
+
+This is the gap that this \smite{} program is trying to fill.
+
+The aim of this tool is to automatically extract valuable knowledge from texts
+and presents them in format which can be readily imported to SuperMemo. The
+extraction process can be fully customized by using a simple markup language
+which you may put in the text to annotate which fragments must be exported and
+in what way should they be presented in SuperMemo.
+
+
+the aim of this tool is to generally tweak all the way it's used gr
+
+
+
+
+
+
+
+
+
+
+% {{{1 Usage
+
+\section{Usage}
+
+\smite{} is a command-line utility and it's basic usage is just running the
+script from the shell with a parameter of text file you want to export:
+\begin{verbatim}
+smite article.txt > import.dat
+\end{verbatim}
+
+The import.dat file, which will be generated, must be imported to
+SuperMemo by selecting menu:
+
+File->Tools->Import->Q\&A text
+
+The items will then appear in a new SuperMemo branch.
+
+% }}}
+% {{{1 Configuration
+\section{Configuration}
+
+The SML language is a forgiving language - it uses the same idea as the web
+browsers - it tries to parse what it can parse, and in case of errors it tries
+to deduce the best meaning. It has also the strict option which makes it
+possible to detect the errors quickly.
+
+
+
+
+In default configuration \smite{} will try to deduce the format used in the
+file and extract items it thinks are important.  This is useful when one wants
+to import the file quickly and have items memorized.
+
+There are some options to determine the working - given as command line
+options.
+
+
+
+In it's default configuration, \smite{} will export all paragraphs from the
+file, creating one item for each word in paragraph, resulting in cloze
+items:
+e.g. from paragraph:
+\begin{verbatim}
+The World War II broke in 1939 year.
+\end{verbatim}
+the following items will be created:
+
+\begin{verbatim}
+Q: The ... II broke in 1939.
+A: World War
+
+Q: The World War ... broke in 1939.
+A: II
+
+Q: The World War II broke in ....
+A: 1939
+\end{verbatim}
+
+The common words like \textit{the}, \textit{broke} and \textit{in} are ignored
+from the cloze to avoid creation of too many unecessary items.
+
+In order to customize what should be exported from the file and how the
+items should be created you can use a special markup language to annotate the
+file.  The markup language gives hints to \smite{} how it should export the
+text.
+
+
+Here are the most common configuration options:
+
+--quick -q tries to parse text intelligently without any markup
+
+--debug -d writes debug output
+
+--verbose -v writes verbose information
+
+
+--class = tries to use given class when parsing the file
+
+The currently supported classes are: tabular, cloze, sentences, paragraphs,
+code and graphical.
+
+
+
+% 1}}}
+% {{{1 Language constructs
+
+\section{Smite Markup Language}
+
+==  DESIGN GOAL ==
+
+It may happen that the defaults used by \smite{} are not sufficient to extract
+to knowledge or you may want to tweak the questions and answers generated by
+\smite{} so that you can memorize them more easily.
+
+To achive this you may want to use the SML which is short for Smite Markup
+Language.
+
+% write about what are markup languages like SGML, HTML and LaTeX family smite
+% tries to be as minimal and unobtrusive as possible and yet poweful to be able
+% to tweak the way in which items are imported.
+
+
+The basic design goal of the SML language was to make it as unobtrusive as
+possible - so that I could use the files as a real cheatsheet - yet make it
+quite powerful and expressive so that I could specify exactly what I want to
+learn from given piece of text.
+
+
+The basic requirement I have for \smite{} is to be as efficient as possible
+when extracting the information from text.
+
+The requirement means that it should be as minimalistic as possible, so that I
+can e.g. take an existing cheatsheet, add some annotations and it will be
+exported correctly. I don't want to spend day by tweaking the document to have
+a desired result.
+
+In no mood to reinvent the wheel I modelled the language mainly after LaTeX as
+it's quite lightweight. Of course it is not a proper LaTeX syntax and cannot be
+processed by latex tools - it only has some superficial similarities which make
+easier for people familiar with LaTeX to start using it right away.  I also
+added some special tweaks and shortcuts after currently popular light-html
+markups like markdown and textile to make the language even more lightweight.
+
+and LaTeX
+
+- requirements for language: minimalistic - extracting information in a subtle
+way
+
+
+
+\subsection{Language constructs}
+The language constructs are presented below:
+
+
+% {{{2 begin  Items constructs
+\subsubsection{items construct}
+
+1. \char93 items construct This is the basic construct which marks the text to
+be processed by \smite{}. By default \smite{} processes the whole file unless it
+encounters this construct - then only the text between those tags is processed
+and the text outside this construct is ignored.
+
+\char93 items{class}[options]
+\char93 enditems{class}
+
+The {class} determines the type of export \smite{} should use. Currently
+there are several types of export and each one treats the
+
+% 2}}}
+
+
+
+
+% {{{2 Classes
+\section{Classes}
+
+A class determines how the text should be treated. It determines the rules ,
+class and algorithm that is selected to process given text chunk.  It is
+possible to extend \smite{} with custom classes whenever you feel there are
+some texts you would like to learn in a special way or modify existing classes
+by deriving from them and creating new classes.
+
+\subsection{tabular class}
+
+
+\subsection{qa class}
+
+
+\subsection{cloze class}
+
+
+
+\subsection{set class}
+
+
+\subsection{code class}
+
+This is a general class which may be used to generate items out of programming
+constructs. It may be useful if one wants to memorize some function signatures.
+
+It may seem unnecessary in XX century when you have intellisense everywhere,
+but sometime it is better to keep code in ones head, and besides intellisense
+is not available eveywhere.
+
+By default it will try to use heuristics to recognize the language used -
+sometimes however the heuristics may not work and you may give an option to the
+code class.  Currently the following languages are supported:
+
+\begin{verbatim}
+options: [lang=c/pascal/java/javascript/python] etc.  signatures the code
+itself as well or not ?
+\end{verbatim}
+
+
+
+\subsection{sentence class}
+
+This is the most general class which is suitable for pure articles.  It will
+just extract each sentence and try to extract important information from it.
+
+It will go paragraph by paragraph.
+
+By it's design smxe
+
+
+
+
+
+
+\subsection{graphical class}
+
+\smite{} will work with graphical items as well as text items will export to su
+SuperMemo ITEms Tools .  Graphical repetitions work by selecting a fragment of
+a picture and trying to remember what the cloze was about.  Currently export of
+graphical class to SuperMemo is limited but the Mentor program works with it
+quite well.
+
+The syntax is as follows:
+
+\begin{verbatim}
+
+\begin{graphics}graphics{hello.bmp}
+\pic[10,20]
+\pic[10,30,50,50]
+\end
+
+\end{verbatim}
+
+% 2}}}
+
+
+
+
+
+% {{{2 Options
+
+\subsection{Class options}
+
+Each class has a set of options which may be used to tweak it's mechanizm.
+Generally options are used to modify the class in a slight way - if you want
+some bigger changes then you should use another class.
+
+
+% {{{3 swap option
+\subsubsection{swap option}
+
+This option determines whether the items should be swapped or not. By default,
+\smite{} will generate one question and answer out of items in sentence or tab
+class.  If you want the opposite question and answer to be generated, you
+should set this option.
+
+\begin{verbatim}
+
+options:
+ [swap]
+ [noswap]
+   should the item be swapped ?
+   when questioning?
+   e.g.
+   what is your subject?
+   maths
+
+   when swapped this will translate to ->
+   q: what is your subject?
+   a: math
+   and swapped question:
+   q: math?
+   a: what is your subject
+
+   [TODO] find a better example
+
+
+\end{verbatim}
+
+% 3}}}
+
+% }}}
+
+
+
+2. Configuration possibilities
+The configuration items
+
+% 1}}}
+% {{{1 Other applications
+
+\section{Other applications}
+
+Other apps which I based myself on are:
+\begin{enumerate}
+
+\item[SuperMemo] this is THE program for making repetitions. It is
+  traditionally geared more towards learning language than for any other
+  purpose.
+
+\item[Mnemosyne]this is an opensource version of SuperMemo , written in
+Python and Qt. It is also geared towards word learning and therefore it
+is not very suitable for my needs. It certainly was an inspiration
+though.
+
+\item[Mentor] this is another program which may be used to quickly test knowledge prepared by \smite{}.
+It's developed by \smite{} author so integration with it is quite simple.
+
+\end{enumerate}
+
+% 1}}}
+% {{{1 Feedback
+\section{Feedback}
+This is initial release of this script - it is far from perfect and may
+contain several bugs.
+If you notice any bugs or have any comments about this program, please
+send info to: santhalus AT gmail DOT com
+
+
+% 1}}}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%Mentor for repetitions  / SuperMemo alike Smite
+
+
+%{{{1 older stuff
+
+%For most
+
+%Ad 2. Markup language  Mentor markup language the purpose of markup language
+%is help for generating repetition items quickly.
+
+
+
+
+%cheatsheets to supermemo
+
+%1. General options
+%[prefix="ale"]
+
+%1. Headers
+%2. Different classes
+%I will have different classes for different formatting cases.
+
+
+%*** class CODE
+
+%*** class CLOZE
+%This class describes a typical cloze questions
+
+%*** class SET
+
+
+
+
+%*** class
+
+
+%2. Special directives
+
+%\include{file}[name]
+%this includes a file to the current file
+
+%\compounds{file}
+%This options means to include a file with compounds e.g. item which
+%always go together and should be treated as such . Generally, all words
+%with capital letters one by one are treated as compounds.
+
+
+%\ex
+%\bold \
+%the text up till end should be bold
+%??
+%this will be better with *text*
+
+%\item
+%\enditem
+%This will mean I want all the text as one item
+%By default items will be seperated by one blank line
+%but if I want several pars to be one item , I can put this one
+
+%\
+%at the end of line , this directive will join both lines to one
+%(just like c preprocessor)
+
+
+%3. Shortcuts aka special chars
+%There will be a set of special chars which will modify the meaning and
+%give some clues for extraction purpose.
+
+
+
+%^   ignored word
+%this means the word will not be included in repetitions
+%~  joined words
+%?   words to be selected
+
+%General rule for character ? and ^:
+%their appearance in text determines whether I should rather exclude or
+%include words: they are also mutually exclusive - this can be checked as
+%a test.
+
+%Consider these cases:
+%Poland was raised in ?996.
+
+%and
+%Poland ^was ^raised ^in 996
+
+%The first one will ask for 996 only. The second will ask for Poland and
+%996 as they are not excluded.
+%By default I ask for all words (unless the \common directive
+
+
+
+
+%$
+%
+%^
+%'
+%"
+
+
+
+%the idea is to use as little macros as possible
+%I just should use the plain text as it is
+
+%have very different formats to translate from
+
+%y
+%the basics
+
+
+
+%Ad 3. Mentor GUI
+%Mentor GUI is an app written in PyQt.
+%I really believe this is the optimal choice for quickly writing
+%applications.
+
+
+
+
+
+
+
+
+
+
+
+%Ad 4.
+
+
+
+%DOCUMENTATION FOR MENTOR MARKUP LANGUAGE SYNTAX
+%begin{aaa}[some]
+%\eq  \eq[a=12][b=12]{this is great}
+%kquestion on one ? k
+
+%\begin{table}
+
+%\end{table}
+
+%1100
+%sample :
+%\end
+
+%\test
+
+%jjjj\
+%\beg
+
+%~ joined word
+
+%\great
+
+%<browse> </browse>
+
+%llllll
+
+%\test[section=2][break=minimal]
+%\begin
+
+%\end
+%begin{tabular}
+
+
+%\bottom{done}
+
+%\begin{classic}{title="Left right motion"}[prefix=hej][title="Borking"]
+
+%|k|	N  k		up N \quick lines (also: CTRL-P \bold and <Up>)
+%|j|	N  j		down N lines (also: CTRL-J, CTRL-N, <NL>, and <Down>)
+%|-|	N  -		up N lines, \eq on the first non-blank character
+%|+|	N  +		down N lines, on the first non-blank character (also:
+                           %CTRL-M and <CR>)
+%|_|	N  _		down N-1 lines, on the first \b2 non-blank character
+%|G|	N  G		goto line N (default: last line), on the first
+                           %non-blank character
+%|gg|	N  gg		goto line N (default: first line), on the first
+                           %non-blank character \peg{utilitze section}
+|N%|	N  %		goto line N percentage down in the file.  N must be
+                           given, otherwise it is the |%| command.
+%|gk|	N  gk		up N screen lines (differs from "k" when line wraps)
+%|gj|	N  gj		down N screen lines (differs from "j" when line wraps)
+
+%"envy and great injustice
+%\end
+
+%\begin{sentences}[baz=foo][legend=off]
+%Structure is ~what is best known to man.
+
+%The very act of~browsing~history is *essential.
+
+
+
+%\end
+
+%\begin{sentences}
+%\end
+
+%\begin{csyntax}
+%\end
+
+
+
+%\par
+
+
+%\dupa
+
+
+%\end{documentclass}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%[TODO]
+%extract info from below code
+%run this code to see how it worked
+
+
+%{{{2 Delphi code
+
+
+
+%{------------------------------------------------------------------------------}
+%{
+%{ Smex
+%{ Written 2002 by Adam Folmert
+%{
+%{------------------------------------------------------------------------------}
+
+%unit uExport;
+
+%interface
+
+%uses Classes, StrUtils, uTest, uDebug, MaxMin, uMiscTxt, uMiscFil, SysUtils,
+      %uConst;
+
+%type
+  %{ smex exporting mode }
+  %TSmexMode = (smSimple, smCSignature, smPascalSignature, smDefinition, smSet);
+
+  %ParserInputType = (piRoutine, piProperty, piVariable);
+
+
+  %{ parses functions' signatures
+    %used by: base class for TPascalSignatureParser and TCSignatureParser }
+  %TSignatureParser = class(TObject)
+  %protected
+    %{ argument signatures }
+    %FArgumentSignatures : TStringList;
+    %{ argument names }
+    %FArgumentNames : TStringList; { ArgumentNames.Count = ArgumentSignatures.Count }
+    %{ full signature }
+    %FSignature : string;
+    %{ short signature }
+    %FShortSignature : string;
+    %{ function name }
+    %FName : string;
+    %{ input type }
+    %FInputType : ParserInputType;
+
+    %function DetermineInputType(AInput : string) : ParserInputType; virtual; abstract;
+    %function DetermineName(AInput : string) : string; virtual; abstract;
+    %function DetermineShortSignature(AInput : string) : string; virtual; abstract;
+    %procedure DetermineArguments(AInput : string; AArgumentSignatures, AArgumentNames : TStringList); virtual; abstract;
+
+  %public
+    %constructor Create;
+    %destructor Destroy; override;
+    %procedure Parse(AInput : string);
+    %function GetName : string;
+    %function GetSignature : string;
+    %function GetShortSignature : string;
+    %function GetArgumentCount : Integer;
+    %function GetArgumentName(AIndex : Integer) : string;
+    %function GetArgumentNames(AFromIndex, AToIndex : Integer) : string;
+    %function GetArgumentSignature(AIndex : Integer) : string;
+    %function GetArgumentDelimiter : Char; virtual; abstract;
+    %function GetInputType : ParserInputType; virtual;
+  %end;
+
+  %TSignatureParserClass = class of TSignatureParser;
+
+
+  %{ parses pascal functions' signatures
+    %used by: TExporter in smPascalSignature mode }
+  %TPascalSignatureParser = class(TSignatureParser)
+  %protected
+    %function GetArgumentDelimiter : Char; override;
+    %function GetArgumentNameFromSignature(AArgumentSignature : string) : string;
+    %function GetArguments(ASignature : string) : string;
+
+    %function DetermineInputType(AInput : string) : ParserInputType; override;
+    %function DetermineName(AInput : string) : string; override;
+    %function DetermineShortSignature(AInput : string) : string; override;
+    %procedure DetermineArguments(ASignature : string; AArgumentSignatures, AArgumentNames : TStringList); override;
+
+    %function GetInputType : ParserInputType; override;
+  %end;
+
+
+  %{ parses c functions' signatures
+    %used by: TExporter in smCSignature mode }
+  %TCSignatureParser = class(TSignatureParser)
+  %protected
+    %function GetArgumentDelimiter : Char; override;
+
+    %function DetermineInputType(AInput : string) : ParserInputType; override;
+    %function DetermineName(AInput : string) : string; override;
+    %function DetermineShortSignature(AInput : string) : string; override;
+    %procedure DetermineArguments(ASignature : string; AArgumentSignatures, AArgumentNames : TStringList); override;
+  %end;
+
+
+
+  %{ exports one sm item from input to output }
+  %TExporter = class(TObject)
+  %private
+    %{ input strings }
+    %FInput : TStrings;
+    %{ output item strings }
+    %FOutput : TStrings;
+    %{ exporting mode }
+    %FMode : TSmexMode;
+    %{ swap question with answer }
+    %FSwapping : Boolean;
+    %{ question prefix }
+    %FPrefix : string;
+    %FMainPrefix : string;
+    %{ words ignored in smDefinition_mode }
+    %FIgnoredWords : TStringList; { .todo. fine if it could be saved or edited }
+    %procedure InitializeIgnoredWords(AIgnoredWords : TStringList);
+    %procedure DoSimpleExport(AInput, AOutput : TStrings; APrefix : string; ASwapping : Boolean);
+    %procedure DoDefinitionExport(AInput, AOutput : TStrings; APrefix : string; ASwapping : Boolean;
+                                 %AIgnoredWords : TStrings);
+    %procedure DoRoutineExport(AParser : TSignatureParser; AOutput : TStrings; APrefix : string);
+    %procedure DoPropertyExport(AParser : TSignatureParser; AOutput : TStrings; APrefix : string);
+    %procedure DoVariableExport(AParser : TSignatureParser; AOutput : TStrings; APrefix : string);
+    %procedure DoSignatureExport(AInput, AOutput : TStrings; APrefix : string; AClass : TSignatureParserClass);
+    %procedure DoSetExport(AInput, AOutput : TStrings; APrefix : string; ASwapping : Boolean; AIgnoredWords : TStrings);
+  %public
+    %constructor Create(AInput, AOutput : TStrings);
+    %destructor Destroy; override;
+    %procedure SetMode(AMode : TSmexMode);
+    %procedure SetSwapping(AValue : Boolean);
+    %procedure SetPrefix(APrefix : string);
+    %procedure SetMainPrefix(APrefix : string);
+    %procedure Execute;
+    %procedure AddIgnoredWord(AWord : string);
+  %end;
+
+
+  %{ SuperMemo eXporter }
+  %TSmex = class(TObject)
+  %private
+    %{ item exporter }
+    %FExporter : TExporter;
+    %{ FExporter input strings }
+    %FExporterInput : TStringList;
+    %{ FExporter output strings }
+    %FExporterOutput : TStringList;
+    %{ Smex input strings }
+    %FInput : TStrings;
+    %{ Smex output strings }
+    %FOutput : TStrings;
+  %private
+    %procedure ExtractSubstrings(AStrings : TStrings; var AIndex : Integer; AOutput : TStrings);
+    %function IsOptionSubstrings(AStrings : TStrings) : Boolean;
+    %procedure SetExporterOption(AExporter : TExporter; AOption : TStrings);
+  %public
+    %constructor Create(AInput, AOutput : TStrings);
+    %destructor Destroy; override;
+    %procedure SetMode(AMode : TSmexMode);
+    %procedure SetSwapping(AValue : Boolean);
+    %procedure SetPrefix(APrefix : string);
+    %procedure Execute;
+  %end;
+
+
+
+
+%implementation
+
+%function EndWithChar(const AString : string; AChar : Char) : string;
+%begin
+  %if Length(AString) = 0 then
+    %Result := ':'
+  %else if AString[Length(AString)] <> AChar then
+    %Result := AString + AChar
+  %else
+    %Result := AString;
+%end;
+
+
+%function AdjustPrefix(const APrefix : string) : string;
+%begin
+  %if Trim(APrefix) = '' then
+    %Result := ''
+  %else
+    %Result := EndWithChar(Trim(APrefix), ':') + ' ';
+%end;
+
+
+%{------------------------------------------------------------------------------}
+%{
+%{ TSignatureParser
+%{
+%{------------------------------------------------------------------------------}
+
+
+%constructor TSignatureParser.Create;
+%begin
+  %inherited Create;
+  %FArgumentNames := TStringList.Create;
+  %FArgumentSignatures := TStringList.Create;
+%end;
+
+
+%destructor TSignatureParser.Destroy;
+%begin
+  %FArgumentNames.Free;
+  %FArgumentSignatures.Free;
+  %inherited Destroy;
+%end;
+
+
+%function TSignatureParser.GetInputType : ParserInputType;
+%begin
+  %Result := FInputType;
+%end;
+
+
+%function TSignatureParser.GetName : string;
+%begin
+  %Result := FName;
+%end;
+
+
+%function TSignatureParser.GetSignature : string;
+%begin
+  %Result := FSignature;
+%end;
+
+
+%function TSignatureParser.GetShortSignature : string;
+%begin
+  %Result := FShortSignature;
+%end;
+
+
+%function TSignatureParser.GetArgumentCount : Integer;
+%begin
+  %Result := FArgumentNames.Count;
+%end;
+
+
+%function TSignatureParser.GetArgumentName(AIndex : Integer) : string;
+%begin
+  %Assert((AIndex >= 0) and (AIndex < FArgumentNames.Count), 'Invalid argument Index');
+  %Result := FArgumentNames[AIndex];
+%end;
+
+
+%function TSignatureParser.GetArgumentSignature(AIndex : Integer) : string;
+%begin
+  %Assert((AIndex >= 0) and (AIndex < FArgumentSignatures.Count), 'Invalid argument Index');
+  %Result := FArgumentSignatures[AIndex];
+%end;
+
+
+%function TSignatureParser.GetArgumentNames(AFromIndex, AToIndex : Integer) : string;
+%var
+  %I : Integer;
+%begin
+  %Assert((AFromIndex >= 0) and (AFromIndex < FArgumentNames.Count), 'Invalid argument Index');
+  %Assert((AToIndex >= 0) and (AToIndex < FArgumentNames.Count), 'Invalid argument Index');
+  %Result := '';
+  %for I := AFromIndex to AToIndex do
+  %begin
+    %if (I = AToIndex) then
+      %Result := Result + FArgumentNames[I]
+    %else
+      %Result := Result + FArgumentNames[I] + GetArgumentDelimiter + ' ';
+  %end;
+%end;
+
+
+
+
+
+%procedure TSignatureParser.Parse(AInput : string);
+%begin
+  %FInputType := DetermineInputType(AInput);
+  %FName := DetermineName(AInput);
+  %FSignature := AInput;
+  %FShortSignature := DetermineShortSignature(AInput);
+  %DetermineArguments(AInput, FArgumentSignatures, FArgumentNames);
+%end;
+
+
+
+
+
+%{------------------------------------------------------------------------------}
+%{
+%{ TPascalSignatureParser
+%{
+%{------------------------------------------------------------------------------}
+
+
+%{ sample signatures:
+  %function DateTimeToString : Boolean;
+  %function DateTimeToString (var Result: string; const Format: string; DateTime: TDateTime) : Boolean;
+  %procedure DateTimeToString(var Result: string; const Format: string; DateTime: TDateTime);
+  %procedure DateTimeToString; }
+
+
+%function TPascalSignatureParser.GetArgumentDelimiter : Char;
+%begin
+  %Result := ';';
+%end;
+
+
+%function TPascalSignatureParser.DetermineInputType(AInput : string) : ParserInputType;
+%var
+  %FirstWord : string;
+%begin
+  %FirstWord := ExtractWord(1, AInput, [' ']);
+  %if FirstWord = 'property' then
+    %Result := piProperty
+  %else if (FirstWord = 'function') or (FirstWord = 'procedure') then
+    %Result := piRoutine
+  %else
+    %Result := piVariable;
+%end;
+
+
+%{ returns function name }
+%function TPascalSignatureParser.DetermineName(AInput : string) : string;
+%const
+  %CDelims = [' ', ':', ';', '(', ')', '[', ']'];
+%var
+  %InputType : ParserInputType;
+
+%begin
+  %InputType := DetermineInputType(AInput);
+  %{ piRoutine, piProperty }
+  %if (InputType = piRoutine) or (InputType = piProperty) then
+    %Result := ExtractWord(2, AInput, CDelims)
+  %else
+  %{ piVariable }
+  %if (InputType = piVariable) then
+    %Result := ExtractWord(1, AInput, CDelims)
+  %else
+    %Error('Unsupported InputType');
+%end;
+
+
+%{ returns partial function signature }
+%function TPascalSignatureParser.DetermineShortSignature(AInput : string) : string;
+%var
+  %LeftParen, RightParen : Integer;
+  %Position : Integer;
+  %TypeWord : string;
+%begin
+  %{ piRoutine }
+  %if DetermineInputType(AInput) = piRoutine then
+  %begin
+    %{ remove all not needed strings }
+    %AInput := ReplaceStr(ReplaceStr(ReplaceStr(AInput, 'virtual;', ''), 'override;', ''), 'abstract;', '');
+    %{ replace arguments with "..." }
+    %LeftParen := Pos('(', AInput);
+    %RightParen := Pos(')', AInput);
+    %if (LeftParen > 0) then
+    %begin
+      %Delete(AInput, LeftParen + 1, RightParen - LeftParen - 1);
+      %Insert('...', AInput, LeftParen + 1);
+    %end;
+    %{ }
+    %Result := AInput;
+  %end else
+  %{ piVariable }
+  %if DetermineInputType(AInput) = piVariable then
+    %Result := AInput
+  %{ piProperty }
+  %else if DetermineInputType(AInput) = piProperty then
+  %begin
+    %if Pos('[', AInput) > 0 then { if index property }
+      %TypeWord := ExtractWordPos(5, AInput, [' ', ':'], Position)
+    %else { not index property }
+      %TypeWord := ExtractWordPos(3, AInput, [' ', ':'], Position);
+    %Delete(AInput, Position + Length(TypeWord), Length(AInput));
+    %{ for index property delete everything between [ and ] }
+    %if Pos('[', AInput) > 0 then
+      %Delete(AInput, Pos('[', AInput) + 1, Pos(']', AInput) - Pos('[', AInput) - 1);
+    %Result := AInput;
+  %end else
+    %Error('Unsupported InputType');
+%end;
+
+
+
+%{ retrieves argument name from given argument signature }
+%function TPascalSignatureParser.GetArgumentNameFromSignature(AArgumentSignature : string) : string;
+%begin
+  %if (ExtractWord(1, AArgumentSignature, [' ', ':']) = 'var') then
+     %Result := 'var ' + ExtractWord(2, AArgumentSignature, [' ', ':'])
+  %else if (ExtractWord(1, AArgumentSignature, [' ']) = 'const') then
+     %Result := ExtractWord(2, AArgumentSignature, [' ', ':'])
+  %else
+    %Result := ExtractWord(1, AArgumentSignature, [' ', ':']);
+%end;
+
+
+%{ retrieves preprocessed arguments from function signature }
+%function TPascalSignatureParser.GetArguments(ASignature : string) : string;
+%var
+  %I, J : Integer;
+  %Argument : string;
+  %Arguments : string;
+  %ArgumentPrefix, ArgumentType : string;
+%begin
+  %Result := '';
+  %if (Pos('(', ASignature) > 0) then
+  %begin
+    %Arguments := ExtractWord(2, ASignature, ['(', ')']);
+
+    %{ go through arguments splitting "Arg1, Arg2 : Type" into "Arg1 : Type; Arg2 : Type"
+      %when necessary }
+    %for I := 1 to WordCount(Arguments, [';']) do
+    %begin
+      %Argument := DelESpace(DelBSpace(ExtractWord(I, Arguments, [';'])));
+
+      %{ split Arg1, Arg2 : Type into Arg1 : Type;Arg2 : Type; }
+      %if (Pos(',', Argument) > 0) then
+      %begin
+        %{ extract argument prefix (var/const) if exists }
+        %if (ExtractWord(1, Argument, [' ']) = 'var') then
+        %begin
+          %ArgumentPrefix := 'var ';
+          %Delete(Argument, Pos('var', Argument), Length('var'));
+        %end else
+        %if (ExtractWord(1, Argument, [' ']) = 'const') then
+        %begin
+          %ArgumentPrefix := ''; { we don't want this prefix in name }
+          %Delete(Argument, Pos('const', Argument), Length('const'));
+        %end else
+          %ArgumentPrefix := '';
+        %{ extract argument type if exists }
+        %if (Pos(':', Argument) > 0) then
+        %begin
+          %ArgumentType := Copy(Argument, Pos(':', Argument), Length(Argument));
+          %Delete(Argument, Pos(':', Argument), Length(Argument));
+        %end else
+          %ArgumentType := '';
+        %{ extract "," delimited arguments to Result }
+        %for J := 1 to WordCount(Argument, [' ', ',']) do
+          %Result := Result + ArgumentPrefix + ExtractWord(J, Argument, [' ',',']) + ArgumentType + ';'
+      %end else
+      %{ just add argument }
+        %Result := Result + Argument + ';';
+    %end;
+  %end;
+%end;
+
+
+%procedure TPascalSignatureParser.DetermineArguments(ASignature : string; AArgumentSignatures, AArgumentNames : TStringList);
+%var
+  %Arguments : string;
+  %Argument : string;
+  %I : Integer;
+%begin
+  %AArgumentNames.Clear;
+  %AArgumentSignatures.Clear;
+  %Arguments := GetArguments(ASignature);
+  %for I := 1 to WordCount(Arguments, [';']) do
+  %begin
+    %Argument := ExtractWord(I, Arguments, [';']);
+    %AArgumentSignatures.Add(Argument);
+    %AArgumentNames.Add(GetArgumentNameFromSignature(Argument));
+  %end;
+%end;
+
+
+
+%function TPascalSignatureParser.GetInputType : ParserInputType;
+%begin
+  %Result := FInputType;
+%end;
+
+
+
+
+%{------------------------------------------------------------------------------}
+%{
+%{ TCSignatureParser
+%{
+%{------------------------------------------------------------------------------}
+
+
+%{
+%main (int argc, char *argv [])
+%void * main(int argc, char argv)
+%}
+
+
+%function TCSignatureParser.GetArgumentDelimiter : Char;
+%begin
+  %Result := ',';
+%end;
+
+
+
+%function TCSignatureParser.DetermineInputType(AInput : string) : ParserInputType;
+%begin
+  %if Pos('(', AInput) > 0 then
+    %Result := piRoutine
+  %else
+    %Result := piVariable;
+%end;
+
+
+%{ retrieves partial signature from given signature }
+%function TCSignatureParser.DetermineShortSignature(AInput : string) : string;
+%var
+  %LeftParen, RightParen : Integer;
+%begin
+  %LeftParen := Pos('(', AInput);
+  %RightParen := Pos(')', AInput);
+  %if (LeftParen > 0) then
+  %begin
+    %Delete(AInput, LeftParen + 1, RightParen - LeftParen - 1);
+    %Insert('...', AInput, LeftParen + 1);
+  %end;
+  %Result := AInput;
+%end;
+
+
+%{ retrieves function name from given signature }
+%function TCSignatureParser.DetermineName(AInput : string) : string;
+%const
+  %CDelims = [' ', '*', ';', '(', ')'];
+%var
+  %N, NthPos : Integer;
+  %LeftParenPos : Integer;
+%begin
+  %{ scanning from right side for first word that is before "("
+    %scanning from right and not from left so that i dont have to change N to get result }
+  %{ wordpos is from 1 to wordcount }
+  %LeftParenPos := Pos('(', AInput);
+  %N := WordCount(AInput, CDelims);
+  %ExtractWordPos(N, AInput, CDelims, NthPos);
+  %while (N > 1) and (NthPos > LeftParenPos) do
+  %begin
+    %Dec(N);
+    %ExtractWordPos(N, AInput, CDelims, NthPos);
+  %end;
+  %Result := ExtractWord(N, AInput, CDelims);
+%end;
+
+
+%{
+%main (int argc, char *argv [])
+%void * main(int argc, char argv)
+%}
+
+%procedure TCSignatureParser.DetermineArguments(ASignature : string; AArgumentSignatures, AArgumentNames : TStringList);
+%var
+  %Arguments : string;
+  %ArgumentSignature : string;
+  %I : Integer;
+%begin
+  %AArgumentNames.Clear;
+  %AArgumentSignatures.Clear;
+  %if (Pos('(', ASignature) > 0) and (Pos('()', ASignature) = 0) { no empty params } then
+  %begin
+    %Arguments := ExtractWord(2, ASignature, ['(', ')']);
+    %for I := 1 to WordCount(Arguments, [',']) do
+    %begin
+      %ArgumentSignature := DelESpace(DelBSpace(ExtractWord(I, Arguments, [','])));
+      %AArgumentSignatures.Add(ArgumentSignature);
+
+      %if ExtractWord(1, ArgumentSignature, [' ']) = 'const' then
+        %AArgumentNames.Add(ExtractWord(3, ArgumentSignature, [' ','*','[',']']))
+      %else
+        %AArgumentNames.Add(ExtractWord(2, ArgumentSignature, [' ','*','[',']']))
+    %end;
+  %end;
+%end;
+
+
+
+
+
+%{------------------------------------------------------------------------------}
+%{
+%{ TExporter
+%{
+%{------------------------------------------------------------------------------}
+
+%{ SuperMemo question and answer prefix }
+%const
+  %CQuestionPrefix = 'Q: ';
+  %CAnswerPrefix = 'A: ';
+
+
+
+%constructor TExporter.Create(AInput, AOutput : TStrings);
+%begin
+  %inherited Create;
+  %FInput := AInput;
+  %FOutput := AOutput;
+  %FMode := smSimple;
+  %FSwapping := False;
+  %FPrefix := '';
+  %FIgnoredWords := TStringList.Create;
+  %InitializeIgnoredWords(FIgnoredWords);
+%end;
+
+
+%destructor TExporter.Destroy;
+%begin
+  %FIgnoredWords.Free;
+  %inherited Destroy;
+%end;
+
+
+%{ fills given TStringList with popular words }
+%procedure TExporter.InitializeIgnoredWords(AIgnoredWords : TStringList);
+%const
+  %CIgnoredWords : array[0..38] of string[10] =
+      %('and', 'or', 'of', 'its', 'for', 'about', 'in', 'are', 'is', 'be', 'have',
+       %'has', 'a', 'an', 'the', 'that', 'with', 'at', 'without', 'to', 'by', 'from', 'when',
+       %'into', 'being', 'on', 'can', 'whether', 'was', 'what',
+       %'since', 'if', 'as', 'but', 'instead', 'according', 'to', 'between', 'over');
+%var
+  %I : Integer;
+  %IgnoreFile : string;
+%begin
+  %IgnoreFile := AddSl(ExtractFilePath(ParamStr(0))) + 'Notes.ignore';
+  %if FileExists(IgnoreFile) then
+    %AIgnoredWords.LoadFromFile(IgnoreFile);
+
+  %for I := Low(CIgnoredWords) to High(CIgnoredWords) do
+    %if AIgnoredWords.IndexOf(CIgnoredWords[I]) = -1 then
+      %AIgnoredWords.Add(CIgnoredWords[I]);
+%end;
+
+
+%procedure TExporter.SetMode(AMode : TSmexMode);
+%begin
+  %FMode := AMode;
+%end;
+
+
+%procedure TExporter.SetSwapping(AValue : Boolean);
+%begin
+  %FSwapping := AValue;
+%end;
+
+
+%procedure TExporter.SetPrefix(APrefix : string);
+%begin
+  %FPrefix := APrefix;
+%end;
+
+
+%procedure TExporter.SetMainPrefix(APrefix : string);
+%begin
+  %FMainPrefix := APrefix;
+%end;
+
+
+
+%procedure TExporter.AddIgnoredWord(AWord : string);
+%begin
+  %FIgnoredWords.Add(AWord);
+%end;
+
+
+
+%{ Simple export:
+  %input:
+    %Question
+    %Answer
+  %output:
+    %Q: Question?
+    %A: Answer
+  %swapped output:
+    %Q: Answer?
+    %A: Question }
+
+%{ .prefix smex: DoSimpleExport }
+
+%procedure TExporter.DoSimpleExport(AInput, AOutput : TStrings; APrefix : string; ASwapping : Boolean);
+%begin
+%{ .prefix smex: DoSimpleExport: alg:
+  %pre: AInput.Count_>_1, AOutput_cleared
+  %post: AOutput_filled_with_items
+  %steps: add_simple_item, add_swapped_item
+  %.prefix smex: DoSimpleExport: alg: add_simple_item:
+  %added question: input_line_1
+  %added answer: input_line_2
+  %.prefix smex: DoSimpleExport: alg: add_swapped_item:
+  %pre: ASwapping is True
+  %}
+  %if (AInput.Count > 1) then
+  %begin
+    %AOutput.Add(CQuestionPrefix + APrefix + AInput[0] + '?');
+    %AOutput.Add(CAnswerPrefix + AInput[1]);
+    %AOutput.Add('');
+    %if (ASwapping) then
+    %begin
+      %AOutput.Add(CQuestionPrefix + APrefix + AInput[1] + '?');
+      %AOutput.Add(CAnswerPrefix + AInput[0]);
+      %AOutput.Add('');
+    %end;
+  %end;
+%end;
+
+
+%procedure TExporter.DoSetExport(AInput, AOutput : TStrings;
+                                %APrefix : string;
+                                %ASwapping : Boolean;
+                                %AIgnoredWords : TStrings);
+%var
+  %Question, Answer, QuestionedWord : string;
+  %Position : Integer;
+  %I : Integer;
+  %Delims : set of char;
+
+%begin
+  %if (AInput.Count > 1) then
+  %begin
+    %{ determine delims
+      %if there exists comma then we want the set to be comma seperated
+      %else we treat it as space seperated }
+    %{ should sort this out by options setting }
+    %Delims := [];
+%{    if Pos(',', AInput[1]) > 0 then
+      %Include(Delims, ',')
+    %else }
+      %Include(Delims, ' ');
+%{    Include(Delims, ' ');
+    %Include(Delims, ','); }
+
+    %{ normal }
+    %for I := 1 to WordCount(AInput[1], Delims) do
+    %begin
+      %Question := AInput[1];
+      %QuestionedWord := ExtractWordPos(I, Question, Delims, Position);
+      %if AIgnoredWords.IndexOf(QuestionedWord) = -1 then
+      %begin
+        %{ when we have "," as delims then space must be treated differently
+        %{ treat space as special case }
+        %if (QuestionedWord[1] = ' ') then
+        %begin
+          %Delete(QuestionedWord, 1, 1);
+          %Inc(Position);
+        %end;
+
+        %Delete(Question, Position, Length(QuestionedWord));
+        %Insert('...', Question, Position);
+        %AOutput.Add(CQuestionPrefix + APrefix + EndWithChar(Trim(AInput[0]), ':'));
+        %AOutput.Add(CQuestionPrefix + ReplaceStr(Question, CMergeChar, ' '));
+        %AOutput.Add(CAnswerPrefix + ReplaceStr(Trim(QuestionedWord), CMergeChar, ' '));
+        %AOutput.Add('');
+      %end;
+    %end;
+
+    %{ swapped }
+    %if (ASwapping) then
+    %begin
+      %AOutput.Add(CQuestionPrefix + APrefix + ReplaceStr(AInput[1], CMergeChar, ' ') + '?');
+      %AOutput.Add(CAnswerPrefix + AInput[0]);
+      %AOutput.Add('');
+    %end;
+
+  %end;
+%end;
+
+
+
+
+
+%{ Definition export:
+  %input
+    %Term1
+    %Definition1
+  %output
+    %Q: Term1
+    %Q: ...
+    %A: Def..
+
+    %Q: Term1
+    %Q: Def...
+    %A: ini
+
+  %swapped output:
+    %Q: Definition1?
+    %A: Term1
+%}
+
+
+
+%{**
+ %*
+ %* DoDefinitionExport
+ %* definition export
+ %*
+ %* Precondition: AInput.Count > 1.
+ %*
+ %* Algorithm:
+ %* 1. Ask_for_each_word
+ %* 2. Ask_for_term
+ %*
+ %*}
+
+
+%// the "_" sign is used to merge words which shouldn't be splitted
+%// when adding strings to output we must therefore remove "_" signs
+%// maybe we should have routine AddToOutput
+
+%procedure TExporter.DoDefinitionExport(AInput, AOutput : TStrings;
+                             %APrefix : string;
+                             %ASwapping : Boolean;
+                             %AIgnoredWords : TStrings);
+%const
+  %CDelims = [' ', ','];
+%var
+  %Term : string;
+  %Definition : string;
+  %I : Integer;
+  %Pos : Integer;
+  %DefinitionWord : string;
+
+%begin
+  %if (AInput.Count > 1) then
+  %begin
+    %Term := AInput[0];
+    %Definition := AInput[1];
+
+    %{ ask for each DefinitionWord in definition }
+    %for I := 1 to WordCount(Definition, CDelims) do
+    %begin
+      %DefinitionWord := ExtractWordPos(I, Definition, CDelims, Pos);
+
+      %if (AIgnoredWords.IndexOf(DefinitionWord) = -1) then
+      %begin
+        %AOutput.Add(ReplaceStr(CQuestionPrefix + APrefix + Term + '?', CMergeChar, ' '));
+        %AOutput.Add(ReplaceStr(CQuestionPrefix + Copy(Definition, 1, Pos - 1) + '...', CMergeChar, ' '));
+        %if (I < WordCount(Definition, CDelims)) then
+          %AOutput.Add(ReplaceStr(CAnswerPrefix + DefinitionWord + '...', CMergeChar, ' '))
+        %else
+          %AOutput.Add(ReplaceStr(CAnswerPrefix + DefinitionWord, CMergeChar, ' '));
+        %AOutput.Add('');
+      %end;
+    %end;
+
+    %{ ask for term }
+    %if (ASwapping) then
+    %begin
+      %AOutput.Add(ReplaceStr(CQuestionPrefix + APrefix + Definition + '?', CMergeChar, ' '));
+      %AOutput.Add(ReplaceStr(CAnswerPrefix + Term, CMergeChar, ' '));
+      %AOutput.Add('');
+    %end;
+  %end;
+%end;
+
+
+
+%{
+%main (int argc, char *argv [])
+%void * main(int argc, char argv)
+%}
+
+%{
+%ala : string;
+
+%property ala : string read getala write setala;
+%property ala : string read getala;
+%property ala : string write getala;}
+
+
+%procedure TExporter.DoRoutineExport(AParser : TSignatureParser;
+                                      %AOutput : TStrings;
+                                      %APrefix : string);
+
+%var
+  %I : Integer;
+  %Arguments : string;
+  %Question : string;
+
+%begin
+  %{ question every argument name }
+  %if AParser.GetArgumentCount = 0 then
+  %begin
+    %AOutput.Add(CQuestionPrefix + APrefix + AParser.GetName + '(...)');
+    %AOutput.Add(CAnswerPrefix + '-');
+    %AOutput.Add('');
+  %end else
+  %begin
+    %for I := 0 to AParser.GetArgumentCount - 1 do
+    %begin
+      %{ add question }
+      %Arguments := '';
+      %{ add left part (if exists) }
+      %if I > 0 then
+        %Arguments := Arguments + AParser.GetArgumentNames(0, I - 1) + AParser.GetArgumentDelimiter + ' ';
+      %Arguments := Arguments + '...';
+      %{ add right part (if exists) }
+      %if I < AParser.GetArgumentCount - 1 then
+        %Arguments := Arguments + AParser.GetArgumentDelimiter + ' ' + AParser.GetArgumentNames(I + 1, AParser.GetArgumentCount - 1);
+      %AOutput.Add(CQuestionPrefix + APrefix + AParser.GetName + '(' + Arguments + ')');
+      %{ add answer }
+      %AOutput.Add(CAnswerPrefix + AParser.GetArgumentName(I));
+      %AOutput.Add('');
+    %end;
+
+    %{ question every argument signature }
+    %for I := 0 to AParser.GetArgumentCount - 1 do
+    %begin
+      %AOutput.Add(CQuestionPrefix + APrefix +
+        %AParser.GetName + '(' + AParser.GetArgumentNames(0, AParser.GetArgumentCount - 1) + ')');
+      %AOutput.Add(CQuestionPrefix + AParser.GetArgumentName(I) + '?');
+      %AOutput.Add(CAnswerPrefix + AParser.GetArgumentSignature(I));
+      %AOutput.Add('');
+    %end;
+  %end;
+
+
+  %{ question function name }
+  %if (AParser.GetArgumentCount > 0) then
+    %AOutput.Add(CQuestionPrefix + APrefix +
+      %AParser.GetName + '(' + AParser.GetArgumentNames(0, AParser.GetArgumentCount - 1) + ')')
+  %else
+    %AOutput.Add(CQuestionPrefix + APrefix + AParser.GetName);
+  %AOutput.Add(CQuestionPrefix + AParser.GetName + '?');
+  %AOutput.Add(CAnswerPrefix + AParser.GetShortSignature);
+  %AOutput.Add('');
+%end;
+
+
+
+%procedure TExporter.DoPropertyExport(AParser : TSignatureParser;
+                                      %AOutput : TStrings;
+                                      %APrefix : string);
+%begin
+  %AOutput.Add(CQuestionPrefix + APrefix + AParser.GetName + ' signature?');
+  %AOutput.Add(CAnswerPrefix + AParser.GetShortSignature);
+  %AOutput.Add('');
+%end;
+
+
+
+%procedure TExporter.DoVariableExport(AParser : TSignatureParser;
+                                     %AOutput : TStrings;
+                                     %APrefix : string);
+%begin
+  %AOutput.Add(CQuestionPrefix + APrefix + AParser.GetName + ' signature?');
+  %AOutput.Add(CAnswerPrefix + AParser.GetShortSignature);
+  %AOutput.Add('');
+%end;
+
+
+
+
+
+
+
+
+%{ procedure DateTimeToString(var Result: string; const Format: string; DateTime: TDateTime); }
+%{ inny parametr parser??? gora nie powinna zbytnio wiedziec o metodach }
+%{ smPascalSignature export }
+%procedure TExporter.DoSignatureExport(AInput, AOutput : TStrings; APrefix : string; AClass : TSignatureParserClass);
+%var
+  %Parser : TSignatureParser;
+%begin
+  %if (AInput.Count > 0) then
+  %begin
+    %Parser := AClass.Create;
+    %Parser.Parse(AInput[0]);
+    %case Parser.GetInputType of
+      %piRoutine : DoRoutineExport(Parser, AOutput, APrefix);
+      %piProperty : DoPropertyExport(Parser, AOutput, APrefix);
+      %piVariable : DoVariableExport(Parser, AOutput, APrefix);
+    %end;
+    %Parser.Free;
+  %end;
+%end;
+
+
+
+%{ .?. czy tu czy nizej FOutput.Clear??? }
+%{ Exports item from input to output in given mode }
+%procedure TExporter.Execute;
+%var
+  %I : Integer;
+  %Prefix : string;
+%begin
+  %{ clear output }
+  %FOutput.Clear;
+  %Prefix := AdjustPrefix(FMainPrefix) + AdjustPrefix(FPrefix);
+  %{ trim input }
+  %for I := 0 to FInput.Count - 1 do
+    %FInput[I] := DelBSpace(DelESpace(FInput[I]));
+  %case FMode of
+    %smSimple : DoSimpleExport(FInput, FOutput, Prefix, FSwapping);
+    %smDefinition : DoDefinitionExport(FInput, FOutput, Prefix, FSwapping, FIgnoredWords);
+    %smCSignature : DoSignatureExport(FInput, FOutput, Prefix, TCSignatureParser);
+    %smPascalSignature : DoSignatureExport(FInput, FOutput, Prefix, TPascalSignatureParser);
+    %smSet : DoSetExport(FInput, FOutput, Prefix, FSwapping, FIgnoredWords);
+    %else
+      %Error('Unsupported Exporter mode');
+  %end;
+%end;
+
+
+
+%**
+ %*
+ %* ShouldIgnore
+ %*
+ %*}
+
+%function ShouldIgnore(AString : string) : Boolean;
+%const
+   %CEmptyChars = [' ', #13, #10];
+  %CCommentChar = '#';
+
+%begin
+  %Result := IsEmptyStr(AString, CEmptyChars) or { is empty }
+           %((Length(AString) > 0) and (AString[1] = CCommentChar)); { is a comment }
+%end;
+
+
+%{**
+ %*
+ %* ExtractSubstrings
+ %* Extracts substrings from given AStrings
+ %*
+ %* Starts from: given AIndex_position.
+ %* Stops on: empty_string or end_of_strings.
+ %* Returns: AIndex and AOutput.
+ %* On return AIndex is placed after: last extracted_string.
+ %* On return AOutput is first: cleared.
+ %*
+ %*}
+
+%procedure TSmex.ExtractSubstrings(AStrings : TStrings; var AIndex : Integer; AOutput : TStrings);
+%begin
+  %{ Clear output }
+  %AOutput.Clear;
+
+  %{ Skip empty strings and comments }
+  %while (AIndex < AStrings.Count) and (ShouldIgnore(AStrings[AIndex])) do
+    %AIndex := AIndex + 1;
+
+  %{ Go through [non-empty strings] }
+  %while (AIndex < AStrings.Count) and (not ShouldIgnore(AStrings[AIndex])) do
+  %begin
+    %AOutput.Add(AStrings[AIndex]);
+    %AIndex := AIndex + 1;
+  %end;
+%end;
+
+
+
+
+%{**
+ %*
+ %* IsOptionSubstrings
+ %* determines if given TStrings is smex_option_strings
+ %*
+ %*}
+
+%function TSmex.IsOptionSubstrings(AStrings : TStrings) : Boolean;
+%begin
+  %Result := (AStrings.Count > 0) and (AStrings[0][1] = '.');
+%end;
+
+
+
+
+
+
+
+%{**
+ %*
+ %* SetExporterOption
+ %* sets given TExporter's option from given TStrings
+ %*
+ %*}
+
+%procedure TSmex.SetExporterOption(AExporter : TExporter; AOption : TStrings);
+%const
+  %CDelims = [' '];
+%var
+  %I : Integer;
+  %Option : string;
+  %Params : string; { .todo. could be stringlist }
+%begin
+  %Params := '';
+  %Option := '';
+
+  %if (AOption.Count > 0) then
+  %begin
+    %Option := ExtractWord(1, AOption[0], CDelims);
+    %for I := 2 to WordCount(AOption[0], CDelims) do
+      %Params := Params + ExtractWord(I, AOption[0], CDelims) + ' ';
+
+    %while (Length(Params) > 0) and ((Params[Length(Params)] = ' ') or (Params[Length(Params)] = ':')) do
+      %Delete(Params, Length(Params), 1);
+  %end;
+
+  %if (Option = '.simple') then
+    %AExporter.SetMode(smSimple)
+
+  %else if (Option = '.definition') then
+    %AExporter.SetMode(smDefinition)
+
+  %else if (Option = '.c') then
+    %AExporter.SetMode(smCSignature)
+
+  %else if (Option = '.pascal') then
+    %AExporter.SetMode(smPascalSignature)
+
+  %else if (Option = '.set') then
+    %AExporter.SetMode(smSet)
+
+  %else if (Option = '.swap') then
+  %begin
+    %if ExtractWord(1, Params, CDelims) = 'on' then
+      %AExporter.SetSwapping(True)
+    %else
+      %AExporter.SetSwapping(False);
+  %end
+
+  %else if (Option = '.prefix') then
+    %AExporter.SetPrefix(Params)
+
+  %else if (Option = '.mainprefix') then
+    %AExporter.SetMainPrefix(Params)
+
+  %else if (Option = '.ignore') then
+  %begin
+    %for I := 1 to WordCount(Params, CDelims) do
+      %AExporter.AddIgnoredWord(ExtractWord(I, Params, CDelims));
+  %end;
+%end;
+
+
+
+%{**
+ %*
+ %* Execute
+ %* Creates FOutput from FInput
+ %*
+ %* algorithm:
+ %* 1. while has more substrings
+ %* 1a. extract substrings
+ %* 1b. export substrings
+ %*
+ %*}
+
+%procedure TSmex.Execute;
+%var
+    %I : Integer;
+%begin
+  %FOutput.Clear;
+  %I := 0;
+  %ExtractSubstrings(FInput, I, FExporterInput);
+
+  %while FExporterInput.Count > 0 do
+  %begin
+    %if IsOptionSubstrings(FExporterInput) then
+        %SetExporterOption(FExporter, FExporterInput)
+    %else
+    %begin
+      %FExporter.Execute;
+      %FOutput.AddStrings(FExporterOutput);
+    %end;
+    %ExtractSubstrings(FInput, I, FExporterInput);
+  %end;
+%end;
+
+
+
+
+%2}}}
+
+%}}}
+\end{document}
