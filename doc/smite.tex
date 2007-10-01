@@ -17,7 +17,6 @@
 % when editing tex/latex files
 %
 
-
 \section{Introduction}
 
 \smite{} is a tool for extracting and rearranging knowledge from documents in
@@ -49,19 +48,28 @@ q: America was discovered by Christoph Columbus in ...
 a: 1492
 \end{verbatim}
 
-The resulting items may now be exported to a flashcard program for later memorizing.
+The resulting items may now be exported to a flashcard program for memorizing.
+
+Smite can be also used to quickly prepare knowledge cloze tests over a wide
+range of different texts, like: programming code, articles etc.
 
 
-reorganizing knowledge into format more suitable for
-learningfrom data and presenting it in a
-way which is more suitable for learning.
 
-\smite{} is a tool to automate creation of SuperMemo items.  The name is
-abbreviation for \emph{SuperMemo EXport}.
+-- sense of flashcard programs ---
+
+If you never met a flashcard program before : it is a tool presenting knowledge
+in a form of cards. On each card there is stored one item which is repeatedly
+presented to you, until all knowledge is remembered.
+
+The most known example of such program is SuperMemo designed by Piotr Wozniak.
+
 
 SuperMemo is a program for improving the learning process by keeping track of
 your repetition schedule. It's mainly used in foreign language study, although
 it can be applied to any kind of knowledge.
+
+It is a great way of learning but it presents a special problem: how to
+construct the knowledge ...?
 
 TODO here add some more
 
@@ -82,18 +90,6 @@ review provides most benefits to user memory and items are not stacked up too
 quickly.  It is not uncommon for SuperMemo users to have tens of thousands of
 items in their databases and yet not spending more than a couple of minutes
 each day to have the scheduled items reviewed.
-
-\subsubsection{\smite{} name}
-
-This should really go in the reference below: for one SMITE is an acronym for
-SuperMemo ITEms which is a common-sense name for SuperMemo add-on tool.  The
-second meaning might be in \emph{smiting dark evil} which is a metaphore for
-bringing light to dark minds and trying to lighten the path of no-knowledge.
-And the last which comes to my mind is , obviously, the required recursive
-acronym name which may be \emph{smite is the elite} or \emph{smite might
-include teaching erudite}.  This is just a crude comment, please don't take it
-too seriously.. .
-
 
 
 
@@ -149,44 +145,42 @@ the aim of this tool is to generally tweak all the way it's used gr
 
 
 
+\subsubsection{\smite{} name}
+
+Most specifically, \smite{} is a tool to automate creation of SuperMemo items.
+The name is abbreviation for \emph{SuperMemo EXport}.
+
+This should really go in the reference below: for one SMITE is an acronym for
+SuperMemo ITEms which is a common-sense name for SuperMemo add-on tool.  The
+second meaning might be in \emph{smiting dark evil} which is a metaphore for
+bringing light to dark minds and trying to lighten the path of no-knowledge.
+And the last which comes to my mind is , obviously, the required recursive
+acronym name which may be \emph{smite is the elite} or \emph{smite might
+include teaching erudite}.  This is just a crude comment, please don't take it
+too seriously.. .
 
 
+
+
+% 1}}} Introduction
 % {{{1 Usage
-
 \section{Usage}
 
-\smite{} is a command-line utility and it's basic usage is just running the
+\smite{} is a command-line utility and it's basic usage involves just running the
 script from the shell with a parameter of text file you want to export:
 \begin{verbatim}
-smite article.txt > import.dat
+smite article.txt
 \end{verbatim}
 
-The import.dat file, which will be generated, must be imported to
-SuperMemo by selecting menu:
-
+This will print the items for the file to the screen. If you want to save those
+items in a kind of file, you could run:
+\begin{verbatim}
+smite article.txt > article.out
+\end{verbatim}
+and then the file article.out will be generated.
+It can be imported to SuperMemo by selecting from menu:
 File->Tools->Import->Q\&A text
-
 The items will then appear in a new SuperMemo branch.
-
-% }}}
-% {{{1 Configuration
-\section{Configuration}
-
-The SML language is a forgiving language - it uses the same idea as the web
-browsers - it tries to parse what it can parse, and in case of errors it tries
-to deduce the best meaning. It has also the strict option which makes it
-possible to detect the errors quickly.
-
-
-
-
-In default configuration \smite{} will try to deduce the format used in the
-file and extract items it thinks are important.  This is useful when one wants
-to import the file quickly and have items memorized.
-
-There are some options to determine the working - given as command line
-options.
-
 
 
 In it's default configuration, \smite{} will export all paragraphs from the
@@ -216,7 +210,18 @@ In order to customize what should be exported from the file and how the
 items should be created you can use a special markup language to annotate the
 file.  The markup language gives hints to \smite{} how it should export the
 text.
+In it's default state, \smite{} will try deduce the format of the given file
+and export items in most useful state. If you want to control what items are
+exported you have to modify the file contents, using special smite markup
+language (called smite as well).
 
+
+Smite default behaviour may be often inappropriate and you may want to
+customize it. Smite command-line interface provides numerous options and switches
+
+\subsubsection{Options and switches}
+There are a set of command-line options which may be used to control smite
+behaviour:
 
 Here are the most common configuration options:
 
@@ -226,34 +231,35 @@ Here are the most common configuration options:
 
 --verbose -v writes verbose information
 
+--swap=off/on should generate swapped items as well?
 
 --class = tries to use given class when parsing the file
 
 The currently supported classes are: tabular, cloze, sentences, paragraphs,
 code and graphical.
 
+The switches and options provided by Smite command-line interface may be often
+now enough. In some cases a more fine-grained control may be needed.
+In order to have full control over smite export, you will have to modify the
+document, using simple smite markup language.
 
-
-% 1}}}
-% {{{1 Language constructs
-
-\section{Smite Markup Language}
-
-==  DESIGN GOAL ==
-
+% 1}}} Usage
+% {{{1 Smite markup language
+\section{Smite markup language}
+%{{{2 Smite language introduction
+\subsection{Introduction}
 It may happen that the defaults used by \smite{} are not sufficient to extract
 to knowledge or you may want to tweak the questions and answers generated by
 \smite{} so that you can memorize them more easily.
 
-To achive this you may want to use the SML which is short for Smite Markup
-Language.
+To achive this you may want to use the smite markup language.
 
 % write about what are markup languages like SGML, HTML and LaTeX family smite
 % tries to be as minimal and unobtrusive as possible and yet poweful to be able
 % to tweak the way in which items are imported.
 
 
-The basic design goal of the SML language was to make it as unobtrusive as
+The basic design goal of the smite language was to make it as unobtrusive as
 possible - so that I could use the files as a real cheatsheet - yet make it
 quite powerful and expressive so that I could specify exactly what I want to
 learn from given piece of text.
@@ -274,19 +280,20 @@ easier for people familiar with LaTeX to start using it right away.  I also
 added some special tweaks and shortcuts after currently popular light-html
 markups like markdown and textile to make the language even more lightweight.
 
-and LaTeX
-
 - requirements for language: minimalistic - extracting information in a subtle
 way
 
+Smite markup language is a special language for marking text in a way that can
+be understood by Smite. It is superficially smiliar to such languages like TeX,
+HTML or currently popular languages like Markdown etc.
 
-
-\subsection{Language constructs}
-The language constructs are presented below:
-
-
-% {{{2 begin  Items constructs
-\subsubsection{items construct}
+It is quite a forgiving language - it uses the same idea as the web
+browsers - it tries to parse what it can parse, and in case of errors it tries
+to deduce the best meaning. It has also the strict option which makes it
+possible to detect the errors quickly.
+% 2}}}
+% {{{2 begin General constructs
+\subsection{General constructs}
 
 1. \char93 items construct This is the basic construct which marks the text to
 be processed by \smite{}. By default \smite{} processes the whole file unless it
@@ -299,13 +306,9 @@ and the text outside this construct is ignored.
 The {class} determines the type of export \smite{} should use. Currently
 there are several types of export and each one treats the
 
-% 2}}}
-
-
-
-
-% {{{2 Classes
-\section{Classes}
+% 2}}} General constructs
+% {{{2 Tabbed class
+\subsection{Tabbed class}
 
 A class determines how the text should be treated. It determines the rules ,
 class and algorithm that is selected to process given text chunk.  It is
@@ -313,20 +316,18 @@ possible to extend \smite{} with custom classes whenever you feel there are
 some texts you would like to learn in a special way or modify existing classes
 by deriving from them and creating new classes.
 
-\subsection{tabular class}
-
-
-\subsection{qa class}
-
-
-\subsection{cloze class}
-
-
-
-\subsection{set class}
-
-
-\subsection{code class}
+% 2}}} Tabbed class
+% {{{2 QA class
+\subsection{QA class}
+% 2}}}A QA class
+% {{{2 Cloze class
+\subsection{Cloze class}
+% 2}}}A Cloze class
+% {{{2 Set class
+\subsection{Set class}
+% 2}}}A Set class
+% {{{2 Code class
+\subsection{Code class}
 
 This is a general class which may be used to generate items out of programming
 constructs. It may be useful if one wants to memorize some function signatures.
@@ -346,6 +347,8 @@ itself as well or not ?
 
 
 
+% 2}}}A Code class
+% {{{2 Sentence class
 \subsection{sentence class}
 
 This is the most general class which is suitable for pure articles.  It will
@@ -356,12 +359,9 @@ It will go paragraph by paragraph.
 By it's design smxe
 
 
-
-
-
-
+% 2}}} Sentence class
+% {{{2 Graphical class
 \subsection{graphical class}
-
 \smite{} will work with graphical items as well as text items will export to su
 SuperMemo ITEms Tools .  Graphical repetitions work by selecting a fragment of
 a picture and trying to remember what the cloze was about.  Currently export of
@@ -378,15 +378,8 @@ The syntax is as follows:
 \end
 
 \end{verbatim}
-
 % 2}}}
-
-
-
-
-
 % {{{2 Options
-
 \subsection{Class options}
 
 Each class has a set of options which may be used to tweak it's mechanizm.
@@ -427,14 +420,16 @@ options:
 
 % 3}}}
 
-% }}}
+% 2}}} Options
+% 1}}} Smite markup language
+% {{{1 Examples
+\section{Examples}
+This section presents examples of \smite{} usage in order to better present
+it's usage language.
 
 
 
-2. Configuration possibilities
-The configuration items
-
-% 1}}}
+% 1}}} Examples
 % {{{1 Other applications
 
 \section{Other applications}
@@ -456,7 +451,7 @@ It's developed by \smite{} author so integration with it is quite simple.
 
 \end{enumerate}
 
-% 1}}}
+% 1}}} Other applications
 % {{{1 Feedback
 \section{Feedback}
 This is initial release of this script - it is far from perfect and may
@@ -465,62 +460,7 @@ If you notice any bugs or have any comments about this program, please
 send info to: santhalus AT gmail DOT com
 
 
-% 1}}}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%Mentor for repetitions  / SuperMemo alike Smite
-
-
+% 1}}} Feedback
 %{{{1 older stuff
 
 %For most
