@@ -7,21 +7,17 @@
 % do: set formatoptions+=t to have it formatted
 % set tw=79
 
-% -- chars --
-
+%TODO
 %How to put text in special font (code font?)
 %Right now put it as \\begin and \\end and later change to something else
-
+% how to automatically fill regions
+% when editing tex/latex files
+% how to give header page
 %How to make references to other part of the document??
 
 
 
-% {{{1 Introduction % {{{1 Introduction
-%
-% how to give header page
-
-% how to automatically fill regions
-% when editing tex/latex files
+% {{{1 Introduction
 %
 
 \section{Introduction}
@@ -33,9 +29,11 @@ and then extracts those parts and presents them in way that can be exported
 to flash-card programs like SuperMemo, Mnemosyne or Mentor.
 
 For example, let's assume here is a text you want to get some info from:
-\textit{Christoph Columbus was a great adventurer. America was discovered by Columbus in 1492.}
+\textit{Christoph Columbus was a great adventurer. America was discovered by
+Columbus in 1492.}
 
-If you want to learn the important facts from given text, you modify it slightly by adding smite markup:
+If you want to learn the important facts from given text, you modify it
+slightly by adding smite markup:
 \begin{verbatim}
 \begin{cloze}
 Christoph Columbus was a \?{great adventurer}. America was discovered by
@@ -97,164 +95,6 @@ review provides most benefits to user memory and items are not stacked up too
 quickly.  It is not uncommon for SuperMemo users to have tens of thousands of
 items in their databases and yet not spending more than a couple of minutes
 each day to have the scheduled items reviewed.
-
-
-
-
-
-
-
-
-
-\subsubsection{\smite{} goal}
-
-The purpose quickly generating lots of items for supermemo  and i'm testing
-this great purpose editor and i'm not sure how it works
-
-
-
-Generally I should be able to just paste cheatsheet then apply some little/mall
-markup rules to better transform learning process There should be as little
-changes to the original texts as possible - the XML markups just go out of
-question
-
-I will create cheatsheets and out of this cheatsheets -> just a little command
-to generate supermemo items as well
-
-The stynax colors should make the additional words not really visible just like
-ocmments The idea The syntax is generally based on TEX/LATEX markups
-
-
-The most time-consuming part of SuperMemo usage is the creation of those item
-databases. There already exist plenty of ready-made database for most foreign
-languages (on different difficulty levels) and for common knowledge areas like
-geography, literature etc. but it is often useful or required to create
-custom-made databases. This is especially true for non-language databases, e.g.
-when one wants to learn facts from some articles or tutorials. Manual input of
-data to SuperMemo is quite cumbersome and impractical if one wants to learn
-lots of knowledge.
-
-This is the gap that this \smite{} program is trying to fill.
-
-The aim of this tool is to automatically extract valuable knowledge from texts
-and presents them in format which can be readily imported to SuperMemo. The
-extraction process can be fully customized by using a simple markup language
-which you may put in the text to annotate which fragments must be exported and
-in what way should they be presented in SuperMemo.
-
-
-the aim of this tool is to generally tweak all the way it's used gr
-
-
-
-
-
-
-
-
-\subsubsection{\smite{} name}
-
-Most specifically, \smite{} is a tool to automate creation of SuperMemo items.
-The name is abbreviation for \emph{SuperMemo EXport}.
-
-This should really go in the reference below: for one SMITE is an acronym for
-SuperMemo ITEms which is a common-sense name for SuperMemo add-on tool.  The
-second meaning might be in \emph{smiting dark evil} which is a metaphore for
-bringing light to dark minds and trying to lighten the path of no-knowledge.
-And the last which comes to my mind is , obviously, the required recursive
-acronym name which may be \emph{smite is the elite} or \emph{smite might
-include teaching erudite}.  This is just a crude comment, please don't take it
-too seriously.. .
-
-
-
-
-% 1}}} Introduction
-%
-% how to give header page
-
-% how to automatically fill regions
-% when editing tex/latex files
-%
-
-\section{Introduction}
-
-\smite{} is a tool for extracting and rearranging knowledge from documents in
-a way which makes it more suitable for understanding and learning. It uses a
-special markup language to mark the interesting parts of a document
-and then extracts those parts and presents them in way that can be exported
-to flash-card programs like SuperMemo, Mnemosyne or Mentor.
-
-For example, let's assume here is a text you want to get some info from:
-\textit{Christoph Columbus was a great adventurer. America was discovered by Columbus in 1492.}
-
-If you want to learn the important facts from given text, you modify it slightly by adding smite markup:
-\begin{verbatim}
-\begin{cloze}
-Christoph Columbus was a \?{great adventurer}. America was discovered by
-\?{Christoph Columbus} in \?{1492}.
-\end{cloze}
-\end{verbatim}
-
-Running smite over thusly modified text, will result in the following:
-\begin{verbatim}
-q: Christoph Columbus was a ....
-a: great adventurer
-
-q: America was discovered by ... in 1492
-a: Christoph Columbus
-
-q: America was discovered by Christoph Columbus in ...
-a: 1492
-\end{verbatim}
-
-The resulting items may now be exported to a flashcard program for memorizing.
-
-Smite can be also used to quickly prepare knowledge cloze tests over a wide
-range of different texts, like: programming code, articles etc.
-
-
-
--- sense of flashcard programs ---
-
-If you never met a flashcard program before : it is a tool presenting knowledge
-in a form of cards. On each card there is stored one item which is repeatedly
-presented to you, until all knowledge is remembered.
-
-The most known example of such program is SuperMemo designed by Piotr Wozniak.
-
-
-SuperMemo is a program for improving the learning process by keeping track of
-your repetition schedule. It's mainly used in foreign language study, although
-it can be applied to any kind of knowledge.
-
-It is a great way of learning but it presents a special problem: how to
-construct the knowledge ...?
-
-TODO here add some more
-
-The idea of the program is to split the knowledge into distinct items with a
-question and answer e.g. \emph{Q: mother A: die Mutti} for german vocabulary
-item or \emph{Q: when did II World War begin A: 1939} for historical item.  The
-user has to review the items regularly by looking at the questions and trying
-to come up with the answer in his head. Then the program displays the answer
-and user has to assign himself a score basing on the quality of his answer.
-Then the item is scheduled to be reviewed in some future time and user selects
-another item and so on.
-
-The great part about SuperMemo is the scheduling algorithm which tries to
-optimize the time break needed for next review, basing on user-assigned score,
-item difficulty, general user profile and database difficulty. The optimal
-schedule time is just before the item is about to be forgotten so that the
-review provides most benefits to user memory and items are not stacked up too
-quickly.  It is not uncommon for SuperMemo users to have tens of thousands of
-items in their databases and yet not spending more than a couple of minutes
-each day to have the scheduled items reviewed.
-
-
-
-
-
 
 
 
@@ -496,10 +336,25 @@ there are several types of export and each one treats the
 
 %====================
 \subsubsection{FIXinclude option}
-This option is used to include another file in the current.
-It is similar to C++ preprocessor directive which includes the content of
-another file in given file.
+This option is used to include another file in the current in current file.
 
+It is similar to C/C++ preprocessor directive which includes the content of
+another file in given file.
+This may be useful when you want to have your articles nicely splitted among
+different files but want to have only one file to process.
+
+Example usage:
+\begin{verbatim}
+\begin{set}
+\include{sample.txt}
+[...]
+\end{verbatim}
+
+This will include sample.txt file to the currently processed file.
+Note that the processing will be done according to currently active options. In
+this case, the file will be processed as \textit{set mode}.
+
+The file must be present in current path or in PATH variable.
 
 %====================
 \subsubsection{FIXcommon option}
@@ -511,15 +366,31 @@ you include common words, they will not be asked for.
 This section is valid in Set classes. TODO reference.
 
 
+Example usage:
+\begin{verbatim}
+\common{common.txt}
+\end{verbatim}
+
+The file must be included in the path or in current directory.
+
+
 %====================
 \subsubsection{FIXlang option}
 This will determine the language used in export. This is especially important
 because it determines the common words which should be excluded from Set
 questions.
 
+Example usage:
+\begin{verbatim}
+\lang{en}
+\end{verbatim}
+
+Currently possible values are: \textit{en} and \textit{pl}.
+
+
 
 %====================
-\subsubsection{FIXjoin option}
+\subsubsection{FIXjoined option}
 This option includes a file with joined words which should not be split when
 asking for words in Set class.
 By default, all words with capital letters are joined if they happen to exist
@@ -533,6 +404,33 @@ stored eventually
 
 ie in each line should be words which should be connected if they happen to
 exist exactly in this way.
+
+Example usage:
+For the following instructions:
+\begin{verbatim}
+\joined{joined.txt}
+\begin{set}
+The file contents is empty.
+\end{set}
+\end{verbatim}
+smite will generate the questions:
+\begin{verbatim}
+q: The ... is empty.
+a: file contents
+
+q: The file contents is ....
+a: empty.
+\end{verbatim}
+
+Notice that there were no double questions generated for \textit{file} and
+\textit{contents} but they were merge into one.
+
+%====================
+\subsubsection{FIXcomment}
+The comment in smite is done similarly to LaTeX: using the \% char.
+Everything that is preceded by this char is commented.
+Note that if you want to have this char, you must escape it, using backslash
+character.
 
 
 
@@ -617,7 +515,7 @@ The syntax is as follows:
 \end
 
 \end{verbatim}
-% 2}}}
+% 2}}} Graphical class
 % {{{2 Options
 \subsection{Class options}
 
@@ -660,7 +558,7 @@ options:
 % 3}}}
 
 % 2}}} Options
-% {{{3 Special constructs
+% {{{2 Special constructs
 \subsection{Special constructs}
 
 This subsection describes special constructs which may be used all over the
@@ -696,7 +594,7 @@ split despite the default rules being joining the words with capitals.
 
 
 
-% 3}}}
+% 2}}}
 % 1}}} Smite markup language
 % {{{1 Examples
 \section{Examples}
