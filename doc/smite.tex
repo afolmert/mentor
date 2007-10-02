@@ -7,9 +7,16 @@
 % do: set formatoptions+=t to have it formatted
 % set tw=79
 
+% -- chars --
+
+%How to put text in special font (code font?)
+%Right now put it as \\begin and \\end and later change to something else
+
+%How to make references to other part of the document??
 
 
-% {{{1 Introduction
+
+% {{{1 Introduction % {{{1 Introduction
 %
 % how to give header page
 
@@ -163,6 +170,154 @@ too seriously.. .
 
 
 % 1}}} Introduction
+%
+% how to give header page
+
+% how to automatically fill regions
+% when editing tex/latex files
+%
+
+\section{Introduction}
+
+\smite{} is a tool for extracting and rearranging knowledge from documents in
+a way which makes it more suitable for understanding and learning. It uses a
+special markup language to mark the interesting parts of a document
+and then extracts those parts and presents them in way that can be exported
+to flash-card programs like SuperMemo, Mnemosyne or Mentor.
+
+For example, let's assume here is a text you want to get some info from:
+\textit{Christoph Columbus was a great adventurer. America was discovered by Columbus in 1492.}
+
+If you want to learn the important facts from given text, you modify it slightly by adding smite markup:
+\begin{verbatim}
+\begin{cloze}
+Christoph Columbus was a \?{great adventurer}. America was discovered by
+\?{Christoph Columbus} in \?{1492}.
+\end{cloze}
+\end{verbatim}
+
+Running smite over thusly modified text, will result in the following:
+\begin{verbatim}
+q: Christoph Columbus was a ....
+a: great adventurer
+
+q: America was discovered by ... in 1492
+a: Christoph Columbus
+
+q: America was discovered by Christoph Columbus in ...
+a: 1492
+\end{verbatim}
+
+The resulting items may now be exported to a flashcard program for memorizing.
+
+Smite can be also used to quickly prepare knowledge cloze tests over a wide
+range of different texts, like: programming code, articles etc.
+
+
+
+-- sense of flashcard programs ---
+
+If you never met a flashcard program before : it is a tool presenting knowledge
+in a form of cards. On each card there is stored one item which is repeatedly
+presented to you, until all knowledge is remembered.
+
+The most known example of such program is SuperMemo designed by Piotr Wozniak.
+
+
+SuperMemo is a program for improving the learning process by keeping track of
+your repetition schedule. It's mainly used in foreign language study, although
+it can be applied to any kind of knowledge.
+
+It is a great way of learning but it presents a special problem: how to
+construct the knowledge ...?
+
+TODO here add some more
+
+The idea of the program is to split the knowledge into distinct items with a
+question and answer e.g. \emph{Q: mother A: die Mutti} for german vocabulary
+item or \emph{Q: when did II World War begin A: 1939} for historical item.  The
+user has to review the items regularly by looking at the questions and trying
+to come up with the answer in his head. Then the program displays the answer
+and user has to assign himself a score basing on the quality of his answer.
+Then the item is scheduled to be reviewed in some future time and user selects
+another item and so on.
+
+The great part about SuperMemo is the scheduling algorithm which tries to
+optimize the time break needed for next review, basing on user-assigned score,
+item difficulty, general user profile and database difficulty. The optimal
+schedule time is just before the item is about to be forgotten so that the
+review provides most benefits to user memory and items are not stacked up too
+quickly.  It is not uncommon for SuperMemo users to have tens of thousands of
+items in their databases and yet not spending more than a couple of minutes
+each day to have the scheduled items reviewed.
+
+
+
+
+
+
+
+
+
+%====================
+\subsubsection{\smite{} goal}
+
+The purpose quickly generating lots of items for supermemo  and i'm testing
+this great purpose editor and i'm not sure how it works
+
+
+
+Generally I should be able to just paste cheatsheet then apply some little/mall
+markup rules to better transform learning process There should be as little
+changes to the original texts as possible - the XML markups just go out of
+question
+
+I will create cheatsheets and out of this cheatsheets -> just a little command
+to generate supermemo items as well
+
+The stynax colors should make the additional words not really visible just like
+ocmments The idea The syntax is generally based on TEX/LATEX markups
+
+
+The most time-consuming part of SuperMemo usage is the creation of those item
+databases. There already exist plenty of ready-made database for most foreign
+languages (on different difficulty levels) and for common knowledge areas like
+geography, literature etc. but it is often useful or required to create
+custom-made databases. This is especially true for non-language databases, e.g.
+when one wants to learn facts from some articles or tutorials. Manual input of
+data to SuperMemo is quite cumbersome and impractical if one wants to learn
+lots of knowledge.
+
+This is the gap that this \smite{} program is trying to fill.
+
+The aim of this tool is to automatically extract valuable knowledge from texts
+and presents them in format which can be readily imported to SuperMemo. The
+extraction process can be fully customized by using a simple markup language
+which you may put in the text to annotate which fragments must be exported and
+in what way should they be presented in SuperMemo.
+
+
+the aim of this tool is to generally tweak all the way it's used gr
+
+%====================
+\subsubsection{\smite{} name}
+
+Most specifically, \smite{} is a tool to automate creation of SuperMemo items.
+The name is abbreviation for \emph{SuperMemo EXport}.
+
+This should really go in the reference below: for one SMITE is an acronym for
+SuperMemo ITEms which is a common-sense name for SuperMemo add-on tool.  The
+second meaning might be in \emph{smiting dark evil} which is a metaphore for
+bringing light to dark minds and trying to lighten the path of no-knowledge.
+And the last which comes to my mind is , obviously, the required recursive
+acronym name which may be \emph{smite is the elite} or \emph{smite might
+include teaching erudite}.  This is just a crude comment, please don't take it
+too seriously.. .
+
+
+
+
+% 1}}} Introduction
 % {{{1 Usage
 \section{Usage}
 
@@ -246,7 +401,7 @@ document, using simple smite markup language.
 % 1}}} Usage
 % {{{1 Smite markup language
 \section{Smite markup language}
-%{{{2 Smite language introduction
+%{{{2 Introduction
 \subsection{Introduction}
 It may happen that the defaults used by \smite{} are not sufficient to extract
 to knowledge or you may want to tweak the questions and answers generated by
@@ -291,20 +446,95 @@ It is quite a forgiving language - it uses the same idea as the web
 browsers - it tries to parse what it can parse, and in case of errors it tries
 to deduce the best meaning. It has also the strict option which makes it
 possible to detect the errors quickly.
+
+The Smex language is not one language - it is specifically a collection of
+different languages - each one being a specific class.
+
+They are called classes and determine how the text should be processed. The
+classes share some similarities (e.g. option settings) but generally each class
+tries to blend with the type of text it tries markup.
+
+It is superficially similar to LaTeX.
+
+
 % 2}}}
-% {{{2 begin General constructs
+% {{{2 General constructs
 \subsection{General constructs}
 
-1. \char93 items construct This is the basic construct which marks the text to
+%====================
+\subsubsection{FIXbegin and FIXend options}
+The most general construct is FIXbegin and FIXend. They mark the beginning of
+special class which is used to parse the text contained in it.
+
+It determines what class should be chosen for parsing the file.
+
+The class may be one of the following:
+\emph{tabular}, \emph{sentence}, \emph{code} and \emph{qa} and others which
+will be described later.
+
+This construct may contain option settings in [ ]:
+the possible options are \emph{swap} , \emph{prefix}, \emph{mainprefix} and
+others.
+
+
+The construct of chosing class is similar to what we call environment in LaTeX
+(again similarly to LaTeX):
+
+TODO must select different font for these to work !!!!
+
+1. \char92 items construct This is the basic construct which marks the text to
 be processed by \smite{}. By default \smite{} processes the whole file unless it
 encounters this construct - then only the text between those tags is processed
 and the text outside this construct is ignored.
 
-\char93 items{class}[options]
-\char93 enditems{class}
+\char92 items{class}[options]
+\char92 enditems{class}
 
 The {class} determines the type of export \smite{} should use. Currently
 there are several types of export and each one treats the
+
+
+%====================
+\subsubsection{FIXinclude option}
+This option is used to include another file in the current.
+It is similar to C++ preprocessor directive which includes the content of
+another file in given file.
+
+
+%====================
+\subsubsection{FIXcommon option}
+This construct includes common words in current scope which should be skipped
+when asking questions in Set class.
+Basically, the Set class will ask for each word which exists in sentence. If
+you include common words, they will not be asked for.
+
+This section is valid in Set classes. TODO reference.
+
+
+%====================
+\subsubsection{FIXlang option}
+This will determine the language used in export. This is especially important
+because it determines the common words which should be excluded from Set
+questions.
+
+
+%====================
+\subsubsection{FIXjoin option}
+This option includes a file with joined words which should not be split when
+asking for words in Set class.
+By default, all words with capital letters are joined if they happen to exist
+side by side.
+
+The file contents should be like this
+\begin{verbatim}
+file contents
+stored eventually
+\end{verbatim}
+
+ie in each line should be words which should be connected if they happen to
+exist exactly in this way.
+
+
 
 % 2}}} General constructs
 % {{{2 Tabbed class
@@ -323,6 +553,15 @@ by deriving from them and creating new classes.
 % {{{2 Cloze class
 \subsection{Cloze class}
 % 2}}}A Cloze class
+% {{{2 Comma-seperated class
+\subsection{Comma-seperated class}
+This class is similar to tabbed class but uses commas instead of TAB
+characters.
+
+e.g. this text will be transformed:
+
+
+% 2}}}A Comma-seperated class
 % {{{2 Set class
 \subsection{Set class}
 % 2}}}A Set class
@@ -421,6 +660,43 @@ options:
 % 3}}}
 
 % 2}}} Options
+% {{{3 Special constructs
+\subsection{Special constructs}
+
+This subsection describes special constructs which may be used all over the
+file, in almost all classes.
+Warning! Appearance of some special constructs determines the class /??
+
+\subsubsection{The \^ char}
+The joining char is used to join words which should be used together.
+This is especially useful for Set class which asks for each word in given text.
+
+
+When words will be joined with \^ , .eg. \textit{America was discovered by
+Christoph\^Columbus} then
+In Set class, this would result in asking for each word seperately. By joining
+Christoph Columbus in one it will appear only once in answer.
+
+Note: some words are joined automatically. E.g. words beginning with capitals
+near themselves are automatically joined.
+
+The is also FIXjoined command and special char \ FIXbackslash which will split
+them
+
+
+\subsubsection{The ! char}
+The ! char describes the word following it should be excluded from the export.
+It is useful also in the Set class, which selects all words from given text.
+
+\subsubsection{The \ char}
+This is the 'przeciwienstwo' of the \^ char which would join - it would split
+the names. It is useful also in the Set class questioning - when you want to
+split despite the default rules being joining the words with capitals.
+
+
+
+
+% 3}}}
 % 1}}} Smite markup language
 % {{{1 Examples
 \section{Examples}
@@ -462,6 +738,110 @@ send info to: santhalus AT gmail DOT com
 
 % 1}}} Feedback
 %{{{1 older stuff
+
+
+%
+%pocz¦tek : integracja narzàdzi dostàpnych : Visio i SuperMemo
+%dodaje Add-Iny dopisujà elementy import / export
+%
+%
+%zale¬y ile da sià zrobiŠ w tym visio
+%potem moge add-iny pisac w c++
+%
+%
+%potem, jeli projekt sià powiedzie i bede tego u¬ywa-
+%--> mo¬e przepiszà to na w-asne narzàdzie uzywaj¦c
+%Borland C++ + CLX i Pythona jako rozszerzenia (do implementowania prototyp¡w)
+%
+%albo
+%Java i Jython
+%
+%
+%
+%
+%
+%--------------------------
+%---------------------------
+%MENTOR TODO
+%---------------------------
+%
+%
+%Mentor new version : in emacs
+%set of macros
+%mentor minor mode
+%perparing texts for supermemo and testing for supermemo
+%extract sentence , and add to database , making it a question
+%
+%plus
+%set of shell/python  scripts for
+%extracting knowledge from pascal, c etc sources
+%and converting to supermemo knowledge
+%maybe using emacs snavigator for analyzing source code ??
+%
+%
+%
+%allowing :
+%set of macros for preprocessing  a text
+%extracting important information from plsql code for example
+%
+%e.g.
+%function name1
+%function name2
+%function name3
+%
+%
+%
+%
+%
+%testing in formats:
+%q:
+%q:
+%a:
+%a:
+%
+%or html like (instead of my . language )
+%<q>  <a>
+%
+%<q bimode>
+%procedure dosomething
+%<a>
+%tworzy
+%
+%<style pascal bimode>
+%
+%</style>
+%
+%
+%Also performing gap text test e.g.
+%blanking out and showing all of given words randomly
+%or I can mark by myself the words which I want to be tested
+%
+%create table XMIGPROPS_V32
+%(
+%  OBJECTID       NUMBER,
+%  PROPERTY       VARCHAR2(100),
+%  VVALUE         VARCHAR2(100),
+%  TYTANTABLENAME VARCHAR2(100)
+%)
+%
+%
+%  performing different tests :
+%  - q and a test like in supermemo on Q A
+%
+%Check out elip and flashcard modes
+%
+%
+%Export to my graphic supermemo testing ground
+%MySupermemo
+%
+%Graphics SuperMemo may be done as a extension to Visio SDK
+%with objects that will disappear ?? or better bitmap ??
+%it would be nice to have such access to supermemo that I can export and not
+%touch it anymore
+%
+%
+
+
 
 %For most
 
