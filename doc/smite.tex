@@ -21,7 +21,9 @@
 %The smite name should be in capitals instead
 %Check out how python doc is done - how do they generate their documentation??
 
-
+% TODO see how other parsers (XML, HTML) are written
+% think about it , design generally then write some specific prototype
+% Learn LaTeX/TeX well before I begin (using old Mentor first maybe??)
 
 
 
@@ -308,8 +310,12 @@ It is superficially similar to LaTeX.
 % 2}}}
 % {{{2 General constructs
 \subsection{General constructs}
+These are general constructs which constitute the smite markup language. They
+may be used anywhere in the file.
+Class specific constructs are given in the next section.
 
-%====================
+
+% {{{3 FIXbegin
 \subsubsection{FIXbegin and FIXend options}
 The most general construct is FIXbegin and FIXend. They mark the beginning of
 special class which is used to parse the text contained in it.
@@ -347,7 +353,8 @@ possible to extend \smite{} with custom classes whenever you feel there are
 some texts you would like to learn in a special way or modify existing classes
 by deriving from them and creating new classes.
 
-%====================
+% 3}}} FIXbegin
+% {{{3 FIXinclude
 \subsubsection{FIXinclude option}
 This option is used to include another file in the current in current file.
 
@@ -368,8 +375,8 @@ Note that the processing will be done according to currently active options. In
 this case, the file will be processed as \textit{set mode}.
 
 The file must be present in current path or in PATH variable.
-
-%====================
+% 3}}}
+% {{{3 FIXcommon
 \subsubsection{FIXcommon option}
 This construct includes common words in current scope which should be skipped
 when asking questions in Set class.
@@ -385,9 +392,8 @@ Example usage:
 \end{verbatim}
 
 The file must be included in the path or in current directory.
-
-
-%====================
+% 3}}} FIXcommon
+% {{{3 FIXlang
 \subsubsection{FIXlang option}
 This will determine the language used in export. This is especially important
 because it determines the common words which should be excluded from Set
@@ -400,9 +406,8 @@ Example usage:
 
 Currently possible values are: \textit{en} and \textit{pl}.
 
-
-
-%====================
+% 3}}}
+% {{{3 FIXjoined
 \subsubsection{FIXjoined option}
 This option includes a file with joined words which should not be split when
 asking for words in Set class.
@@ -438,14 +443,15 @@ a: empty.
 Notice that there were no double questions generated for \textit{file} and
 \textit{contents} but they were merge into one.
 
-%====================
+% 3}}} FIXjoined
+% {{{3 FIXcomment
 \subsubsection{FIXcomment}
 The comment in smite is done similarly to LaTeX: using the \% char.
 Everything that is preceded by this char is commented.
 Note that if you want to have this char, you must escape it, using backslash
 character.
-
-%====================
+% 3}}}
+% {{{3 FIXmode
 \subsubsection{FIXmode}
 The mode command determines how text should be processed. Possible values are
 \textit{approx}, \textit{normal} and \textit{strict}. In \textit{approx} mode,
@@ -472,11 +478,31 @@ It is possible to have different modes in file. All text processed after mode
 command, will be treated as it said.
 These values may be also set from the command-line using option -mode
 See:  TODO ref
-
-
+% 3}}} FIXcommon
 % 2}}} General constructs
-% {{{2 Tabbed class
-\subsection{Tabbed class}
+% {{{2 Classes
+\subsection{Classes}
+Class is a set of rules how the source text should look like and how it should
+be processed.  Smite is designed to be able to parse all sorts of texts. To
+allow for big diversity and yet power the concept of classes was born.
+Class is a sort of subdialect with different rules and constructs to allow
+parsing different kinds of texts.
+
+It is also a way for easily extending the smite language. If you want to extend
+you can just write a plugin class. For more information see chapter Extending
+Smite.
+
+WARNING!
+The general constructs may be used only outside any class - when occurring in a
+class they will raise an error or result in the construct not being parsed
+correctly.
+
+%Hmm, OTOH some options and constructs like emph and ?? what other may be used ?
+%How to distinguish that ??
+
+
+% {{{3 Tabbed class
+\subsubsection{Tabbed class}
 
 In \textit{tabbed class}, each line is treated as an item. The question is everything
 before tab, and answer everything after tab.
@@ -521,9 +547,9 @@ Options which may be used here:
 
 
 
-% 2}}} Tabbed class
-% {{{2 QA class
-\subsection{QA class}
+% 3}}} Tabbed class
+% {{{3 QA class
+\subsubsection{QA class}
 This is very similar to \textit{Tabbed class} with only difference being that
 each items consist of 2 lines of separate paragaphs. They are seperate by the
 \emph{enter} char.
@@ -561,24 +587,24 @@ a: Angola
 Note that the generated items are virtually the same as the items generated
 from \emph{Tabbed class}.
 
-% 2}}}A QA class
-% {{{2 Cloze class
-\subsection{Cloze class}
-% 2}}}A Cloze class
-% {{{2 Comma-seperated class
-\subsection{Comma-seperated class}
+% 3}}}A QA class
+% {{{3 Cloze class
+\subsubsection{Cloze class}
+% 3}}}A Cloze class
+% {{{3 Comma-seperated class
+\subsubsection{Comma-seperated class}
 This class is similar to tabbed class but uses commas instead of TAB
 characters.
 
 e.g. this text will be transformed:
 
 
-% 2}}}A Comma-seperated class
-% {{{2 Set class
-\subsection{Set class}
-% 2}}}A Set class
-% {{{2 Code class
-\subsection{Code class}
+% 3}}}A Comma-seperated class
+% {{{3 Set class
+\subsubsection{Set class}
+% 3}}}A Set class
+% {{{3 Code class
+\subsubsection{Code class}
 
 This is a general class which may be used to generate items out of programming
 constructs. It may be useful if one wants to memorize some function signatures.
@@ -598,10 +624,26 @@ itself as well or not ?
 
 
 
-% 2}}}A Code class
-% {{{2 Sentence class
-\subsection{sentence class}
+% 3}}}A Code class
+% {{{3 Sentence class
+\subsubsection{sentence class}
 
+The \emph{sentence} class is a sort of subclass of the \emph{Set} and
+\emph{Cloze} classes with the difference of how the input text is treated.
+
+In \emph{sentence} class each sentence, ie a sequence of chars terminated by .
+(unless it's an abbreviation but this is detected looking at the next letter).
+The items are selected using the Cloze of Set method, depending on whether
+special chars like // or \^ exist.
+
+It does not matter
+
+items are initially
+positioned.
+
+
+
+The \emph{Sentence class} is most suitable This class is
 This is the most general class which is suitable for pure articles.  It will
 just extract each sentence and try to extract important information from it.
 
@@ -610,9 +652,17 @@ It will go paragraph by paragraph.
 By it's design smxe
 
 
-% 2}}} Sentence class
-% {{{2 Graphical class
-\subsection{graphical class}
+% 3}}} Sentence class
+% {{{3 Paragraph class
+\subsubsection{Paragraph class}
+This is similar to Sentence class but is different in that sense that each
+paragraph makes an item.
+Thusly,  seperator is not a dot but (at least) double enter.
+
+
+% 3}}}
+% {{{3 Graphical class
+\subsubsection{graphical class}
 \smite{} will work with graphical items as well as text items will export to su
 SuperMemo ITEms Tools .  Graphical repetitions work by selecting a fragment of
 a picture and trying to remember what the cloze was about.  Currently export of
@@ -629,7 +679,8 @@ The syntax is as follows:
 \end
 
 \end{verbatim}
-% 2}}} Graphical class
+% 3}}} Graphical class
+% 2}}} Classes
 % {{{2 Options
 \subsection{Class options}
 
@@ -730,6 +781,69 @@ it's usage language.
 
 
 % 1}}} Examples
+
+% {{{1 Extending smite
+\section{Extending smite}
+This chapter explains how to extend smite with your own classes.
+Smite engages the concept of classes which are set of rules how the text should
+be parsed.
+
+
+Smite is written in Python language which is a simple yet powerful language for
+prototyping and writing ever larger applications. Extending Smite requires
+learning a little of Python - you cannot currently use any other language.
+
+The file must be named after the class e.g. simple.py which will have Simple
+class , descending from Class object. It maybe some more specialized class if
+you want to use some functions already predefined.
+
+The Simple class must adhere to the interface . The interface is specified
+below.
+
+All classes are written according to interface class. They just provide
+functions which are used by general class.
+
+
+
+\subsection{Smite classes interface}
+
+The class interface is quite simple really.
+It consists of the following functions:
+
+\begin{verbatim}
+get_next_item(options, tokenizer, item) : int
+\end{verbatim}
+
+It should return 1 on success , 0 on failure (end) or raise an exception if an
+error occurred (depending on mode and options)
+
+
+options is a set of options as parsed by the general parser.
+tokenizer will have 2 functions:
+\begin{verbatim}
+get_next_token : bool
+push_back
+set_options
+\end{verbatim}
+
+"set\_options may be used to specifiy what chars should be treated as tokens
+get\_next\_token just returns token , will it be a word or a special construct
+
+item must be created by this function: using create\_item(q, a) where q is
+question text and a answer text. There may be some formatting (like color,
+emphasis etc.) used.
+
+
+Will the token be a line or what ?  a word ??
+what about fixed words??????
+
+
+The best pattern is to use generators for this
+
+
+
+% 1}}}
+
 % {{{1 Other applications
 
 \section{Other applications}
