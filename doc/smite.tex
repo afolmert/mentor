@@ -25,7 +25,7 @@
 % think about it , design generally then write some specific prototype
 % Learn LaTeX/TeX well before I begin (using old Mentor first maybe??)
 
-
+% TODO all of these chars may be used somehow: ! @ # $ % ^ & * ( ) - = + _
 
 % {{{1 Introduction
 %
@@ -305,6 +305,30 @@ classes share some similarities (e.g. option settings) but generally each class
 tries to blend with the type of text it tries markup.
 
 It is superficially similar to LaTeX.
+
+\subsubsection{General ideas}
+General idea is that the source text should be as intact as possible - that
+means that everything that is not inside markup should be treated as a comment.
+
+TODO see the info about the comment!!
+
+I just should take the text , apply some markup here and there, without
+modifying the original, and have it output text exactly how I need it.
+
+TODO rethink this example:
+
+\begin{verbatim}
+Example
+\begin???
+ FIXmarkup A group is an enclosure for a collection of text FIXendmarkup and commands which encloses
+ the formatting context and constrains the scope of any changes to that context
+ made by commands within the group. FIXmarkup Groups can be nested hierarchically. The
+ formatting context includes the font and the definition of additional macros
+ (or overrides of macros defined in outer groups). FIXendmarkup Syntactically, groups are
+ enclosed in braces:
+\end???
+
+\end{verbatim}
 
 
 % 2}}}
@@ -590,6 +614,37 @@ from \emph{Tabbed class}.
 % 3}}}A QA class
 % {{{3 Cloze class
 \subsubsection{Cloze class}
+\emph{Cloze class} is a class which selects specific fragments of text and
+presents them as questions.
+It is useful when there are only a couple of fragments which may be
+interesting.
+The most similar  /counter class for this is the Set class which is the exact
+opposite - the \emph{Set} class extracts each token and treats it as a question to
+ask, whereas \emph{Cloze} close extracts only token explicitly marked. In Set class
+you must explicitly mark what you \emph{don't want} to export.
+
+
+Example:
+
+Example usage:
+\begin{verbatim}
+\begin{cloze}
+ The source #distribution for the standard Python documentation contains a large
+ number of directories. While third-party #{documents} do not need to be placed
+ into this structure or #need to be placed within a similar structure, it can be
+ helpful to know where to #{look for examples} and tools when developing new
+ documents using the Python #{documentation^ tools}. This section describes this
+ #directory #structure.
+\end{cloze}
+\end{verbatim}
+
+This will result in file:
+TODO
+
+The items are seperated by . ????? what about sentence - maybe it should be an
+option instead of a class.
+
+
 % 3}}}A Cloze class
 % {{{3 Comma-seperated class
 \subsubsection{Comma-seperated class}
@@ -602,6 +657,46 @@ e.g. this text will be transformed:
 % 3}}}A Comma-seperated class
 % {{{3 Set class
 \subsubsection{Set class}
+The \emph{Set class} treats the source text as something you want to learn
+thouroughly. It takes every word from source text and creates question/item for
+it.
+It ignores the standard and common words, depending on the language setting. It
+is also possible to extend \smite{} with your own common words and languages.
+
+The opposite of \emph{Set class} is the \emph{Cloze class} which extracts only
+those words which you mark explicitly.
+
+
+Example usage:
+\begin{verbatim}
+\begin{set}
+ The source !distribution for the standard Python !{documentation contains a
+ large} number of directories. While third-party documents do not need to be
+ placed into this !structure or need to be placed within a similar structure, it
+ can be helpful to know where to look for examples and tools when developing
+ new documents using the Python documentation tools. This section describes
+ this directory structure.
+\end{set}
+\end{verbatim}
+
+This will result in file:
+
+\begin{verbatim}
+q: The source distribution for the standard Python documentation contains a
+large number of directories.
+
+\end{verbatim}
+
+TODO
+
+WARNING!
+Maybe extend this to 3rd basic class, beside Set and Class which will select
+sentences broken on / char??
+
+
+
+
+
 % 3}}}A Set class
 % {{{3 Code class
 \subsubsection{Code class}
@@ -623,6 +718,49 @@ itself as well or not ?
 \end{verbatim}
 
 
+The important fact about this class is that the exact formatting of the source
+code must be preserved.
+
+Example:
+\begin{verbatim}
+\begin{code}[python]
+for i in 1..2:
+    print i
+\end{code}
+\end{verbatim}
+
+This will result in the following questions:
+\begin{verbatim}
+q: ... i in 1..2:
+q:     print i
+a: for
+
+q: for ... in 1..2:
+q:     print i
+a: i
+
+q: for ... in 1..2:
+q:     print i
+a: i
+
+
+q: for i ... 1..2:
+q:     print i
+a: in
+[...]
+\end{verbatim}
+
+This is similar to Set/Cloze class but uses different files/words for
+excluding/including from test.
+
+Note:
+Also signature/definitions tests!!!!
+
+Some special cases when I'm interested in code function signatures, code
+classes signatures, or the source code itself (all the calls and functions).
+
+
+
 
 % 3}}}A Code class
 % {{{3 Sentence class
@@ -636,12 +774,6 @@ In \emph{sentence} class each sentence, ie a sequence of chars terminated by .
 The items are selected using the Cloze of Set method, depending on whether
 special chars like // or \^ exist.
 
-It does not matter
-
-items are initially
-positioned.
-
-
 
 The \emph{Sentence class} is most suitable This class is
 This is the most general class which is suitable for pure articles.  It will
@@ -649,8 +781,66 @@ just extract each sentence and try to extract important information from it.
 
 It will go paragraph by paragraph.
 
-By it's design smxe
+Each item is a sentence, the items are processed in set mode ???
 
+
+Example:
+\begin{verbatim}
+\begin{sentence}
+An alternate syntax for a group using brackets, [...], is used by macros and
+environment constructors which take optional parameters; brackets do not
+normally hold syntactic significance. A degenerate group, containing only one
+atomic^bit of content, does not need to have an explicit group, unless it is
+required to avoid ambiguity. Since Python tends toward the explicit, groups are
+also made explicit in the documentation markup.
+\end{sentence}
+\end{verbatim}
+
+This will result in the following:
+question for the first sentence:
+\begin{verbatim}
+Q: An ... syntax for a group using brackets, [...], is used by macros and
+environment constructors which take optional parameters; brackets do not
+normally hold syntactic significance.
+A: alternate
+
+Q: An alternate ... for a group using brackets, [...], is used by macros and
+environment constructors which take optional parameters; brackets do not
+normally hold syntactic significance.
+A: syntax
+
+
+Q: An alternate syntax for a ... using brackets, [...], is used by macros and
+environment constructors which take optional parameters; brackets do not
+normally hold syntactic significance.
+A: group
+[...]
+\end{verbatim}
+
+
+and question for the second sentence:
+\begin{verbatim}
+Q: A ... group, containing only one atomic bit of content, does not need to
+have an explicit group, unless it is required to avoid ambiguity.
+A: degenerate
+
+Q: A degenerate ..., containing only one atomic bit of content, does not need to
+have an explicit group, unless it is required to avoid ambiguity.
+A: group
+
+Q: A degenerate group, ... only one atomic bit of content, does not need to
+have an explicit group, unless it is required to avoid ambiguity.
+A: containing
+
+Q: A degenerate group, containing only one ... of content, does not need to
+have an explicit group, unless it is required to avoid ambiguity.
+A: atomic bit
+[...]
+\end{verbatim}
+
+.. and so on.
+Please notice the use of \^ char in the second sentence which resulted in
+joining \emph{atomic bit} into one word.
 
 % 3}}} Sentence class
 % {{{3 Paragraph class
@@ -658,6 +848,14 @@ By it's design smxe
 This is similar to Sentence class but is different in that sense that each
 paragraph makes an item.
 Thusly,  seperator is not a dot but (at least) double enter.
+
+
+This may be useful if we want to have the whole paragraph contained in an
+answer.
+
+
+Example:
+TODO example
 
 
 % 3}}}
@@ -693,7 +891,7 @@ some bigger changes then you should use another class.
 \subsubsection{swap option}
 
 This option determines whether the items should be swapped or not. By default,
-\smite{} will generate one question and answer out of items in sentence or tab
+\smite\ will generate one question and answer out of items in sentence or tab
 class.  If you want the opposite question and answer to be generated, you
 should set this option.
 
@@ -730,8 +928,7 @@ This subsection describes special constructs which may be used all over the
 file, in almost all classes.
 Warning! Appearance of some special constructs determines the class /??
 
-
-%====================
+% {{{3  The \^ char
 \subsubsection{The \^ char}
 The joining char is used to join words which should be used together.
 This is especially useful for Set class which asks for each word in given text.
@@ -748,21 +945,22 @@ near themselves are automatically joined.
 The is also FIXjoined command and special char \ FIXbackslash which will split
 them
 
-
-%====================
+% 3}}}
+% {{{3 The ! char
 \subsubsection{The ! char}
 The ! char describes the word following it should be excluded from the export.
 It is useful also in the Set class, which selects all words from given text.
 
 
-%====================
+% 3}}}
+% {{{3 The / char
 \subsubsection{The / char}
 This is the 'przeciwienstwo' of the \^ char which would join - it would split
 the names. It is useful also in the Set class questioning - when you want to
 split despite the default rules being joining the words with capitals.
 
-
-%====================
+% 3}}}
+% {{{3 The \\ char
 \subsubsection{The \\ char}
 This char is used at the end of line to denote multi-line statement.
 If in \textit{strict} mode, then no white chars may appear after it.
@@ -770,8 +968,8 @@ If in \textit{strict} mode, then no white chars may appear after it.
 This may be useful when e.g. in Tab mode we want to have item which is quite
 long but we want it to appear on the screen. So we put it in many lines and by
 using the \\ char we ensure it will be treated as one char.
-
-% 2}}}
+% 3}}}
+% 2}}} Special constructs
 % 1}}} Smite markup language
 % {{{1 Examples
 \section{Examples}
@@ -781,7 +979,6 @@ it's usage language.
 
 
 % 1}}} Examples
-
 % {{{1 Extending smite
 \section{Extending smite}
 This chapter explains how to extend smite with your own classes.
@@ -826,7 +1023,7 @@ push_back
 set_options
 \end{verbatim}
 
-"set\_options may be used to specifiy what chars should be treated as tokens
+"set\_options may be used to specify what chars should be treated as tokens
 get\_next\_token just returns token , will it be a word or a special construct
 
 item must be created by this function: using create\_item(q, a) where q is
@@ -843,7 +1040,6 @@ The best pattern is to use generators for this
 
 
 % 1}}}
-
 % {{{1 Other applications
 
 \section{Other applications}
