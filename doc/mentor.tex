@@ -1,5 +1,5 @@
 \documentclass[a4paper,11pt]{article}
-\newcommand{\smite}{\emph{\textbf{Smite{}}}}
+\newcommand{\probe}{\emph{\sc{probe{}}}}
 \usepackage{graphicx}
 
 \begin{document}
@@ -18,7 +18,7 @@
 %I would like to have only one document for edition but which will generate a
 %series of documents
 %Why is the margin so big?
-%The smite name should be in capitals instead
+%The extract name should be in capitals instead
 %Check out how python doc is done - how do they generate their documentation??
 
 % TODO see how other parsers (XML, HTML) are written
@@ -26,13 +26,363 @@
 % Learn LaTeX/TeX well before I begin (using old Mentor first maybe??)
 
 % TODO all of these chars may be used somehow: ! @ # $ % ^ & * ( ) - = + _
+% footnote er and header
+
+\section{Ideas}
+
+- no question mark at the end of the question
+
+- many statements do not need an ending statement e.g. when FIXbegin
+encounters next FIXbegin then it switches to it automatically without any need
+for FIXend - might note in documentation that it is optional
+
+- must gather community - see about supermemo and flashcard programs ,
+advertise mentor on linux/windows software sites , various distros, python and
+qt communities and learning communities
+also have databases of different items and advertise them .e.g tell people
+there is vim knowledge database for SuperMemo and Mentor
+BTW Mentor should be able to import from SuperMemo
+
+- become a master in markup languages:
+LATEX, RTF, Markdown, Wiki, HTML, XML, CSS, SGML learn and author in all possible to
+get as many input and ideas ass possible.
+Also converting between them etc.
+See all big projects and doc how the doc is done professionally: python,
+apache, ubuntu docbook etc. , ion uses some special - big opensource projects
+what they use , latex resources etc.
+
+openoffice, word etc.
+- lisp markup - special way to mark hashstrings??
+learn them in sm , author many documents in them, convert play with them,
+collect info , read community stuff --
+
+
+- make vim syntax file for the probe language .prb files basing on LaTeX
+vim syntax sources.
+
+- all command-line options should be overridable in source -> like verbose mode
+and debug ??
+
+- DESIGNING MENTOR:
+    make a mindmap of mentor/probe requirements and design
+  and gui mockup of mentor
+  and uml diagrams of mentor to get a general overview first
+  then go top-down programming -> making stubs for all the procedures and
+  functions and listing problems to solve --> with comments
+  solve the problems aside (in special code branch?)
+  THEN start bottom up -> writing code for the simplest use-cases but in the
+  described framework
+
+- using command to a set of words:
+\begin{verbatim}
+this is \ignore{craze idea} said adam ~{follow me}
+\end{verbatim}
+
+
+- the special chars like \~ should have their counterparts  FIXignore
+
+- options should have default values
+   e.g. FIXlang python  or lang=python
+
+- design the mentor documentation after supermemo and other flash-card program
+documentations.
+
+- put mentor design in supermemo / mentor itself for better understanding
+
+
+- both forms are possibe either:
+\begin{verbatim}
+\begin{signature}
+\signature
+and for ending:
+\end{signature}
+\endsignature
+\end{verbatim}
+
+ Latest from the readme file :
+
+README
+
+My goal is to start writing and using Mentor. Right now the development
+is practically halted because too much is on my head.
+
+But I can try to do the minimum to start learning:
+- touch typing rules
+- vim program
+- vim scripts
+- python lang
+- python libs
+- qt classes and utils
+
+
+
+
+DESIGN
+The basic initial design
+Basically it will be a replacement for my SMEX program in Delphi - with
+another syntax (xml-based) and helper macros in VIM/Python.
+
+
+1. Creating data
+Data will be stored in XML format and edited in VIM.
+I will have python macros which will help me convert raw data into
+meaningul items which can be later memorized.
+
+
+2. Memorization
+Memorization will be done in SuperMemo.
+Right now I don't have time nor motivation to start coding at full
+repetition GUI.
+
+3. Databases
+I have to create and use some databases in order to get in full motion.
+Then I can think of even more improvements
+
+Home:
+Welcome to Mentor
+
+MENTOR is a tool for improving the learning process.
+
+
+It can be used as a help in learning foreign languages , geography , science and
+can be used everywhere, where there is a need to comprehend knowledge and
+somehow memorize it and keep it in memory .
+
+
+knowledge may be split into seperate items which can be memorized.
+
+By learning process is meant extracting knowledge from written material,
+processing it to more consumable form and then memorizing it and storing in
+memory.
+
+MENTOR helps by providing ways of extracting knowledge (by summarizing ) and
+transforming it (emacs macros) to flashcards
+
+
+
+
+MENU:
+Home
+News
+Downloads
+Faqs
+Screenshots
+Forum
+Links
+Search
+Search personalization
+
+using Swish-e /  Emacs / Python
+
+Web search (Google , Code search Krugle etc. and others)
+Desktop search (Google search, Copernic Desktop Search wide range)
+Emacs search -        / Chm search etc.
+Memory search
+
+personalized searched with custom areas, files and rules
+e.g.
+Alt-S-R-P  Search Reference of Python
+Alt-S-N-S Search Notes Snippets/Samples
+
+rules like Regexp, Highlight if in filename or in html title
+PythonProject
+
+  inherits SnippetsProjects
+     add dirs
+add files
+
+
+
+Files specially prepared
+chm -> htm , pdf -> txt rtf -> htm etc.
+so that swish-e can find them
+
+
+
+In emacs displayed like ctrl l :
+% ---c:\Program..\python.py -----------------------------------------
+(in text properties may be all)
+
+3 lines before
+<b>import os<\b>
+print s
+etc.
+3 lines after
+
+instead of bold , also text properties
+
+
+going to line and pressing enter , opens the file in second window
+the window is of type of which the file is e.g.
+python mode
+or muse mode
+or w3m mode if html window (but better keys handling)
+
+I have 2 windows for browsing files
+
+
+Qt-SuperMemo
+
+ markup which words are in what colour ??
+
+syntax highlight ??
+
+  rtf edit
+        <------------->
+  item which generates another item
+
+
+    testing module for
+          template for testing
+
+     ------> generate
+    supermemo module q:
+
+
+--------
+Emacs mode supermemo
+  which interprets repetition files
+ which resemble rtf or wiki a little bit  wiki xml
+ % \e   \e
+ % \u
+
+ % \page
+
+ % \page
+  whith colored text  - also bold , underline italics
+  info what to exclude
+
+Visio mode supermemo
+  graphic counterpart for emacs part
+
+
+program to import something to this --> import code, import
+
+also export to real supermemo and export to mysupermemo
+
+with repetitions
+ scheduling etc. simple
+
+I must have my own SuperMemo which I use daily
+and which is easy to import stuff into otherwise it will be all forgotten
+
+folmert: Mentor will be completely in Emacs?? 12:28 10:54
+
+ 2006-04-26 12:28 folmert: Mentor will be completely in Emacs??
+Low-profile, fast supermemo with focus on creating knowledge ??
+See how speedreading is working in supermemo
+
+
+ 2006-04-25 18:18 folmert: Probe
+probe will be general purpose extracting knowledge tool
+extensions to c code, python code etc.
+mentor will be for working on the
+
+ 2006-04-18 13:31 folmert: Mentor graphics will have several incarnations:
+0. in emacs quick testing (this more like text)
+1. visio extended - for quick testing
+2. supermemo light - a version of supermemo with ability to test my ideas
+and quickly draw schemas and import bitmaps
+ and schedule for some time
+3. in full supermemo session
+
+
+ 2006-04-18 13:01 folmert: With mentor focus on the text side only
+use experiences with the german learning process
+convert this into mentor/excel/supermemo solution
+ (with ability to tweak the fonts in supermemo)
+to enable fast edition and reexport on both sides
+for graphics, just use visio and supermemo and
+write down what improvements could be made to enhance the overall process
+
+
+ 2006-04-18 11:55 folmert: When learning in supermemo, have a database of already exported words
+so that I don't learn them twice
+mentor -append (only appends the ones which are not there
+if a word is already there it is skipped and a message follows)
+appending only news one
+
+
+ 2006-04-14 13:46 folmert: Mentor Graphics : at best do it as visio extension
+the hidden surfaces might be as second layer - may be initially at bottom and
+semitransparent
+
+
+ 2006-04-13 15:12 folmert: Design it as a command-line tool
+for import for different type of text
+e.g. import columns , import program files (pas, c)
+export to supermemo export to mentor/graphics
+
+
+ 2006-03-14 14:28 folmert: Just start doing this
+and when doing  think of design for my application : visual and textual
+what features might be useful in such an application?
+
+ 2005-12-29 11:54 folmert: rewrite Mentor in python , run from emacs as
+ command filter , 2 stages - from normal text to xml text, then from xml to sm
+ export
+
+ 2005-12-29 11:55 folmert: Mentor goal: I give him input and he generates
+ supermemo file for learning
+
+ 2005-12-29 11:56 folmert: Mentor-Graphics and Mentor-Text
+
+
+ 2006-01-05 21:40 folmert: Learn emacs and other frequently used tools in
+ supermemo
+
+
+ 2006-04-12 15:53 folmert: Mentor include a range of tools like:
+Mentor/Graphics (for graphic supermemo)
+Mentor/Text (for text supermemo)
+Mentor/Export (for supermemo export)
+Mentor/Probe (for probing in things)
+--- End
+
+
+% how to export to html and others
 
 % {{{1 Introduction
 %
 
+\section{Title}
+% how to get a nice title
+
+MENTOR
+flash-card system for improving learning
+% %MENTOR
+% learning improvement program
+%
+% Written by Adam Folmert 2007
+
+\section{Table of contents}
+1. Intro\\
+2. Installation\\
+3. Basic usage\\
+4. Repetitions\\
+
+Appendix
+
+5. extract tool
+
+% %
+% TABLE OF CONTENTS
+% 1. Intro
+% 2. Markup language
+% 3. GUI description
+% 4. Other options
+%
+%
+%
+%
+
+% %MENTOR
+% learning improvement program
+%
+% Written by Adam Folmert 2007
 \section{Introduction}
 
-\smite{} is a tool for extracting and rearranging knowledge from documents in
+\probe\ is a tool for extracting and rearranging knowledge from documents in
 a way which makes it more suitable for understanding and learning. It uses a
 special markup language to mark the interesting parts of a document
 and then extracts those parts and presents them in way that can be exported
@@ -42,8 +392,8 @@ For example, let's assume here is a text you want to get some info from:
 \textit{Christoph Columbus was a great adventurer. America was discovered by
 Columbus in 1492.}
 
-If you want to learn the important facts from given text, you modify it
-slightly by adding smite markup:
+If you want to learn the extractant facts from given text, you modify it
+slightly by adding extract markup:
 \begin{verbatim}
 \begin{cloze}
 Christoph Columbus was a \?{great adventurer}. America was discovered by
@@ -51,7 +401,7 @@ Christoph Columbus was a \?{great adventurer}. America was discovered by
 \end{cloze}
 \end{verbatim}
 
-Running smite over thusly modified text, will result in the following:
+Running extract over thusly modified text, will result in the following:
 \begin{verbatim}
 q: Christoph Columbus was a ....
 a: great adventurer
@@ -65,7 +415,7 @@ a: 1492
 
 The resulting items may now be exported to a flashcard program for memorizing.
 
-Smite can be also used to quickly prepare knowledge cloze tests over a wide
+extract can be also used to quickly prepare knowledge cloze tests over a wide
 range of different texts, like: programming code, articles etc.
 
 
@@ -110,7 +460,7 @@ each day to have the scheduled items reviewed.
 
 
 %====================
-\subsubsection{\smite{} goal}
+\subsubsection{\probe\ goal}
 
 The purpose quickly generating lots of items for supermemo  and i'm testing
 this great purpose editor and i'm not sure how it works
@@ -138,10 +488,10 @@ when one wants to learn facts from some articles or tutorials. Manual input of
 data to SuperMemo is quite cumbersome and impractical if one wants to learn
 lots of knowledge.
 
-This is the gap that this \smite{} program is trying to fill.
+This is the gap that this \probe\ program is trying to fill.
 
 The aim of this tool is to automatically extract valuable knowledge from texts
-and presents them in format which can be readily imported to SuperMemo. The
+and presents them in format which can be readily extracted to SuperMemo. The
 extraction process can be fully customized by using a simple markup language
 which you may put in the text to annotate which fragments must be exported and
 in what way should they be presented in SuperMemo.
@@ -150,17 +500,17 @@ in what way should they be presented in SuperMemo.
 the aim of this tool is to generally tweak all the way it's used gr
 
 %====================
-\subsubsection{\smite{} name}
+\subsubsection{\probe\ name}
 
-Most specifically, \smite{} is a tool to automate creation of SuperMemo items.
+Most specifically, \probe\ is a tool to automate creation of SuperMemo items.
 The name is abbreviation for \emph{SuperMemo EXport}.
 
-This should really go in the reference below: for one SMITE is an acronym for
+This should really go in the reference below: for one extract is an acronym for
 SuperMemo ITEms which is a common-sense name for SuperMemo add-on tool.  The
 second meaning might be in \emph{smiting dark evil} which is a metaphore for
 bringing light to dark minds and trying to lighten the path of no-knowledge.
 And the last which comes to my mind is , obviously, the required recursive
-acronym name which may be \emph{smite is the elite} or \emph{smite might
+acronym name which may be \emph{extract is the elite} or \emph{extract might
 include teaching erudite}.  This is just a crude comment, please don't take it
 too seriously.. .
 
@@ -171,24 +521,24 @@ too seriously.. .
 % {{{1 Usage
 \section{Usage}
 
-\smite{} is a command-line utility and it's basic usage involves just running the
+\probe\ is a command-line utility and it's basic usage involves just running the
 script from the shell with a parameter of text file you want to export:
 \begin{verbatim}
-smite article.txt
+extract article.txt
 \end{verbatim}
 
 This will print the items for the file to the screen. If you want to save those
 items in a kind of file, you could run:
 \begin{verbatim}
-smite article.txt > article.out
+extract article.txt > article.out
 \end{verbatim}
 and then the file article.out will be generated.
-It can be imported to SuperMemo by selecting from menu:
-File->Tools->Import->Q\&A text
+It can be extracted to SuperMemo by selecting from menu:
+File->Tools->extract->Q\&A text
 The items will then appear in a new SuperMemo branch.
 
 
-In it's default configuration, \smite{} will export all paragraphs from the
+In it's default configuration, \probe\ will export all paragraphs from the
 file, creating one item for each word in paragraph, resulting in cloze
 items:
 e.g. from paragraph:
@@ -213,19 +563,19 @@ from the cloze to avoid creation of too many unecessary items.
 
 In order to customize what should be exported from the file and how the
 items should be created you can use a special markup language to annotate the
-file.  The markup language gives hints to \smite{} how it should export the
+file.  The markup language gives hints to \probe\ how it should export the
 text.
-In it's default state, \smite{} will try deduce the format of the given file
+In it's default state, \probe\ will try deduce the format of the given file
 and export items in most useful state. If you want to control what items are
-exported you have to modify the file contents, using special smite markup
-language (called smite as well).
+exported you have to modify the file contents, using special extract markup
+language (called extract as well).
 
 
-Smite default behaviour may be often inappropriate and you may want to
-customize it. Smite command-line interface provides numerous options and switches
+extract default behaviour may be often inappropriate and you may want to
+customize it. extract command-line interface provides numerous options and switches
 
 \subsubsection{Options and switches}
-There are a set of command-line options which may be used to control smite
+There are a set of command-line options which may be used to control extract
 behaviour:
 
 Here are the most common configuration options:
@@ -243,34 +593,34 @@ Here are the most common configuration options:
 The currently supported classes are: tabular, cloze, sentences, paragraphs,
 code and graphical.
 
-The switches and options provided by Smite command-line interface may be often
+The switches and options provided by extract command-line interface may be often
 now enough. In some cases a more fine-grained control may be needed.
-In order to have full control over smite export, you will have to modify the
-document, using simple smite markup language.
+In order to have full control over extract export, you will have to modify the
+document, using simple extract markup language.
 
 % 1}}} Usage
-% {{{1 Smite markup language
-\section{Smite markup language}
+% {{{1 probe markup language
+\section{\probe\ markup language}
 %{{{2 Introduction
 \subsection{Introduction}
-It may happen that the defaults used by \smite{} are not sufficient to extract
+It may happen that the defaults used by \probe\ are not sufficient to extract
 to knowledge or you may want to tweak the questions and answers generated by
-\smite{} so that you can memorize them more easily.
+\probe\ so that you can memorize them more easily.
 
-To achive this you may want to use the smite markup language.
+To achive this you may want to use the extract markup language.
 
-% write about what are markup languages like SGML, HTML and LaTeX family smite
+% write about what are markup languages like SGML, HTML and LaTeX family extract
 % tries to be as minimal and unobtrusive as possible and yet poweful to be able
-% to tweak the way in which items are imported.
+% to tweak the way in which items are extracted.
 
 
-The basic design goal of the smite language was to make it as unobtrusive as
+The basic design goal of the extract language was to make it as unobtrusive as
 possible - so that I could use the files as a real cheatsheet - yet make it
 quite powerful and expressive so that I could specify exactly what I want to
 learn from given piece of text.
 
 
-The basic requirement I have for \smite{} is to be as efficient as possible
+The basic requirement I have for \probe\ is to be as efficient as possible
 when extracting the information from text.
 
 The requirement means that it should be as minimalistic as possible, so that I
@@ -288,8 +638,8 @@ markups like markdown and textile to make the language even more lightweight.
 - requirements for language: minimalistic - extracting information in a subtle
 way
 
-Smite markup language is a special language for marking text in a way that can
-be understood by Smite. It is superficially smiliar to such languages like TeX,
+extract markup language is a special language for marking text in a way that can
+be understood by extract. It is superficially smiliar to such languages like TeX,
 HTML or currently popular languages like Markdown etc.
 
 It is quite a forgiving language - it uses the same idea as the web
@@ -334,9 +684,11 @@ Example
 % 2}}}
 % {{{2 General constructs
 \subsection{General constructs}
-These are general constructs which constitute the smite markup language. They
+These are general constructs which constitute the extract markup language. They
 may be used anywhere in the file.
 Class specific constructs are given in the next section.
+
+BTW, what's the difference between general constructs and options? see later??
 
 
 % {{{3 FIXbegin
@@ -361,23 +713,63 @@ The construct of chosing class is similar to what we call environment in LaTeX
 TODO must select different font for these to work !!!!
 
 1. \char92 items construct This is the basic construct which marks the text to
-be processed by \smite{}. By default \smite{} processes the whole file unless it
+be processed by \probe\. By default \probe\ processes the whole file unless it
 encounters this construct - then only the text between those tags is processed
 and the text outside this construct is ignored.
 
 \char92 items{class}[options]
 \char92 enditems{class}
 
-The {class} determines the type of export \smite{} should use. Currently
+The {class} determines the type of export \probe\ should use. Currently
 there are several types of export and each one treats the
 
 A class determines how the text should be treated. It determines the rules ,
 class and algorithm that is selected to process given text chunk.  It is
-possible to extend \smite{} with custom classes whenever you feel there are
+possible to extend \probe\ with custom classes whenever you feel there are
 some texts you would like to learn in a special way or modify existing classes
 by deriving from them and creating new classes.
 
 % 3}}} FIXbegin
+
+% {{{3 FIXprefix
+\subsubsection{FIXprefix}
+This option is used to prefix the question with some text. It may be useful
+when we have many different types of questions in a database and to distinguish
+between them, we use a prefix.
+
+Prefix can have many levels and different delimiters. It is all controlled by
+options.
+
+Example:
+\begin{verbatim}
+\prefix{ala,ma,kota}[delim=:]
+\end{verbatim}
+
+What about nested prefixes??
+I want to specify prefix at the beginning and then in subchapter
+
+Maybe use something more similar to LaTeX section and subsections??
+plus option of using it as a prefix
+Example:
+\begin{verbatim}
+\title{Vim editing}[prefix=vim]
+OR
+\title{Vim editing}[vim]
+\option[prefix=yes;prefix-delim=:]
+\section{Pattern search}[pattern-search]
+[...]
+\subsection{Regexp search}[regexp]
+[...]
+\end{verbatim}
+
+this will result in the following prefixes:
+\begin{verbatim}
+vim: pattern-search: regexp
+
+\end{verbatim}
+
+% 3}}} FIXprefix
+
 % {{{3 FIXinclude
 \subsubsection{FIXinclude option}
 This option is used to include another file in the current in current file.
@@ -419,7 +811,7 @@ The file must be included in the path or in current directory.
 % 3}}} FIXcommon
 % {{{3 FIXlang
 \subsubsection{FIXlang option}
-This will determine the language used in export. This is especially important
+This will determine the language used in export. This is especially extractant
 because it determines the common words which should be excluded from Set
 questions.
 
@@ -455,7 +847,7 @@ For the following instructions:
 The file contents is empty.
 \end{set}
 \end{verbatim}
-smite will generate the questions:
+extract will generate the questions:
 \begin{verbatim}
 q: The ... is empty.
 a: file contents
@@ -470,11 +862,137 @@ Notice that there were no double questions generated for \textit{file} and
 % 3}}} FIXjoined
 % {{{3 FIXcomment
 \subsubsection{FIXcomment}
-The comment in smite is done similarly to LaTeX: using the \% char.
+The comment in extract is done similarly to LaTeX: using the \% char.
 Everything that is preceded by this char is commented.
 Note that if you want to have this char, you must escape it, using backslash
 character.
 % 3}}}
+
+% {{{3 FIXverbatim
+\subsubsection{FIXverbatim}
+This is a special mode of processing which stops treating all special
+characters (ie backslash) in a special way
+
+This is similar to LaTeX verbatim mode
+Example:
+\begin{verbatim}
+begin{verbatim}
+end{verbatim}
+\end{verbatim}
+
+THINK OF ANOTHER EXAMPLE ??!!!
+
+see also subst command if you are interesting in changing only a couple of
+chars.
+
+
+% 3}}}
+
+
+% {{{3 FIXsubst
+\subsubsection{FIXsubst}
+Subst command is used to temporarily substitute special char used by \probe\
+language with another char. This is very useful when we want to learn a
+text which contains many backslashes or interpunction signs.
+The subst command make the substituted char loose it's original meaning.
+Example:
+% TODO remove comment!! Latex complains !
+% How to write it ??
+% \begin{verbatim}
+% \subst{\%{(})}
+%begin(set)
+% Learning phrases %ignore(Friday,test) may be {very strenous} \said \adam.
+%end(set)
+% \end{verbatim}
+This will make \probe\ forget the original special meaning of backspace, which
+now can be used freely, but will treat all \% chars as backspace.
+
+The above example will result in the following:
+\begin{verbatim}
+q: ... phrases may be {very strenous} \said \adam
+a: Learning
+
+q: Learning ... may be {very strenous} \said \adam
+a: phrases
+
+\end{verbatim}
+
+% Remove comment! LatEx complains !!!
+% The syntax works like this -> each char is substituted by the next char, so \{
+% is substituted with ( and } with ).
+% To remove subst you can use FIXunsubst command or next subst which forgets all
+% subst made by previous subst.
+
+
+
+This is my original -> it is not from latex as I know it ?
+
+% 3}}}
+
+% {{{3 FIXescape
+\subsubsection{FIXescape}
+Special escape sequence :
+how to get chars which are forbidden : ??
+can use the FIXverbatim command or the FIXsubst command but an easy way is to
+use the escape backslash character e.g. backslash backslash
+
+% 3}}}
+
+
+% {{{3 FIXhint
+\subsubsection{FIXhint}
+OR comment
+
+Hint special char \# gives possibility to include hints (In Mentor they may be
+visible on demand only in supermemo right away)
+
+This is more like  a comment over current item which is also displayed in the
+answer or question to include more information.
+
+
+
+The syntax is as follows (to possibilities)
+\begin{verbatim}
+\set
+They asked me for \hint{Did they?}everything. I answered \hint[ok]{this will be
+ok with merged!}
+\end{verbatim}
+Will result in:
+
+\begin{verbatim}
+q: They asked me for ...
+a: everything
+a: hint: Did they?
+\end{verbatim}
+
+
+In the first form - with hint keyword, the hint may work for the whole set fragment and in the
+second with hash , it will work only for  the word that is right beside it or
+the group. ??
+
+
+\begin{verbatim}
+\set
+They asked me for #[Did they?]everything. I answered #[ok]{this will be
+ok with merged!}
+They asked me for #(Did they?)everything. I answered #(ok){this will be
+ok with merged!}
+\end{verbatim}
+
+
+Or maybe alternate syntax with \# char
+
+\begin{verbatim}
+\set
+\hint[Did they? ok]
+They asked me for everything. I answered this will be
+ok with merged!
+\end{verbatim}
+% 3}}}
+
+
+
+
 % {{{3 FIXmode
 \subsubsection{FIXmode}
 The mode command determines how text should be processed. Possible values are
@@ -482,7 +1000,7 @@ The mode command determines how text should be processed. Possible values are
 the language is as forgiving as possible - all possible options and formats are
 deduced from the file and no errors are raised.
 In \textit{normal} mode, only serious errors (like missing file) cause
-\smite{} stoppage and all other errors are just reported as warnings.
+\probe\ stoppage and all other errors are just reported as warnings.
 In \textit{strict} mode, every little warning generates an error which stops
 further processing.
 
@@ -507,14 +1025,14 @@ See:  TODO ref
 % {{{2 Classes
 \subsection{Classes}
 Class is a set of rules how the source text should look like and how it should
-be processed.  Smite is designed to be able to parse all sorts of texts. To
+be processed.  extract is designed to be able to parse all sorts of texts. To
 allow for big diversity and yet power the concept of classes was born.
 Class is a sort of subdialect with different rules and constructs to allow
 parsing different kinds of texts.
 
-It is also a way for easily extending the smite language. If you want to extend
+It is also a way for easily extending the extract language. If you want to extend
 you can just write a plugin class. For more information see chapter Extending
-Smite.
+extract.
 
 WARNING!
 The general constructs may be used only outside any class - when occurring in a
@@ -523,7 +1041,6 @@ correctly.
 
 %Hmm, OTOH some options and constructs like emph and ?? what other may be used ?
 %How to distinguish that ??
-
 
 % {{{3 Tabbed class
 \subsubsection{Tabbed class}
@@ -611,6 +1128,11 @@ a: Angola
 Note that the generated items are virtually the same as the items generated
 from \emph{Tabbed class}.
 
+Comments:
+This is a counterpart to the old Mentor simple class
+
+used this class to be
+
 % 3}}}A QA class
 % {{{3 Cloze class
 \subsubsection{Cloze class}
@@ -661,7 +1183,7 @@ The \emph{Set class} treats the source text as something you want to learn
 thouroughly. It takes every word from source text and creates question/item for
 it.
 It ignores the standard and common words, depending on the language setting. It
-is also possible to extend \smite{} with your own common words and languages.
+is also possible to extend \probe\ with your own common words and languages.
 
 The opposite of \emph{Set class} is the \emph{Cloze class} which extracts only
 those words which you mark explicitly.
@@ -718,7 +1240,7 @@ itself as well or not ?
 \end{verbatim}
 
 
-The important fact about this class is that the exact formatting of the source
+The extractant fact about this class is that the exact formatting of the source
 code must be preserved.
 
 Example:
@@ -759,10 +1281,260 @@ Also signature/definitions tests!!!!
 Some special cases when I'm interested in code function signatures, code
 classes signatures, or the source code itself (all the calls and functions).
 
+The code class also supports a set of options:
+lang=pascal|java|c|cpp|ruby|python -> what language it should use?
+numbers=yes|no -> should it ask for numbers?
+strings=yes|no -> should it ask for strings?
+punctation=yes|no -> should it ask for punctaction?
 
 
+
+
+% {{{3 Doxygen class
+\subsubsection{Doxygen class}
+This is also a special unique mode which will parse doxygen/javadoc
+comments and prepare questions basing on them .
+Options include possibility to select what should be processed:
+which comments etc.
+% 3}}}
+
+% {{{3 Database class
+\subsubsection{Database class}
+This is a special, unique mode which will connect with database , retrieve it's
+tables and schemas and will prepare nice questions.
+Maybe generate graphically in Visio or in it's own library (Qt??)
+Option include possibility to :
+select what should be processed
+% 3}}}
 
 % 3}}}A Code class
+% {{{3 Signature class
+\subsubsection{Signature class}
+This is actually a special case of Code class, created especially for
+code signatures, ie function, procedure and class headers.
+
+It currently detects:
+- function headers
+- procedure headers
+- variables
+- properties
+
+It will take the following signatures and convert them to question and answers:
+
+\begin{verbatim}
+\begin{signature}[lang=pascal,types=yes,return=no]
+  function DateTimeToString : Boolean;
+  function DateTimeToString (var Result: string; const Format: string; DateTime: TDateTime) : Boolean;
+  procedure DateTimeToString(var Result: string; const Format: string; DateTime: TDateTime);
+  procedure DateTimeToString;
+\end{signature}
+\end{verbatim}
+
+This will result in the following:
+As you can see, it is asked for enumerating all params  and then for details ->
+for giving each argument a detailed info variable name, variable type etc.
+
+\begin{verbatim}
+Q: DateTimeToString(...)
+A: -
+
+Q: DateTimeToString
+Q: DateTimeToString?
+A: function DateTimeToString : Boolean;
+
+Q: DateTimeToString(...; Format; DateTime)
+A: var Result
+
+Q: DateTimeToString(var Result; ...; DateTime)
+A: Format
+
+Q: DateTimeToString(var Result; Format; ...)
+A: DateTime
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: var Result?
+A: var Result: string
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: Format?
+A: const Format: string
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: DateTime?
+A: DateTime: TDateTime
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: DateTimeToString?
+A: function DateTimeToString (...) : Boolean;
+
+Q: DateTimeToString(...; Format; DateTime)
+A: var Result
+
+Q: DateTimeToString(var Result; ...; DateTime)
+A: Format
+
+Q: DateTimeToString(var Result; Format; ...)
+A: DateTime
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: var Result?
+A: var Result: string
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: Format?
+A: const Format: string
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: DateTime?
+A: DateTime: TDateTime
+
+Q: DateTimeToString(var Result; Format; DateTime)
+Q: DateTimeToString?
+A: procedure DateTimeToString(...);
+
+Q: DateTimeToString(...)
+A: -
+
+Q: DateTimeToString
+Q: DateTimeToString?
+A: procedure DateTimeToString;
+\end{verbatim}
+
+
+It also supports a set of options to control what language should be used.
+Currently supported languages:
+lang=pascal|java|c|cpp|ruby|python|plsql -> what language it should use?
+types=yes|no -> should it ask for types?
+returns=yes|no -> should it ask for return type?
+procfun=yes|no -> should it ask for proc or function
+constant=yes|no -> should it ask for constants?
+enumparams=yes|no -> should it enum params one by one
+
+
+Comments:
+maybe also something like this for class hierarchy ??
+and other control structures ??
+
+
+Here is another example, this time for C language:
+\begin{verbatim}
+\signature{c}
+main (int argc, char *argv [])
+void * main(int argc, char argv)
+\endsignature
+\end{verbatim}
+This will result in the following:
+
+\begin{verbatim}
+Q: main(..., argv)
+A: argc
+
+Q: main(argc, ...)
+A: argv
+
+Q: main(argc, argv)
+Q: argc?
+A: int argc
+
+Q: main(argc, argv)
+Q: argv?
+A: char *argv []
+
+Q: main(argc, argv)
+Q: main?
+A: main (...)
+
+\end{verbatim}
+What about the last question? I think it is broken, or??
+
+
+Also have the possibility to include comments -> which will be asked for
+As well as doxygen/javadoc comments -> special mode for parsing them
+
+
+Property export in signature class will allow for something like:
+\begin{verbatim}
+.pascal
+
+property ala : string read getala write setala;
+property ala : string read getala;
+property ala : string write getala;
+\end{verbatim}
+
+% 3}}}
+% {{{3 Lang class
+\subsubsection{Lang class}
+This class is especially designed to learn foreign languages. It will be
+coupled with my Vokabel program perhaps.
+
+It has some special features especially destined for words:
+english - polish - example - peg
+seperated by TAB char or by ;
+
+It will be like csv file more
+
+
+mother TAB matka  TAB matka jest jedna  TAB matttka
+
+or maybe delimited by CR ??
+
+
+
+
+
+
+% 3}}}
+% {{{3 Definition class
+\subsubsection{Definition class}
+This class is used to remember exact definition of a word.
+It is kind of a \emph{Set class} but with first part (the question) not asked.
+The swap option may be included here too.
+
+In definition mode , the IGNORED/COMMON words are ignored
+\begin{verbatim}
+\begin{definition}
+blue color?
+color of the sky
+\end{verbatim}
+
+OR
+
+\begin{verbatim}
+\definition
+blue color? color of the sky
+\end{verbatim}
+
+Resulting in:
+\begin{verbatim}
+Q: blue color??
+Q: ...
+A: color...
+
+Q: blue color??
+Q: color of the ...
+A: sky
+\end{verbatim}
+
+
+As I think of it , it may be a variant of the tabbed class.
+The difference is that the delimeter there was TABs and here it's question mark?
+
+The definition mode has option what is the delimeter - maybe it should be one
+class Delimited or Twopart ??
+
+Simple/QA class is also a part of that : it has enter as a delimiter
+% [delim=\t]
+% [delim=?]
+
+And the option how to treat the second part
+as a set: %  ~ to ignore    , common ignored , ^ to join  { } to group  what
+% about # ??
+as a cloze % ? to learn
+as a whole part % / to break
+
+
+
+% 3}}}
 % {{{3 Sentence class
 \subsubsection{sentence class}
 
@@ -777,7 +1549,7 @@ special chars like // or \^ exist.
 
 The \emph{Sentence class} is most suitable This class is
 This is the most general class which is suitable for pure articles.  It will
-just extract each sentence and try to extract important information from it.
+just extract each sentence and try to extract extractant information from it.
 
 It will go paragraph by paragraph.
 
@@ -861,7 +1633,7 @@ TODO example
 % 3}}}
 % {{{3 Graphical class
 \subsubsection{graphical class}
-\smite{} will work with graphical items as well as text items will export to su
+\probe\ will work with graphical items as well as text items will export to su
 SuperMemo ITEms Tools .  Graphical repetitions work by selecting a fragment of
 a picture and trying to remember what the cloze was about.  Currently export of
 graphical class to SuperMemo is limited but the Mentor program works with it
@@ -891,7 +1663,7 @@ some bigger changes then you should use another class.
 \subsubsection{swap option}
 
 This option determines whether the items should be swapped or not. By default,
-\smite\ will generate one question and answer out of items in sentence or tab
+\probe\ will generate one question and answer out of items in sentence or tab
 class.  If you want the opposite question and answer to be generated, you
 should set this option.
 
@@ -918,7 +1690,49 @@ options:
 
 \end{verbatim}
 
+
 % 3}}}
+
+% {{{3 ignore option
+\subsubsection{ignore option}
+This will enable to ignore common words mode by specifiying them in
+the source file directly. This is useful which in \emph{Set class} mode.
+
+Example:
+\begin{verbatim}
+\ignore{and,if,store,quit}[file=common.txt]
+\begin{set}
+Quit store if I ask you!
+\end{set}
+\end{verbatim}
+
+this will result in:
+\begin{verbatim}
+q: Quit store if I ... you!
+a: ask
+\end{verbatim}
+
+All the included common words , plus the ones included in file common.txt will
+be now ignored.
+
+NOTE : for common words, use corpus to include the most commonly used words in
+different languages.
+
+
+% 3}}}
+
+% {{{3 unignore option
+\subsubsection{unignore option}
+This will enable unignore common words by specifying them directly in the
+source code. This is useful which in \emph{Set class} mode.
+
+This is analogous to FIXignore option but works exactly opposite.
+
+SEE also FIXcommon option --> maybe should change it to ignore options
+
+% 3}}} unignore
+
+
 
 % 2}}} Options
 % {{{2 Special constructs
@@ -970,24 +1784,24 @@ long but we want it to appear on the screen. So we put it in many lines and by
 using the \\ char we ensure it will be treated as one char.
 % 3}}}
 % 2}}} Special constructs
-% 1}}} Smite markup language
+% 1}}} extract markup language
 % {{{1 Examples
 \section{Examples}
-This section presents examples of \smite{} usage in order to better present
+This section presents examples of \probe\ usage in order to better present
 it's usage language.
 
 
 
 % 1}}} Examples
-% {{{1 Extending smite
-\section{Extending smite}
-This chapter explains how to extend smite with your own classes.
-Smite engages the concept of classes which are set of rules how the text should
+% {{{1 Extending extract
+\section{Extending extract}
+This chapter explains how to extend extract with your own classes.
+extract engages the concept of classes which are set of rules how the text should
 be parsed.
 
 
-Smite is written in Python language which is a simple yet powerful language for
-prototyping and writing ever larger applications. Extending Smite requires
+extract is written in Python language which is a simple yet powerful language for
+prototyping and writing ever larger applications. Extending extract requires
 learning a little of Python - you cannot currently use any other language.
 
 The file must be named after the class e.g. simple.py which will have Simple
@@ -1002,7 +1816,7 @@ functions which are used by general class.
 
 
 
-\subsection{Smite classes interface}
+\subsection{extract classes interface}
 
 The class interface is quite simple really.
 It consists of the following functions:
@@ -1056,8 +1870,8 @@ Python and Qt. It is also geared towards word learning and therefore it
 is not very suitable for my needs. It certainly was an inspiration
 though.
 
-\item[Mentor] this is another program which may be used to quickly test knowledge prepared by \smite{}.
-It's developed by \smite{} author so integration with it is quite simple.
+\item[Mentor] this is another program which may be used to quickly test knowledge prepared by \probe\.
+It's developed by \probe\ author so integration with it is quite simple.
 
 \end{enumerate}
 
@@ -1073,10 +1887,296 @@ send info to: santhalus AT gmail DOT com
 % 1}}} Feedback
 %{{{1 older stuff
 
+%
+%
+% Ad 1. Intro to Mentor
+% Mentor is an app which should help you learn stuff quickly. I mean all
+% sorts of stuff - everything that you read but would like to remember for
+% longer time
+%
+%
+% Ad 2. Markup language
+% Mentor markup language
+% the purpose of markup language is help for generating repetition items quickly.
+%
+%
+% The purpose
+% quickly generating lots of items for supermemo
+%
+% Generally I should be able to just paste cheatsheet
+% then apply some little/mall markup rules to better transform learning process
+% There should be as little changes to the original texts as possible - the XML markups just go out of question
+%
+% I will create cheatsheets and out of this cheatsheets -> just a little command to generate supermemo items as well
+%
+% The stynax colors should make the additional words not really visible just like ocmments
+% The idea
+% The syntax is generally based on TEX/LATEX markups
+%
+%
+% cheatsheets to supermemo
+%
+% 1. General options
+% [prefix="ale"]
+%
+% 1. Headers
+% 2. Different classes
+% I will have different classes for different formatting cases.
+%
+% *** class QA
+%
+% options:
+%  [swap]
+%  [noswap]
+%    should the item be swapped ?
+%    when questioning?
+%    e.g.
+%    what is your subject?
+%    maths
+%
+%    when swapped this will translate to ->
+%    q: what is your subject?
+%    a: math
+%    and swapped question:
+%    q: math?
+%    a: what is your subject
+%
+%    [TODO] find a better example
+%
+%
+%
+% *** class CODE
+%
+% *** class CLOZE
+% This class describes a typical cloze questions
+%
+% *** class SET
+%
+%
+%
+% *** class CODE
+% options:
+%   [lang=c/pascal/java/javascript/python]
+%   etc.
+% signatures
+% the code itself as well or not ?
+%
+%
+%
+% *** class
+%
+%
+% 2. Special directives
+%
+% \include{file}[name]
+% this includes a file to the current file
+%
+% \compounds{file}
+% This options means to include a file with compounds e.g. item which
+% always go together and should be treated as such . Generally, all words
+% with capital letters one by one are treated as compounds.
+%
+%
+% \ex
+% \bold \
+% the text up till end should be bold
+% ??
+% this will be better with *text*
+%
+% \item
+% \enditem
+% This will mean I want all the text as one item
+% By default items will be seperated by one blank line
+% but if I want several pars to be one item , I can put this one
+%
+% \
+% at the end of line , this directive will join both lines to one
+% (just like c preprocessor)
+%
+%
+% 3. Shortcuts aka special chars
+% There will be a set of special chars which will modify the meaning and
+% give some clues for extraction purpose.
+%
+%
+%
+% ^   ignored word
+% this means the word will not be included in repetitions
+% ~  joined words
+% ?   words to be selected
+%
+% General rule for character ? and ^:
+% their appearance in text determines whether I should rather exclude or
+% include words: they are also mutually exclusive - this can be checked as
+% a test.
+%
+% Consider these cases:
+% Poland was raised in ?996.
+%
+% and
+% Poland ^was ^raised ^in 996
+%
+% The first one will ask for 996 only. The second will ask for Poland and
+% 996 as they are not excluded.
+% By default I ask for all words (unless the \common directive
+%
+%
+%
+% #
+% $
+% %
+% ^
+% '
+% "
+%
+%
+%
+% TODO WRITE DOCUMENTATION IN TEXINFO
+%
+%
+%
+%
+%
+% the idea is to use as little macros as possible
+% I just should use the plain text as it is
+%
+% have very different formats to translate from
+%
+% y
+% the basics
+%
+%
+%
+% Ad 3. Mentor GUI
+% Mentor GUI is an app written in PyQt.
+% I really believe this is the optimal choice for quickly writing
+% applications.
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+% Ad 4.
+%
+%
+% Other apps which I based myself on are:
+% * SuperMemo - this is THE program for making repetitions. It is traditionally geared more towards learning language than for any other purpose.
+% * Mnemosyne - this is an opensource version of SuperMemo , written in
+% Python and Qt. It is also geared towards word learning and therefore it
+% is not very suitable for my needs. It certainly was an inspiration
+% though.
+%
+%
+% DOCUMENTATION FOR MENTOR MARKUP LANGUAGE SYNTAX
+% begin{aaa}[some]
+% \eq  \eq[a=12][b=12]{this is great}
+% kquestion on one ? k
+%
+% \begin{table}
+%
+% \end{table}
+%
+% 1100
+% sample :
+% \end
+%
+% \test
+%
+% jjjj\
+% \beg
+%
+% ~ joined word
+%
+% \great
+%
+% <browse> </browse>
+%
+% llllll
+%
+% \test[section=2][break=minimal]
+% \begin
+%
+% \end
+% begin{tabular}
+%
+%
+% \bottom{done}
+%
+% \begin{classic}{title="Left right motion"}[prefix=hej][title="Borking"]
+%
+% |k|	N  k		up N \quick lines (also: CTRL-P \bold and <Up>)
+% |j|	N  j		down N lines (also: CTRL-J, CTRL-N, <NL>, and <Down>)
+% |-|	N  -		up N lines, \eq on the first non-blank character
+% |+|	N  +		down N lines, on the first non-blank character (also:
+% 			   CTRL-M and <CR>)
+% |_|	N  _		down N-1 lines, on the first \b2 non-blank character
+% |G|	N  G		goto line N (default: last line), on the first
+% 			   non-blank character
+% |gg|	N  gg		goto line N (default: first line), on the first
+% 			   non-blank character \peg{utilitze section}
+% |N%|	N  %		goto line N percentage down in the file.  N must be
+% 			   given, otherwise it is the |%| command.
+% |gk|	N  gk		up N screen lines (differs from "k" when line wraps)
+% |gj|	N  gj		down N screen lines (differs from "j" when line wraps)
+%
+% "envy and great injustice
+% \end
+%
+% \begin{sentences}[baz=foo][legend=off]
+% Structure is ~what is best known to man.
+%
+% The very act of~browsing~history is *essential.
+%
+%
+%
+% \end
+%
+% \begin{sentences}
+% \end
+%
+% \begin{csyntax}
+% \end
+%
+%
+%
+% \par
+%
+%
+% \dupa
+%
+%
+% \end{documentclass}
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+% [TODO]
+% extract info from below code
+% run this code to see how it worked
+%
+
+
 
 %
 %pocz¦tek : integracja narzàdzi dostàpnych : Visio i SuperMemo
-%dodaje Add-Iny dopisujà elementy import / export
+%dodaje Add-Iny dopisujà elementy extract / export
 %
 %
 %zale¬y ile da sià zrobiŠ w tym visio
@@ -1116,7 +2216,7 @@ send info to: santhalus AT gmail DOT com
 %
 %allowing :
 %set of macros for preprocessing  a text
-%extracting important information from plsql code for example
+%extracting extractant information from plsql code for example
 %
 %e.g.
 %function name1
@@ -1382,5 +2482,669 @@ send info to: santhalus AT gmail DOT com
 
 %\end{documentclass}
 
+%.mainprefix MenGraphics
+%
+%
+%.swap off
+%
+%#################################
+%
+%.simple
+%
+%
+%TExtImage extends
+%TPanel
+%
+%
+%
+%##################################
+%
+%.prefix TExtImage: fields
+%
+%.set
+%
+%images
+%FImage, FBuffer
+%
+%
+%events
+%FImageMouseDown, FImageMouseUp, FImageMouseMove
+%
+%
+%.pascal
+%
+%
+%FImage : TImage;
+%
+%FBuffer : TImage;
+%
+%FImageMouseDown : TMouseEvent;
+%
+%FImageMouseUp : TMouseEvent;
+%
+%FImageMouseMove : TMouseMoveEvent;
+%
+%
+%
+%###################################
+%
+%.prefix TExtImage: private
+%
+%.set
+%
+%events
+%ImageMouseDown, ImageMouseMove, ImageMouseUp
+%
+%
+%image
+%ClearImage
+%
+%
+%.pascal
+%
+%
+%procedure ImageMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+%
+%procedure ImageMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+%
+%procedure ImageMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+%
+%procedure ClearImage(AImage : TImage);
+%
+%
+%
+%##################################
+%
+%.prefix TExtImage: public
+%
+%.set
+%
+%draw
+%Clear, ClearRect, DrawRect
+%
+%create
+%Create, Load
+%
+%coord
+%SetBounds
+%
+%properties
+%OnMouseDown, OnMouseUp, OnMouseMove
+%
+%
+%
+%.pascal
+%
+%procedure Clear;
+%
+%procedure ClearRect(ARect : TRect);
+%
+%procedure DrawRect(ARect : TRect; ANumber : Integer);
+%
+%constructor Create(AOwner : TComponent);
+%
+%procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
+%
+%procedure Load(AFileName : string);
+%
+%property OnMouseDown : TMouseEvent read FImageMouseDown write FImageMouseDown;
+%
+%property OnMouseUp : TMouseEvent read FImageMouseUp write FImageMouseUp;
+%
+%property OnMouseMove : TMouseMoveEvent read FImageMouseMove write FImageMouseMove;
+%
+%.prefix MenGraphics
+%
+%
+%############################################
+%
+%.set
+%
+%TSpotArea
+%saNone, saCenter, saN, saNE, saE, saSE, saS, saSW, saW, saNW
+%
+%
+%
+%############################################
+%.prefix TSpot: fields
+%
+%?
+%FRect
+%
+%
+%.pascal
+%
+%FRect : TRect;
+%
+%
+%############################################
+%.prefix TSpot: private
+%
+%
+%string
+%GetAsString, SetAsString
+%
+%rect
+%GetAsRect, SetAsRect
+%
+%
+%.pascal
+%
+%function GetAsString : string;
+%
+%procedure SetAsString(AValue : string);
+%
+%function GetAsRect : TRect;
+%
+%procedure SetAsRect(AValue : TRect);
+%
+%
+%
+%############################################
+%.prefix TSpot: methods
+%
+%.pascal
+%
+%
+%procedure Normalize;
+%
+%function GetArea(APoint : TPoint) : TSpotArea;
+%
+%procedure Offset(ALeft, ATop, ARight, ABottom : Integer);
+%
+%class function GetMargin : Integer;
+%
+%
+%
+%
+%############################################
+%.prefix TSpot: properties
+%
+%.pascal
+%
+%
+%property AsString : string read GetAsString write SetAsString;
+%
+%property AsRect : TRect read GetAsRect write SetAsRect;
+%
+%
+%
+%
+%
+%############################################
+%.prefix TPicture: fields
+%
+%.pascal
+%
+%FSpots : TList;
+%
+%FFileName : string;
+%
+%
+%
+%############################################
+%.prefix TPicture: private
+%
+%index
+%GetSpot, GetSpotCount
+%
+%.pascal
+%
+%function GetSpot(AIndex : Integer) : TSpot;
+%
+%function GetSpotCount : Integer;
+%
+%
+%
+%
+%
+%********************************************************************
+%*
+%*     M E N T O R
+%*
+%********************************************************************
+%
+%
+%
+%
+%Mentor.Graphics --
+%
+%+ full-screen mode
+%+ bigger image
+%+ transparent blinks
+%+ testing capability -- all images and all blinks
+%only one spot is remembered
+%
+%
+%
+%Learning Process Menu
+%
+%Items List - Show For Tomorrow/For After Tomorrow/For Day
+%Sort By
+%Filter
+%all operations on maps showing in List
+%Show Leeches
+%
+%Spots Layer
+%Show spots
+%Moving spots
+%automatically generating spots - ability to change them afterward
+%
+%File - Create, Open, Print, Page settings, Print preview
+%Edit - Undo, Cut, Copy, Delete
+%View - Toolbars, Statusbar, Remarks, Diagram, Grids, Rulers, Define rules, Background
+%Map - Add, New, Delete, Duplicate, (without Goto First/Goto Last?)
+%Learn - 1. Outstanding, New, Final drill, Test current, Test all, Test selected
+%Tools - Import -- Probe plugin (seperate app), Copernic plugin
+%Help - Contents, Index, About
+%
+%
+%
+%
+%
+%Probe plugin - generic framework for reverse engineering
+%DelphiProbe
+%
+%
+%
+%
+%Mentor maps - templates - ability to use Mentor maps for learning English
+%Question, Answer
+%
+%
+%
+%
+%{ HSVToRgb , RgbToHSV }
+%procedure TForm1.Button1Click(Sender: TObject);
+%var
+%  B, B2 : TBitmap;
+%  P : PByteArray;
+%  X, Y : Integer;
+%  C : Integer;
+%  R : TRect;
+%begin
+%  B := TBitmap.Create;
+%  B2 := TBitmap.Create;
+%  try
+%    B.LoadFromFile('d:\splash.bmp');
+%    B2.LoadFromFile('d:\splash2.bmp');
+%
+%    Canvas.Draw(0, 0, B);
+%
+%    R := Rect(100, 100, 170, 170);
+%
+%    Canvas.Rectangle(R.Left, R.Top, R.Right, R.Bottom);
+%    Bevel1.SetBounds(R.Left + 1, R.Top + 1, R.Right - R.Left + 1, R.Bottom - R.Top + 1);
+%
+%
+%    Canvas.CopyRect(R, B2.Canvas, R);
+%
+%  finally
+%    B.Free;
+%    B2.Free;
+%  end;
+%end;
+%
+%
+%
+%
+%
+%
+%Specyfikacja mentor.import (co zrobiê)
+%
+%
+%////////////////////////////////////////////////////////////////////////////////////
+%// Ogólny interfejs
+%
+%skalowanie
+%na dole status
+%po lewej stronie lista z itemami
+%po prawej stronie testy
+%
+%
+%menu g³ówne
+%
+%File
+%  Import...
+%  --
+%  Exit
+%
+%Edit
+%  Undo
+%  --
+%  Cut
+%  Copy
+%  Paste
+%  --
+%  Delete
+%
+%
+%
+%Snippets
+%  First      Ctrl-PgUp
+%  Previous   PgUp
+%  Next       PgDn
+%  Last       Ctrl-PgDn
+%  Add        Ctrl-N
+%  Delete     Ctrl-Del
+%
+%
+%Test
+%  Test current
+%  Test all
+%Test one  Ctrl-T
+%Test all  Shift-Ctrl-T
+%Set default Font
+%Set font
+%Test options
+%
+%
+%
+%Options
+%  Font
+%  Random test (check) - random items or random text within items
+%
+%
+%
+%
+%Ekan testowy
+%na ca³y ekran
+%Esc chowany
+%pod prawym przyciskiem Menu:
+%
+%Show answer/question Spc
+%Next item     N
+%Previous item P
+%Random test   (check)
+%Font...
+%
+%
+%Sizer / Scaler do przesuwania okienek (pe³ne skalowanie)
+%
+%Klawisz Ctrl-Tab przechodzi miêdzy oknami
+%F5 bierze aktualne okno na pe³ny ekran
+%
+%
+%////////////////////////////////////////////////////////////////////////////////////
+%// Lista itemsów po lewej stronie
+%
+%operacje add
+%dodaje pusty element i siê na niego ustawia (add do bazy, reload)
+%operacja delete (delete z bazy, reload)
+%kasuje element, ustawia siê na jeden ni¿ej lub pierwszy
+%sortowanie
+%numeracja itemsów: 001, 002, 003 (wg. Id lub pola NR) (trailzeros)
+%wyszukiwanie, sortowanie - tak jak w lpanelu (dobrze by³oby wyszukiwanie po zawartoœci)
+%elementami s¹ items (u mnie z jednego item bierze siê kilka
+%
+%operacja copy
+%operacja insert (co z numerem? powinno siê robiæ puste miejsce?)
+%
+%lpanel
+%
+%wszelkie operacje SaveCurrent - operacja - LoadCurrent
+%przed wyjœciem te¿ SaveCurrent
+%trochê trudne - powinno byæ onLostFocus
+%
+%
+%////////////////////////////////////////////////////////////////////////////////////
+%// Edycja itemu po prawej stronie
+%
+%ten ekran powinien byæ mniej wiêcej tym czym jest edytor htmla
+%na podgl¹dzie np. w HomeSite
+%to docelowo ma byæ bardzo rozbudowane w tym okienku ma byæ: po³¹czenie Visio, Togethera
+%SuperMemo i innych programów do edycji jednostek
+%plus wstawianie ró¿nych obrazków
+%
+%równolegle do tego bêdzie mo¿liwoœæ edycji (?) bezpoœrednio w kodzie czyli w
+%MenScriptcie (?) bêdzie to coœ w rodzaju xmla + postscript + latex + wmf
+%np <script wmf> </script>
+%tak ¿eby mo¿na by³o te¿ wstawiaæ obrazki (i je edytowaæ)
+%
+%
+%memo z treœci¹ (czcionka taka jak ustawiona)
+%Clear
+%Paste  commands
+%
+%komendy z menu:
+%
+%u górze edycja standardowego Elementu
+%
+%na dole edycja Comments
+%
+%PgUp - poprzedni element
+%PgDn - nastêpny element
+%
+%
+%
+%
+%
+%Mentor.Reading
+%
+%
+%selecting which section should be tested
+%syntax highlight??? in fact plain code should give me more information
+%tekst oczywiœcie powinien byæ ró¿nych rozmiarów
+%
+%
+%??hidden word size should not be shown
+%
+%
+%
+%
+%////////////////////////////////////////////////////////////////////////////////////
+%// Ekran testowy
+%
+%klawisze na ekranie testowym
+%  N nastêpny ekran
+%  P poprzedni ekran
+%  Spc ukrywa lub pokazuje kolejne test
+%  Ctrl-F zmiana czcionki
+%  +/- zmiana rozmiaru czcionki (potem taka czcionka zostanie zachowana)
+%
+%setting timer to allow only given time
+%
+%praca w kilku trybach:
+%testowanie po kolei wszystkich napisów
+%testowanie losowe
+%testowanie jednego lub wszystkich elementów
+%
+%Testy w jaki sposób przeprowadzane
+%znika podkreœlany jest jeden element
+%
+%nie znika jeœli nale¿y do exclusions
+%
+%Exclusions: Delphi keyword
+%simple words like one used in Mentor.Smex
+%bia³e znaki: {, }, Tab, ?, :=, =  (+, -, >, <  . [ ] #10 #13 no these are necessary)
+%exclude only obvious ones
+%
+%
+%
+%
+%////////////////////////////////////////////////////////////////////////////////////
+%// Import
+%
+%jeœli s¹ oddzielone czymœ to do kolejnego itemu
+%import z pliku tekstowego (przetworzonego pdfa)
+%
+%w przysz³oœci to bardzi rozbudowane o ró¿ne pluginy
+%np. summarizer do tekstu
+%automatyczne generowanie diagramów
+%reverse - engineering
+%automatyczne sklejanie jednostek w ca³oœæ
+%
+%
+%
+%
+%
+%
+%////////////////////////////////////////////////////////////////////////////////////
+%// Baza danych
+%
+%
+%na razie
+%SNIPPET
+%ID_SNIPPET   INT       *
+%CONTENTS  MEMO (255)
+%REMARKS   MEMO (255)
+%FONT_NAME   STRING (20)
+%FONT_SIZE  INT
+%FONT_BOLD  BOOL
+%
+%
+%operacje na Bazie danych: DBSpace
+%
+%
+%Za³¹cznik:
+%scan ekranu
+%
+%
+%
+%1. Etap pierwszy
+%ok przerobiæ PatternManagera tak by dzia³a³ jako Mentor.Import
+%ok podpiêcie ekranu testowego
+%ok refinement, zmiana tabeli
+%
+%
+%2. Etap drugi
+%ok klawisze dzia³anie
+%ok PgUp, PgDn, CtrlPgUp, CtrlPgUp
+%ok na ekranie g³ównym
+%ok na ekranie testowym
+%ok menu podrêczne na ekranie testowym
+%x miganie kursowa na ekranie testowym
+%ok ustawianie czcionki i zachowywanie czcionki
+%ok dwa sposoby testowania
+%ok zachowywanie komentarzy
+%ok change from AutoIncrement to simple
+%ok use DBSpace
+%ok jako captiony w lpanelu pojawiaj¹ siê 001 (z trailzeros)
+%
+%
+%3. Etap trzeci
+%+ testuj jedne testuj wszystkie (zastanowiæ siê)
+%+ F5 zmiana sizu na max i min (full screen)
+%+ import prosty z pliku (oddzielone dwiema spacjami traktuje jako now¹ jednostkê)
+%+ ekran z opcjami wziêty z notesu
+%+ exclusions i white chars - rozszerzone i brane z pliku w ogóle (+ mo¿liwoœæ zmiany w opcjach)
+%+ zapamiêtywanie czy full rozmiaru okna i rozmiaru wszystkich elementów w pliku
+%ok lpanel niech siê sizeuje i pozycjonuje na ca³y panel (teraz jest brzydko)
+%ok remarks te¿ niech ma scrollbar
+%ok mo¿liwoœæ zmiany sizu fonta snippetu równie¿ na ekranie testowym
+%ok niech panele bêd¹ jakoœ ³adniej borderowane
+%+ u¿ywaæ akcji? zamiast opcji menu (bo przez to nie mogê ³adnie zrobiæ increase/decrease size)
+%ok niech aplikacja nie odpala siê zawsze jako zmaksymalizowana tylko taka jaka zosta³a zapamiêtana w ini
+%
+%
+%!! document pnlEdit pnlContents pnlLeft pnlRight
+%
+%
+%tryb czytania po jednym na ekranie
+%
+%operacja kopiuj/wstaw po nastêpnym
+%
+%word-wrap w testing?
+%
+%import - automatically split to fit in page
+%
+%inny kolor t³a i czcionki
+%
+%przeprowadzanie operacji bezpoœrednio na ekranie testowym
+%
+%
+%
+%"wizja interfejsu" learning - tool/features or domain/features or product inside (toughest part)
+%all methods:
+%automatic mentor learning
+%map ming creating
+%debugging, playing with software
+%plain reading - boring
+%supermemo
+%evaluating, comparing, assessing different software/different things
+%visual learning
+%motivational
+%deductive -> inductive thinking
+%puzzles solving
+%visualization
+%reading around - all around
+%think before read ---> ???
+%mnemonic techniques
+%pictures
+%Visio Together Rose Select
+%tworzenie dokumentacji
+%tworzenie tutoriali z rzeczy ktore musze sie nauczyc
+%learning
+%automatyczne tworzenie map/czegos ktore moge powtarzac w supermemo
+%0-wym kosztem
+%to co sie nie udalo robic recznie ale tak zeby to byla zabawa
+%reszta to pryszcz
+%przed robieniem czegoœ odœwie¿enie pamiêci o konkretne mapy -- zastanowienie siê jak to jest zrobione, poczytanie Ÿróde³
+%przed kazdym czytaniem zastanowic siê co w³aœnie bêdê czyta³/zadaæ jakieœ pytania
+%narysowaæ mapê
+%code learning/tool learning
+%after reading: code refine/design/note improvements while reading
+%top down learning - first interface then innards
+%find similar stuff
+%think on your own - first think then read
+%
+%
+%TODO
+%napisaæ Mentora + zdobyæ jak najwiêcej materia³ów (podobnych programów itp), nauczyæ siê
+%
+%
+%koniecznie Mentora podstawy skoñczyæ ¿eby móc mapy myœli (napisaæ do SuperMemo z nowy adresem)
+%
+%
+%
+%-----------------------------------------------------------------------------
+%Mentor
+%* prepare Mentor, write Mentor, SuperMemo files
+%Mentor
+%; also as a comment
+%__ works as _
+%since, if, as, but, instead, according to, between, over   : should be ignored
+%no space between options
+%options for one line only
+%automatically no swap for ,..,.., items
+%\\ for line breaking
+%words in file ignored
+%
+%Search
+%Search/Replace without these i must switch constantly
+%syntax highlight
+%No Toolbar view
+%
+%
+%VISUAL LEARNING FUN - TOOLS, ALGORITHMS, SOURCE CODE - without SuperMemo/Mentor
+%
+%
+%Mentor system:
+%* MenScript
+%* Mentor.Draw - ObjectPascal library for drawing charts, diagrams etc.
+%* Mentor.Reading - for detailed and careful reading
+%* Mentor.Graphics
+%* Mentor.Smex - export to SuperMemo (SMEXport)
+%* Mentor.Database - automatically generating from databases
+%* Mentor.Code - automatically generating from source code
+%
+%Mentor -
+%before answer press key with first letter (or two keys)
+%to disable mindless swapping
+%
+%
+%
+%
+%Mentor first in supermemo all possible learning means:
+%cloze deletion
+%mindmaps
+%diagrams
+%uml
+%conversion from source code
+%automatic knowledge retrieval
+%
+%
+%
+%*****************************************
 %}}}
 \end{document}
