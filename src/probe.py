@@ -112,12 +112,30 @@ class MentorExporter(Exporter):
 
 # {{{1 Tokenizer classes
 # TODO in future versions it will be returning tokens like \tab spaces and \n
+# Remove comments
+# replace special chars
 
 # tokenizer should work
 # for example:
-# \title{Title1}
+# \title[big,a12pt,title='Geez']{Title1}
 # \section{Section1}
 # \cloze{This is _first_question I will ask}
+# \subsection{Section2}
+# \set{Here I will ^ask some more^questions}
+# this run by tokenizer should return:
+#
+#
+# COMMAND \title
+# CONTROL openbracket
+# WORD big
+# CONTROL comma
+# WORD a12pt
+# NUMBER
+#
+#
+#
+# CONTROL{BS}  WORD
+#
 #
 
 class Token(object):
@@ -148,6 +166,11 @@ class Tokenizer(object):
     in that case it should open a file and have it converted to file object.
 
     It should work as a generator ie generating items only on demand.
+    Or maybe it would work as DOM in that it will parse the whole file
+    and build a tree itself
+    Ok but tokenizer should not work like that.
+    Read all contents in one go and look for tokens.
+
 
     I should raise errors in case of some basic syntatic errors occurring.
     """
@@ -162,6 +185,10 @@ class Tokenizer(object):
         # initially stack of tokens is empty
         self.stack = []
 
+    def open(self, fname):
+        self.file = open(fname)
+
+
     def get_next_line(self):
         """Returns next line or raises an exception."""
         if self.counter < len(self.lines):
@@ -174,6 +201,8 @@ class Tokenizer(object):
         # and will prepare it accordingly
         # regexp will be used to omit comments which may exist
         # profusely
+        # in default , whole file is a comment
+
         pass
 
     def push_back_line(self):
@@ -263,12 +292,39 @@ class PythonCodeParser(CodeParser):
 
 ### {{{2 Main parser class
 
+# running parse on this file directly:
+# for example:
+# \title[big,a12pt,title='Geez']{Title1}
+# \section{Section1}
+# \cloze{This is _first_question I will ask}
+# \subsection{Section2}
+# \set{Here I will ^ask some more^questions}
+# this run by tokenizer should return:
+
+# 1. search for title
+# 2. search for section, cloze, set or subsection regexp
+# 3. if found then parse words looking for ^ or _ chars in case of set or cloze
+# split words build words structure and asked words structure
+#
+# it will return: COMMAND
+
+
+class ParseObject(object):
+    def __init__(self):
+        self.command        =  ""
+        self.options        =  []
+        self.text           =  []  # group of words or 2-words
+        self.marked_text    =  [] # indicating which are marked specially
+
+
 class MainParser(Parser):
     """This will be a general class for parsing text files.
-    It will read whole files and act according to the SML syntax
+    It will read whole files and act according to the probe syntax
     given in the file.
     It will initiate specific import classes and keep track of the
     options.
+    TODO currently it uses a set of regexp to find the desired
+    command (similarly to how highlighting works now).
     """
 
     def __init__(self):
@@ -276,6 +332,8 @@ class MainParser(Parser):
         self.use_swap = False
         self.use_dict = False
         self.use_other_option = True
+
+        self.probe_regexp = re.compile("title\|cloze\|set\|section|\subsection")
 
 
     # TODO maybe put these options into general parser class
@@ -298,29 +356,33 @@ class MainParser(Parser):
         """Returns result of parsed options statement."""
         pass
 
-    def parse_file(self, fname):
+    def find_probe_regexp(self, text, start_from):
+        # first compile a regexp which would include all the commands
+        # title, section, subsection set and cloze
+
+        # return tuple of Found/NotFound, Command, OptionsText, GroupText (if
+        # exist) and EndPosition
+        # re.find( text, start_from, self.probe_regexp )
+        pass
+
+    def parse_file(self, fobject):
         # open file , read it line by line
         # if encounters syntax item then interpret it in some way
         # specific environment parsers will be launched
         # depending on the texts given.
-        f = open(fname, 'rt')
-        contents = []
-        using_parser = False
-        for l in f.readlines():
-            print l
-            # if in string is \begin statement then it is the beginning
-            if l.startswith('\\begin'):
-                using_parser = True
-                _class = self.parse_begin(l)
-            # if there is end
-            if l.startswith('\\end'):
-                using_parser = False
-                # depending on the text, create a specific parser
-#
-            # here find the tag
-            # and use it if it's good
-            # find the proper class to begin with
-        f.close()
+
+        result = [] # a list of parse objects
+        contents = fobject.read()
+        start_from = 0
+        regexp = self.find_probe_regexp(contents, start_from)
+        while regexp[0]:
+            pass
+            # assign options
+            # create a parse object
+            # and add it to result
+            #
+            # increase start_from by position start_from
+
 
 
 ### 2}}}
