@@ -113,12 +113,43 @@ class MentorExporter(Exporter):
 # {{{1 Tokenizer classes
 # TODO in future versions it will be returning tokens like \tab spaces and \n
 
+# tokenizer should work
+# for example:
+# \title{Title1}
+# \section{Section1}
+# \cloze{This is _first_question I will ask}
+#
+
+class Token(object):
+    """This will be a token returned by tokenizer object.
+    It has the possibility to include all information from about given text:
+    It may be one of the following:
+    control
+    specialchar
+    whitespace
+    text word
+    comments will be ignored .
+
+    """
+    def __init__(self, type, value):
+        self.type = type
+        self.value = value
+
+
+
 class Tokenizer(object):
     """This will take care of reading tokens from file.
     Currently it just reads lines from file.
     It will be wrapper around file-like object.
     You can pass it a file name or file like object
     - it will work only on text file objects.
+
+    It should work either with file objects or with file name
+    in that case it should open a file and have it converted to file object.
+
+    It should work as a generator ie generating items only on demand.
+
+    I should raise errors in case of some basic syntatic errors occurring.
     """
 
     def __init__(self, fname):
@@ -128,10 +159,22 @@ class Tokenizer(object):
         self.counter = 0
         self.fobject.close()
 
+        # initially stack of tokens is empty
+        self.stack = []
+
     def get_next_line(self):
         """Returns next line or raises an exception."""
         if self.counter < len(self.lines):
             return self.lines[self.counter]
+
+
+    def get_next_token(self):
+        """Returns next token from file. """
+        # it will use regexps to find the next control char
+        # and will prepare it accordingly
+        # regexp will be used to omit comments which may exist
+        # profusely
+        pass
 
     def push_back_line(self):
         """Pushes last read line to stack. Raises exception if line was not
@@ -140,6 +183,10 @@ class Tokenizer(object):
             self.counter -= 1
         else:
             raise TokenizerError, "Cannot push back one last line."
+
+    def push_back_token(self, token):
+        """Pushes back token on stack. """
+        pass
 
 # 1}}}
 
@@ -177,24 +224,7 @@ class TabbedParser(Parser):
 
     def parse_file(self, tokenizer, items):
         """Override parents import file"""
-        f = open(fname)
-
-        for l in f.readlines():
-            print "Read one line : "
-            print l
-            # remove multiple tabs
-            groups = find_regroups(l, "(.*)\t+(.*)")
-            if groups and len(groups) == 3:
-                log("line $l matches tabulation.")
-                question = groups[1]
-                answer = groups[2]
-                items.add_item(question, answer)
-            else:
-                log("no tabs found in $l")
-
-        for l in f.readlines():
-            print "Do something I don't like:"
-            print 20
+        pass
 
 
 
@@ -257,7 +287,7 @@ class MainParser(Parser):
         """This will parse the begin statement.
         The begin statement is in form \begin{class} where
         the class denotes how to parse the incoming content."""
-        groups =
+        # groups = ??
         pass
 
     def parse_end(self, statement):
@@ -281,7 +311,7 @@ class MainParser(Parser):
             # if in string is \begin statement then it is the beginning
             if l.startswith('\\begin'):
                 using_parser = True
-                class = self.parse_begin(l)
+                _class = self.parse_begin(l)
             # if there is end
             if l.startswith('\\end'):
                 using_parser = False
@@ -324,13 +354,13 @@ def demo_fill_items():
     items.debug_items()
 
     importer = TabbedParser()
-    importer.parse_file("d:/temp/SMITE/input.txt", items)
+    importer.parse_file("d:/temp/input.txt", items)
 
     items.debug_items()
 
 
     export = SuperMemoExporter()
-    export.export_file("d:/temp/SMITE/output.txt", items)
+    export.export_file("d:/temp/output.txt", items)
 
 
 
