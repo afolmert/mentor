@@ -1,11 +1,13 @@
 \documentclass[a4paper,11pt]{article}
 \newcommand{\probe}{\emph{\sc{probe{}}}}
+\newcommand{\bs}{$\backslash$}
 \usepackage{graphicx}
 
 \begin{document}
 
 % do: set formatoptions+=t to have it formatted
 % set tw=79
+% set fdm=marker
 
 %TODO
 %How to put text in special font (code font?)
@@ -98,6 +100,125 @@ and for ending:
 \end{signature}
 \endsignature
 \end{verbatim}
+
+
+- enable/thisable markup easily
+  set unset options
+  x
+
+- different variants of column questions
+in 3 columns
+in 2 columns
+sep by TABs , sep by many spaces
+
+- how to exclude
+some when i column view
+% ^\  exclude\{   }   ^{ }
+% This excludes the whole item from column view
+\begin{verbatim}
+aaaa
+^\{bbbb
+cccc}
+ddddd
+eeee
+^{ffff}
+
+#{here some task }
+\end{verbatim}
+
+
+- remember I have to design more generally (with full commands and all)
+ and enable some features as shortcuts and aliases -> see perl where some stuff
+ can be done more and less verbosely
+ commands may be abbreviated.
+
+- options may be global in preamble and regarding the whole file
+  and local - regarding only some subset of file
+  e.g.
+\begin{verbatim}
+\option{swap}
+   ...
+or \swap{...}
+\end{verbatim}
+
+- breaker class -> make it break by comma instead of / character?
+  when i don't want comma then i would need to escape it with backslash
+\begin{verbatim}
+this is, some text, to be more sure
+instead of
+this is/ some text/ to be more sure
+\end{verbatim}
+
+- what shortcuts to use:
+\begin{verbatim}
+| |  _ _    for cloze \cloze{
+< > ^ ^     for set  \set{}
+// //  /  /    for breaker \br{}<++>
+,, ,,  ,  ,    for breaker2 \br2{}<++>
+$ $            for verbatim code
+<- ->   TAB    for tabbed breaks
+$$
+&&
+!! !!  hint in answer
+?? ?? hin in question
+:: ::
+;; ;;
+<<   >>
+\end{verbatim}
+but make them work only in selected region so I don't get many false positives.
+
+
+
+- note that it's
+\begin{verbatim}
+\command[]{ }  and not \command{} []
+\end{verbatim}
+
+and \\ is used to break line Like \newline
+and \ is used to join (but it must be at the end of line - no whitespace after
+it!)
+
+- DESIGNING MENTOR
+make excel table with all the class and features they have - how they compare,
+how can I generalize them ??!
+
+
+- CLASSES:
+  set cloze breaked
+  are divided by:
+-->   what selects from text:
+      all, marked, parts, words, sentences, tabbed
+-->  when item is broken
+       on enter
+       on dot sentence
+--> what is ignored
+--> what selected
+--> how breaked , formatted
+--> formatted or verbatim , how formatted
+--> how to extract
+    ----------- -->
+       --> -->
+--> what to output:
+     e.g.. grapical outputs coordinates
+
+
+- how to find in document my markup quickly
+ -> have a special vim function/command to grep all or to jump to next
+
+ -> have special key to unerline \bs pu underline
+ -
+--> hints
+  hint in question \bs\ ? what are they
+  hint in answer  \bs\ ! they are what
+
+
+--> different classes:
+  \bs\ sp break on paragraph
+  \bs ss break on sequence
+  \bs sa break on all
+
+
+
 
  Latest from the readme file :
 
@@ -3118,7 +3239,7 @@ send info to: santhalus AT gmail DOT com
 %
 %VISUAL LEARNING FUN - TOOLS, ALGORITHMS, SOURCE CODE - without SuperMemo/Mentor
 %
-%
+%%{{{%}}}
 %Mentor system:
 %* MenScript
 %* Mentor.Draw - ObjectPascal library for drawing charts, diagrams etc.
@@ -3148,3 +3269,6 @@ send info to: santhalus AT gmail DOT com
 %*****************************************
 %}}}
 \end{document}
+% this does not work ????!!!
+% maybe becaue of the latex suite ?
+% vim: set tw=79: set fo=cqt: set fdm=marker:
