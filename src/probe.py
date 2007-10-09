@@ -5,9 +5,11 @@
 #
 #
 from misc import istuple, matches, log, enable_logging, find_regroups
+from StringIO import StringIO
 import re
 import sys
 import os
+
 
 # TODO
 # check out how parsers are written html/xml parsers??!
@@ -310,11 +312,19 @@ class PythonCodeParser(CodeParser):
 
 
 class ParseObject(object):
-    def __init__(self):
-        self.command        =  ""
-        self.options        =  []
-        self.text           =  []  # group of words or 2-words
-        self.marked_text    =  [] # indicating which are marked specially
+    def __init__(self, command="", options="", content=""):
+        self.command = command
+        self.options = options
+        self.content = content
+        #self.command        =  ""
+        #self.options        =  []
+        #self.text           =  []  # group of words or 2-words
+        #self.marked_text    =  [] # indicating which are marked specially
+
+    def __str__(self):
+        return "CMD: " + str(self.command) + " OPT: " + str(self.options) + " CONT: "  + str(self.content)
+
+
 
 
 class MainParser(Parser):
@@ -333,56 +343,89 @@ class MainParser(Parser):
         self.use_dict = False
         self.use_other_option = True
 
-        self.probe_regexp = re.compile("title\|cloze\|set\|section|\subsection")
+        # find a command, then, optionally a [] block, and then, optionally a
+        # {} block
+        # what about maybe the regexp will be used as a start only and then it
+        # will be parsed more reguralry
+        # what about this { ass{}   } -> this will fail to be found
+        # can a regexp make a counting progress? ?
+        self.probe_regexp = re.compile("\\\\(title|section|cloze|set|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
+
+    def parse_command(self, command):
+        if command == None:
+            return None
+        return command
+        # right now it does not do anything
+        # TODO command should be enumerations which shall be returned in here
 
 
     # TODO maybe put these options into general parser class
     def parse_options(self, options):
         """This will parse options embedded in begin or option statement."""
-        pass
+        log("parsing options $options")
+        if options == None:
+            return []
+        options = options[1:-1]       # strip the [] brackets o
+        options = options.split(",")
 
-    def parse_begin(self, statement):
-        """This will parse the begin statement.
-        The begin statement is in form \begin{class} where
-        the class denotes how to parse the incoming content."""
-        # groups = ??
-        pass
+        result = []
+        for o in options:
+            name, _, value = o.partition("=")
+            result.append((name, value))
+        return result
 
-    def parse_end(self, statement):
-        """Returns result of parsed end statement."""
-        pass
 
-    def parse_options(self, statement):
-        """Returns result of parsed options statement."""
-        pass
+    def parse_content(self, content):
+        """This will parse content and result a list of words with info on marked, unmarked."""
+        log("parsing content: $content")
+        if content == None:
+            return []
+        content = content[1:-1] # strip the { } braces
+        words = re.split(" +", content)
+        result = []
+        for w in words:
+            # check for special marking in words
+            marker = None
+            if w.find('^') >= 0:
+                if w[0] == '^':
+                    w = w[1:]
+                w = w.replace('^', ' ')
+                marker = '^'
+            elif w.find('_') >= 0:
+                if w[0] == '_':
+                    w = w[1:]
+                w = w.replace('_', ' ')
+                marker = '_'
 
-    def find_probe_regexp(self, text, start_from):
-        # first compile a regexp which would include all the commands
-        # title, section, subsection set and cloze
+            result.append((w, marker))
+        return result
 
-        # return tuple of Found/NotFound, Command, OptionsText, GroupText (if
-        # exist) and EndPosition
-        # re.find( text, start_from, self.probe_regexp )
-        pass
 
     def parse_file(self, fobject):
+        """Returns a tree of parsed objects read from file-like object."""
         # open file , read it line by line
         # if encounters syntax item then interpret it in some way
         # specific environment parsers will be launched
         # depending on the texts given.
 
-        result = [] # a list of parse objects
-        contents = fobject.read()
-        start_from = 0
-        regexp = self.find_probe_regexp(contents, start_from)
-        while regexp[0]:
-            pass
-            # assign options
-            # create a parse object
-            # and add it to result
-            #
-            # increase start_from by position start_from
+        command = ""
+        options = ""
+        content = ""
 
+        result = [] # a list of parse objects
+        fcontent = fobject.read()
+        patterns = re.findall(self.probe_regexp, fcontent, re.M)
+
+        for p in patterns:
+            command = self.parse_command(p[0])
+            options = self.parse_options(p[1])
+            content = self.parse_content(p[2])
+            log("parsed content $content")
+
+            obj = ParseObject(command, options, content)
+            result.append(obj)
+
+        return result
 
 
 ### 2}}}
@@ -390,14 +433,154 @@ class MainParser(Parser):
 # 1}}}
 
 
+# {{{1 Processor classes
+# Here are main classes which use parser to get a parse tree of parse objects
+# use it to build items
+# and then use Exporter objects to export those items
+
+class Processor(object):
+
+    def __init__(self):
+        pass
+
+    def build_set_question(self, words, question):
+        """Returns question build from the SET class words, excluding questioned item."""
+        words2 = []
+        for i in range(len(words)):
+            if i <> question:
+                words2.append(words[i][0])
+            else:
+                words2.append('...')
+        return " ".join(words2)
+
+
+    def build_prefix(self, section, subsection, subsubsection):
+        """Returns prefix basing on section settings."""
+        result = []
+        if section is not None and section.strip() != "":
+            result.append(section + ": ")
+        if subsection is not None and subsection.strip() != "":
+            result.append(subsection + ": ")
+        if subsubsection is not None and subsubsection.strip() != "":
+            result.append(subsubsection + ": ")
+        return "".join(result)
+
+
+    def process(self, input, output):
+        """Processes input file and export output file.
+        Utilizes input classes like Parser and output like Exporter
+        Uses Items objects to build Items
+        """
+        finput = open(input, "rt")
+
+        # parse tree
+        parser = MainParser()
+        parse_tree = parser.parse_file(finput)
+        finput.close()
+
+        # process parse tree to create Items structure
+        # is this step necessary ??
+
+        # items
+        # initialize variables
+        title         = ""
+        section       = ""
+        subsection    = ""
+        subsubsection = ""
+        prefix        = "" # prefix used
+        items         = Items()
+
+        # TODO section prefixes
+        for obj in parse_tree:
+            prefix = self.build_prefix(section, subsection, subsubsection)
+            if obj.command == "title":#{{{
+                title = obj.content
+            elif obj.command == "section":
+                section = obj.content[0][0]
+            elif obj.command == "subsection":
+                subsection = obj.content[0][0]
+            elif obj.command == "subsubsection":
+                subsubsection = obj.content[0][0]
+            elif obj.command == "set":
+                question_words = []
+                # for each word prepare a special item
+                # except for marked items
+                for i in range(0, len(obj.content)):
+                    log("checking in set obj.content[$i]: " + str(obj.content[i]))
+                    if obj.content[i][1] != '^': # and not is in ignored words
+                        question_words.append(i)
+
+                for i in question_words:
+                    question = self.build_set_question(obj.content, i)
+                    answer = obj.content[i][0]
+
+                    if not prefix.endswith(": "):
+                        prefix = prefix + ": "
+                    items.add_item(question, answer)
+
+            elif obj.command == "cloze":
+                question_words = []
+                # this will be in contrast to set
+                # marked items will be included only
+                for i in range(len(obj.content)):
+                    if obj.content[i][1] == '_':
+                        question_words.append(i)
+
+                for i in question_words:
+                    question = self.build_set_question(obj.content, i)
+                    answer = obj.content[i][0]
+
+                    if not prefix.endswith(": "):
+                        prefix = prefix + ": "
+                    items.add_item(prefix + question, answer)#}}}
+
+
+        # now export items using exporter
+        exporter = SuperMemoExporter()
+        exporter.export_file(output, items)
+
+
+
+
+
+# }}}
 
 
 
 # {{{1 Main program
 
+def processor_demo():
+    log("processor demo begin...")
+    processor = Processor()
+    processor.process("d:/temp/input.txt", "d:/temp/output.txt")
+
+    log("processor demo end...")
+
+
+
+
+def parser_demo():
+    log("parser demo begin..")
+    parser = MainParser()
+    input = StringIO(
+"""
+ running parse on this file directly:
+ for example:
+ \\title[big,a12pt,title='Geez']{Title1}
+ \\section{Section1}
+ \\cloze[simple,area]{This is _first_question I will ask}
+ \\subsection[sec2]{Section2}
+ \\set[hint="Dupa"]{Here I will ^ask some more^questions}
+ this run by tokenizer should return:
+""")
+    tree = parser.parse_file(input)
+    for t in tree:
+        print str(t)
+    print str(tree)
+    log("parser demo end")
+
+# {{{2 Demo fill items
 items = Items()
-
-
 
 def demo_fill_items():
     """This is sample demo procedure which will test input and output generation."""
@@ -425,13 +608,13 @@ def demo_fill_items():
     export.export_file("d:/temp/output.txt", items)
 
 
+# 2}}}
 
 def main():
     enable_logging()
-    log("testing this name..")
-    a = 123
-    log("this is $a great.")
-    demo_fill_items()
+    processor = Processor()
+    processor.process(sys.argv[1], "d:/temp/output.txt")
+    print "Written result to d:/temp/output.txt"
 
 
 
