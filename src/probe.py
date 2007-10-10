@@ -1,7 +1,23 @@
 #!/bin/env python
+# -*- coding: utf-8 -*-
 #
-# this script  translated smite markup language text to supermemo
-# items
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
+#
+#
+# Authors:
+#   Adam Folmert <Adam.Folmert@gmail.com>, 2007
 #
 #
 from misc import istuple, matches, log, enable_logging, find_regroups
@@ -10,13 +26,18 @@ import re
 import sys
 import os
 
-
 # TODO
-# check out how parsers are written html/xml parsers??!
+# add all absolutely necessary features so that I can conveniently work
+# on LaTeX/Python/Vim/RTF/Markdown/ReST/HTML items.
+# - ui: input, output, options , switches
+# - tabbed class , swap option - for vim items
+# - ignored words : find corpus - right now in text file , in future maybe in sqlite database with cache option ??
+# - split by sentence . split by other
+# - use enumeration for commands and options
 #
-
-# TODO right now it may be a simple line-based parser in future version I may
-# use pyparsing or write the parser myself
+#
+# -
+#
 
 # {{{1 Item storage classes
 # items is a list of tuples question - answer
@@ -335,6 +356,7 @@ class MainParser(Parser):
     options.
     TODO currently it uses a set of regexp to find the desired
     command (similarly to how highlighting works now).
+    It does not use a full tokenizer yet.
     """
 
     def __init__(self):
@@ -443,11 +465,11 @@ class Processor(object):
     def __init__(self):
         pass
 
-    def build_set_question(self, words, question):
-        """Returns question build from the SET class words, excluding questioned item."""
+    def build_question(self, words, hidenth):
+        """Returns question build from given words, replacing hidenth with dots ... """
         words2 = []
         for i in range(len(words)):
-            if i <> question:
+            if i <> hidenth:
                 words2.append(words[i][0])
             else:
                 words2.append('...')
@@ -511,7 +533,7 @@ class Processor(object):
                         question_words.append(i)
 
                 for i in question_words:
-                    question = self.build_set_question(obj.content, i)
+                    question = self.build_question(obj.content, i)
                     answer = obj.content[i][0]
 
                     if not prefix.endswith(": "):
@@ -527,7 +549,7 @@ class Processor(object):
                         question_words.append(i)
 
                 for i in question_words:
-                    question = self.build_set_question(obj.content, i)
+                    question = self.build_question(obj.content, i)
                     answer = obj.content[i][0]
 
                     if not prefix.endswith(": "):
@@ -613,7 +635,12 @@ def demo_fill_items():
 def main():
     enable_logging()
     processor = Processor()
-    processor.process(sys.argv[1], "d:/temp/output.txt")
+    if len(sys.argv) == 1:
+        input = "d:/temp/input.txt"
+    else:
+        input = sys.argv[1]
+
+    processor.process(input, "d:/temp/output.txt")
     print "Written result to d:/temp/output.txt"
 
 
