@@ -20,6 +20,8 @@
 #   Adam Folmert <Adam.Folmert@gmail.com>, 2007
 #
 #
+__version__ = "0.0.1"
+
 from misc import istuple, matches, log, enable_logging, find_regroups
 from StringIO import StringIO
 import re
@@ -34,6 +36,7 @@ import os
 # - ignored words : find corpus - right now in text file , in future maybe in sqlite database with cache option ??
 # - split by sentence . split by other
 # - use enumeration for commands and options
+# - output should be written to output or to specified file
 #
 #
 # -
@@ -111,13 +114,16 @@ class SuperMemoExporter(Exporter):
     def __init__(self):
         Exporter.__init__(self)
 
-    def export_file(self, fname, items):
-        f = open(fname, "wt")
+    def export_file(self, items, output=None):
+        if output is None:
+            f = sys.stdout
+        else:
+            f = open(output, "wt")
         for it in items.contents:
             f.write(str(it))
             f.write("\n")
-
-        f.close()
+        if output is not None:
+            f.close()
 
 class MentorExporter(Exporter):
     """This will be exporting to my custom Mentor program."""
@@ -559,89 +565,44 @@ class Processor(object):
 
         # now export items using exporter
         exporter = SuperMemoExporter()
-        exporter.export_file(output, items)
+        exporter.export_file(items, output=None)
 
 
-
-
-
-# }}}
+# 1}}} Processor classes
 
 
 
 # {{{1 Main program
 
-def processor_demo():
-    log("processor demo begin...")
-    processor = Processor()
-    processor.process("d:/temp/input.txt", "d:/temp/output.txt")
 
-    log("processor demo end...")
-
-
-
-
-def parser_demo():
-    log("parser demo begin..")
-    parser = MainParser()
-    input = StringIO(
-"""
- running parse on this file directly:
- for example:
- \\title[big,a12pt,title='Geez']{Title1}
- \\section{Section1}
- \\cloze[simple,area]{This is _first_question I will ask}
- \\subsection[sec2]{Section2}
- \\set[hint="Dupa"]{Here I will ^ask some more^questions}
- this run by tokenizer should return:
-""")
-    tree = parser.parse_file(input)
-    for t in tree:
-        print str(t)
-    print str(tree)
-    log("parser demo end")
-
-# {{{2 Demo fill items
-items = Items()
-
-def demo_fill_items():
-    """This is sample demo procedure which will test input and output generation."""
-    items.add_item("question 1", "answer 1")
-    items.add_item("question 2", "answer 2")
-    items.add_item("question 3", "answer 3")
-    items.add_item("question 4", "answer 4")
-    items.add_item("question 4", "answer 4")
-    items.add_item("question 5", "answer 5")
-    items.add_item("question 6", "answer 6")
-    items.add_item("question 7", "answer 7")
-    items.add_item("question 5", "answer 5")
-    items.add_item("question 6", "answer 6")
-    items.add_item("question 7", "answer 7")
-
-    items.debug_items()
-
-    importer = TabbedParser()
-    importer.parse_file("d:/temp/input.txt", items)
-
-    items.debug_items()
-
-
-    export = SuperMemoExporter()
-    export.export_file("d:/temp/output.txt", items)
-
-
-# 2}}}
 
 def main():
-    enable_logging()
-    processor = Processor()
-    if len(sys.argv) == 1:
-        input = "d:/temp/input.txt"
-    else:
-        input = sys.argv[1]
+    """This is the main program."""
+    from optparse import OptionParser
 
-    processor.process(input, "d:/temp/output.txt")
-    print "Written result to d:/temp/output.txt"
+    parser = OptionParser(version=__version__)
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=True,
+                      help="run program in debugged mode" )
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
+                      help="print output verbosely")
+    parser.add_option("-p", "--pretend", action="store_true", dest="pretend", default=False,
+                      help="run a a simulation only")
+
+    opts, args = parser.parse_args(sys.argv[1:])
+
+    if opts.debug:
+        enable_logging(True)
+    else:
+        enable_logging(False)
+
+
+    if len(args) == 0:
+        print "No input file specified. "
+        sys.exit()
+
+    input = args[0]
+    processor = Processor()
+    processor.process(input)
 
 
 
