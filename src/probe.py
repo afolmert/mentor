@@ -16,31 +16,355 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 #
 #
-# Authors:
-#   Adam Folmert <Adam.Folmert@gmail.com>, 2007
-#
-#
 __version__ = "0.0.1"
 
-from misc import istuple, matches, log, enable_logging, find_regroups
+from misc import istuple, matches, log, enable_logging, find_regroups, \
+    Enumeration, error
 from StringIO import StringIO
 import re
 import sys
 import os
 
+# ADD DEBUGGING / STR TO PARSERS ITEMS
+# OPTION RESTRICTIONS LIKE IN OPTPARSE
+
+
+# {{{1 Parser classes
 # TODO
-# add all absolutely necessary features so that I can conveniently work
-# on LaTeX/Python/Vim/RTF/Markdown/ReST/HTML items.
-# - ui: input, output, options , switches
-# - tabbed class , swap option - for vim items
-# - ignored words : find corpus - right now in text file , in future maybe in sqlite database with cache option ??
-# - split by sentence . split by other
-# - use enumeration for commands and options
-# - output should be written to output or to specified file
+# the classes should be more like file-objects
+# wich - > they should get file objets and read data from them ]
+# until is enough
+
+
+### {{{2 ParseOptions
+# also positional and default options so I can write something like this
+# \title[good]
+# or \title[good, ok, best]
+# or \title[good, type=ok]
+# options should work as keyword arguments
+# params: position, name, value
+class ParseOptions(object):
+
+    # possible options
+    String, Enumeration, Integer = range(3)
+
+    # only possible options
+    """This class will restrict options to a given set."""
+    def __init__(self):
+        self.options = {}
+
+    def clear(self):
+        pass
+
+    def add_option(self, name, type=None, default=None, values=None):
+        # possible types String, Number, Enumeration
+        # exlucding options, should exist or not
+        # see opt parse syntax and do something like this
+        self.options[name] = default
+
+    def has_option(self, name):
+        return self.options.has_key(name)
+
+    def set_option(self, name, value):
+        """This will check the type and value and existance."""
+        assert self.options.has_key(name), "Option not available: " + name
+        if value == "":
+            value = True
+        self.options[name] = value
+
+
+    def get_option(self, name):
+        """This will be overriden in parse object to return option as attribute"""
+        assert self.options.has_key(name), "Option not available: " + name
+        return self.options[name]
+### 2}}} ParseOptions
+
+
+### {{{2 ParseObject
+class ParseObject(object):
+
+    def __init__(self, parent=None, name="", content=""):
+        self.parent = parent
+        self.name = name
+        self.content = content
+        self.options = ParseOptions()
+        self.children = []
+        self.init_options()
+
+
+    def add_child(self, child):
+        """Appends child to parse object children."""
+        assert issubclass(child.__class__, ParseObject)
+        self.children.append(child)
+
+    def set_option(self, name, value):
+        self.options.set_option(name, value)
+
+    def get_option(self, name):
+        return self.options.get_option(name)
+
+    def init_options(self):
+        # here might register possible options and their types, and default values
+        # and required, not required options
+        # should just exist or should have a value etc.
+        # declarative way of setting possible option values
+        # self.add_option
+        self.options.clear()
+        self.options.add_option('init', ParseOptions.String, default='OK')
+        self.options.add_option('sample', ParseOptions.Enumeration, values=['yes', 'no'])
+
+
+    def __str__(self):
+        # TODO print self and all children in a nice tree
+        # print self
+        # print all trees moved by indent
+        pass
+        # return "CMD: " + str(self.command) + " OPT: " + str(self.options) + " CONT: "  + str(self.content)
+### 2}}} ParseObject
+
+
+### {{{2 ParseText
+class ParseText(ParseObject):
+    """This is a simple object consisting of text."""
+
+    # possibility to set a marker
+    def __init__(self, parent=None, content='', marker=''):
+        ParseObject.__init__(self, parent, content)
+        self.content = content
+        self.set_option('marker', marker)
+
+    def __str__(self):
+        return self.content
+
+    def init_options(self):
+        # restrict marker to _ and ^
+        self.options.clear()
+        self.options.add_option('marker', ParseOptions.Enumeration, values=('^', '_'))
+### 2}}} ParseText
+
+
+### {{{2 ParseCommand
+# TODO this will be more elaborate to enable dynamically creating parse classes
+# will be a function , register parse command - or not a function
+# i will just put this file in plugins and it will read it's name and change it to command class
+# will have to provide function for parse_content returning list of child object
+ParseCommands = Enumeration("ParseCommands", ["title", "section", "cloze", "set", "subsection", "tabbed",
+                                             "subsubsection"])
+
+class ParseCommand(ParseObject):
+    def __init__(self, parent=None, name="", options="", content=""):
+        log("ParseCommand init.")
+        ParseObject.__init__(self, parent, name)
+        # check if name is one of given in enumeration
+        # if not then raise error
+        # set command to the value of enumeration
+        self.parse_command(name)
+        self.parse_options(options)
+        self.parse_content(content)
+
+    def __str__(self):
+        pass
+
+    def generate_items(self, options):
+        """This will be also have to subclassed if I would have a plugin to write"""
+        pass
+
+    def parse_command(self, command):
+        """Returns command from ParseCommands enumeration type."""
+        log('parse_command for command = $command')
+        self.command = ParseCommands.lookup[command]
+        # ! enumaration not working !!!!
+        # right now it does not do anything
+        # TODO command should be enumerations which shall be returned in here
+
+    def parse_content(self, content):
+        """Returns content."""
+        if len(content) > 2:
+            self.content = content[1:-1]
+        else:
+            self.content = None
+
+    def parse_options(self, options):
+        """This will parse options embedded in begin or option statement."""
+        log("parsing options $options")
+        if options != None:
+            options = options[1:-1]       # strip the [] brackets o
+            options = options.split(",")
+
+            for o in options:
+                name, _, value = o.partition("=")
+                name = name.strip()
+                value = value.strip()
+                if name != "":
+                    self.set_option(name, value)
+
+### 2}}} ParseCommand
+
+
+### {{{2 Parse other custom classes
+class ParseTitle(ParseCommand):
+    """This is parser for the \\title command."""
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('big')
+        self.options.add_option('a12pt')
+        self.options.add_option('title')
+
+class ParseSection(ParseCommand):
+    """This is parser for the \\section command."""
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('sec2')
+
+
+class ParseSubsection(ParseCommand):
+    """This is a parser for the \\subsection command."""
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('sec2')
+
+
+
+class ParseClassCommand(ParseCommand):
+    """This is generic class for class commands which process text."""
+
+    def parse_content(self, content):
+        """This will parse content and result a list of words with info on marked, unmarked."""
+        log("parsing content: $content")
+        if len(content) > 2:
+            content = content[1:-1] # strip the { } braces
+            words = re.split(" +", content)
+            for w in words:
+                # check for special marking in words
+                marker = None
+                if w.find('^') >= 0:
+                    if w[0] == '^':
+                        w = w[1:]
+                    w = w.replace('^', ' ')
+                    marker = '^'
+                elif w.find('_') >= 0:
+                    if w[0] == '_':
+                        w = w[1:]
+                    w = w.replace('_', ' ')
+                    marker = '_'
+
+                self.add_child(ParseText(self, w, marker))
+            log("parsing contet end. ")
+
+
+
+class ParseCloze(ParseClassCommand):
+    """This is parser for the \\cloze command."""
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('simple')
+        self.options.add_option('area')
+        self.options.add_option('hint')
+
+
+class ParseSet(ParseClassCommand):
+    """This is parser for the \\set class command."""
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('simple')
+        self.options.add_option('area')
+        self.options.add_option('hint')
+
+
+class ParseTabbed(ParseClassCommand):
+    """This is parser the the \\tabbed class command."""
+    pass
+
+
+class ParseVerbatim(ParseClassCommand):
+    """This is verbatim code parse command."""
+    pass
+
+
+class ParseCode(ParseClassCommand):
+    pass
+
+
+class ParsePythonCode(ParseClassCommand):
+    """This is a customized code importer working on Python code."""
+    pass
+
+
+class ParseSentence(ParseCommand):
+    """This is a customized importer working on sentences."""
+    pass
+
+
+
+
+### 2}}} Parse other custom classes
+
+
+### {{{2 Main parser class
+
+# Main parser class creates a abstract syntax tree of parse objects
 #
-#
-# -
-#
+
+
+class Parser(object):
+    """This will be a general class for parsing text files.
+    It will read whole files and act according to the probe syntax
+    given in the file.
+    It will initiate specific import classes and keep track of the
+    options.
+    TODO currently it uses a set of regexp to find the desired
+    command (similarly to how highlighting works now).
+    It does not use a full tokenizer yet.
+    """
+
+    def __init__(self):
+        pass
+        # find a command, then, optionally a [] block, and then, optionally a
+        # {} block
+        # what about maybe the regexp will be used as a start only and then it
+        # will be parsed more reguralry
+        # what about this { ass{}   } -> this will fail to be found
+        # can a regexp make a counting progress? ?
+
+
+    def parse_file(self, fobject):
+        """Returns a tree of parsed objects read from file-like object."""
+        # open file , read it line by line
+        # if encounters syntax item then interpret it in some way
+        # specific environment parsers will be launched
+        # depending on the texts given.
+        log('parse file begin')
+
+        probe_regexp = re.compile("\\\\(title|section|cloze|set|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
+
+
+        root = ParseObject(parent=None, name='root') # a list of parse objects
+        fcontent = fobject.read()
+        patterns = re.findall(probe_regexp, fcontent, re.M)
+
+        for p in patterns:
+            if p[0] == "title":
+                obj = ParseTitle(parent=root, name=p[0], options=p[1], content=p[2])
+            elif p[0] == "section":
+                obj = ParseSection(parent=root, name=p[0], options=p[1], content=p[2])
+            elif p[0] == "subsection":
+                obj = ParseSubsection(parent=root, name=p[0], options=p[1], content=p[2])
+            elif p[0] == "subsubsection":
+                obj = ParseCloze(parent=root, name=p[0], options=p[1], content=p[2])
+            elif p[0] == "cloze":
+                obj = ParseCloze(parent=root, name=p[0], options=p[1], content=p[2])
+            elif p[0] == "set":
+                obj = ParseSet(parent=root, name=p[0], options=p[1], content=p[2])
+
+            root.add_child(obj)
+        return root
+
+        log('parse file end')
+
+### 2}}}
+
+# 1}}}
+
 
 # {{{1 Item storage classes
 # items is a list of tuples question - answer
@@ -139,328 +463,6 @@ class MentorExporter(Exporter):
 # 1}}}
 
 
-# {{{1 Tokenizer classes
-# TODO in future versions it will be returning tokens like \tab spaces and \n
-# Remove comments
-# replace special chars
-
-# tokenizer should work
-# for example:
-# \title[big,a12pt,title='Geez']{Title1}
-# \section{Section1}
-# \cloze{This is _first_question I will ask}
-# \subsection{Section2}
-# \set{Here I will ^ask some more^questions}
-# this run by tokenizer should return:
-#
-#
-# COMMAND \title
-# CONTROL openbracket
-# WORD big
-# CONTROL comma
-# WORD a12pt
-# NUMBER
-#
-#
-#
-# CONTROL{BS}  WORD
-#
-#
-
-class Token(object):
-    """This will be a token returned by tokenizer object.
-    It has the possibility to include all information from about given text:
-    It may be one of the following:
-    control
-    specialchar
-    whitespace
-    text word
-    comments will be ignored .
-
-    """
-    def __init__(self, type, value):
-        self.type = type
-        self.value = value
-
-
-
-class Tokenizer(object):
-    """This will take care of reading tokens from file.
-    Currently it just reads lines from file.
-    It will be wrapper around file-like object.
-    You can pass it a file name or file like object
-    - it will work only on text file objects.
-
-    It should work either with file objects or with file name
-    in that case it should open a file and have it converted to file object.
-
-    It should work as a generator ie generating items only on demand.
-    Or maybe it would work as DOM in that it will parse the whole file
-    and build a tree itself
-    Ok but tokenizer should not work like that.
-    Read all contents in one go and look for tokens.
-
-
-    I should raise errors in case of some basic syntatic errors occurring.
-    """
-
-    def __init__(self, fname):
-        self.fname = fname
-        self.fobject = open(self.fname, "rt")
-        self.lines = self.fobject.readlines()
-        self.counter = 0
-        self.fobject.close()
-
-        # initially stack of tokens is empty
-        self.stack = []
-
-    def open(self, fname):
-        self.file = open(fname)
-
-
-    def get_next_line(self):
-        """Returns next line or raises an exception."""
-        if self.counter < len(self.lines):
-            return self.lines[self.counter]
-
-
-    def get_next_token(self):
-        """Returns next token from file. """
-        # it will use regexps to find the next control char
-        # and will prepare it accordingly
-        # regexp will be used to omit comments which may exist
-        # profusely
-        # in default , whole file is a comment
-
-        pass
-
-    def push_back_line(self):
-        """Pushes last read line to stack. Raises exception if line was not
-        """
-        if self.counter > 0:
-            self.counter -= 1
-        else:
-            raise TokenizerError, "Cannot push back one last line."
-
-    def push_back_token(self, token):
-        """Pushes back token on stack. """
-        pass
-
-# 1}}}
-
-
-
-# {{{1 Parser classes
-# TODO
-# the classes should be more like file-objects
-# wich - > they should get file objets and read data from them ]
-# until is enough
-
-
-### {{{2 Generic parser class
-class Parser(object):
-    """This is the base for all importer classes."""
-    def __init__(self):
-        pass
-
-    def parse_file(self, tokenizer, items):
-        """This procedure is run on files to import items.
-        It is customized in objects which inherit from this class."""
-        pass
-
-### 2}}}
-
-### {{{2 Custom parser classes
-
-class TabbedParser(Parser):
-    """This is a customized importer of tabbed file class.
-    It imports text from file seperated by tabs putting stuff on the left as
-    question and stuff on the right as answer."""
-    def __init__(self):
-        Parser.__init__(self)
-
-
-    def parse_file(self, tokenizer, items):
-        """Override parents import file"""
-        pass
-
-
-
-
-class SentenceParser(Parser):
-    """This is a customized importer working on sentences."""
-
-    def __init__(self):
-        Parser.__init__(self)
-
-    def parse_file(self, tokenizer, items):
-        pass
-
-
-
-class CodeParser(Parser):
-    """This is a customized importer working on source code."""
-
-    def __init__(self):
-        Parser.__init__(self)
-
-    def parse_file(self, tokenizer, items):
-        pass
-
-
-class PythonCodeParser(CodeParser):
-    """This is a customized code importer working on Python code."""
-
-    def __init__(self):
-        CodeParser.__init__(self)
-
-    def parse_file(self, tokenizer, items):
-        pass
-
-### 2}}}
-
-### {{{2 Main parser class
-
-# running parse on this file directly:
-# for example:
-# \title[big,a12pt,title='Geez']{Title1}
-# \section{Section1}
-# \cloze{This is _first_question I will ask}
-# \subsection{Section2}
-# \set{Here I will ^ask some more^questions}
-# this run by tokenizer should return:
-
-# 1. search for title
-# 2. search for section, cloze, set or subsection regexp
-# 3. if found then parse words looking for ^ or _ chars in case of set or cloze
-# split words build words structure and asked words structure
-#
-# it will return: COMMAND
-
-
-class ParseObject(object):
-    def __init__(self, command="", options="", content=""):
-        self.command = command
-        self.options = options
-        self.content = content
-        #self.command        =  ""
-        #self.options        =  []
-        #self.text           =  []  # group of words or 2-words
-        #self.marked_text    =  [] # indicating which are marked specially
-
-    def __str__(self):
-        return "CMD: " + str(self.command) + " OPT: " + str(self.options) + " CONT: "  + str(self.content)
-
-
-
-
-class MainParser(Parser):
-    """This will be a general class for parsing text files.
-    It will read whole files and act according to the probe syntax
-    given in the file.
-    It will initiate specific import classes and keep track of the
-    options.
-    TODO currently it uses a set of regexp to find the desired
-    command (similarly to how highlighting works now).
-    It does not use a full tokenizer yet.
-    """
-
-    def __init__(self):
-        # initialize options
-        self.use_swap = False
-        self.use_dict = False
-        self.use_other_option = True
-
-        # find a command, then, optionally a [] block, and then, optionally a
-        # {} block
-        # what about maybe the regexp will be used as a start only and then it
-        # will be parsed more reguralry
-        # what about this { ass{}   } -> this will fail to be found
-        # can a regexp make a counting progress? ?
-        self.probe_regexp = re.compile("\\\\(title|section|cloze|set|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
-
-    def parse_command(self, command):
-        if command == None:
-            return None
-        return command
-        # right now it does not do anything
-        # TODO command should be enumerations which shall be returned in here
-
-
-    # TODO maybe put these options into general parser class
-    def parse_options(self, options):
-        """This will parse options embedded in begin or option statement."""
-        log("parsing options $options")
-        if options == None:
-            return []
-        options = options[1:-1]       # strip the [] brackets o
-        options = options.split(",")
-
-        result = []
-        for o in options:
-            name, _, value = o.partition("=")
-            result.append((name, value))
-        return result
-
-
-    def parse_content(self, content):
-        """This will parse content and result a list of words with info on marked, unmarked."""
-        log("parsing content: $content")
-        if content == None:
-            return []
-        content = content[1:-1] # strip the { } braces
-        words = re.split(" +", content)
-        result = []
-        for w in words:
-            # check for special marking in words
-            marker = None
-            if w.find('^') >= 0:
-                if w[0] == '^':
-                    w = w[1:]
-                w = w.replace('^', ' ')
-                marker = '^'
-            elif w.find('_') >= 0:
-                if w[0] == '_':
-                    w = w[1:]
-                w = w.replace('_', ' ')
-                marker = '_'
-
-            result.append((w, marker))
-        return result
-
-
-    def parse_file(self, fobject):
-        """Returns a tree of parsed objects read from file-like object."""
-        # open file , read it line by line
-        # if encounters syntax item then interpret it in some way
-        # specific environment parsers will be launched
-        # depending on the texts given.
-
-        command = ""
-        options = ""
-        content = ""
-
-        result = [] # a list of parse objects
-        fcontent = fobject.read()
-        patterns = re.findall(self.probe_regexp, fcontent, re.M)
-
-        for p in patterns:
-            command = self.parse_command(p[0])
-            options = self.parse_options(p[1])
-            content = self.parse_content(p[2])
-            log("parsed content $content")
-
-            obj = ParseObject(command, options, content)
-            result.append(obj)
-
-        return result
-
-
-### 2}}}
-
-# 1}}}
-
-
 # {{{1 Processor classes
 # Here are main classes which use parser to get a parse tree of parse objects
 # use it to build items
@@ -470,13 +472,17 @@ class Processor(object):
 
     def __init__(self):
         pass
+        # initialize options
+        #self.use_swap = False
+        #self.use_dict = False
+        #self.use_other_option = True
 
     def build_question(self, words, hidenth):
         """Returns question build from given words, replacing hidenth with dots ... """
         words2 = []
         for i in range(len(words)):
             if i <> hidenth:
-                words2.append(words[i][0])
+                words2.append(words[i])
             else:
                 words2.append('...')
         return " ".join(words2)
@@ -494,17 +500,20 @@ class Processor(object):
         return "".join(result)
 
 
-    def process(self, input, output):
+    def process(self, input, output=None):
         """Processes input file and export output file.
         Utilizes input classes like Parser and output like Exporter
         Uses Items objects to build Items
         """
         finput = open(input, "rt")
 
+
         # parse tree
-        parser = MainParser()
+        parser = Parser()
         parse_tree = parser.parse_file(finput)
         finput.close()
+
+        log('parse returned ' + str(len(parse_tree.children)) + ' children. ' )
 
         # process parse tree to create Items structure
         # is this step necessary ??
@@ -518,45 +527,53 @@ class Processor(object):
         prefix        = "" # prefix used
         items         = Items()
 
-        # TODO section prefixes
-        for obj in parse_tree:
+        for obj in parse_tree.children:
+            log( 'parsing for command: ' + str(obj.command))
             prefix = self.build_prefix(section, subsection, subsubsection)
-            if obj.command == "title":#{{{
+            if obj.command == ParseCommands.title:#{{{
                 title = obj.content
-            elif obj.command == "section":
-                section = obj.content[0][0]
-            elif obj.command == "subsection":
-                subsection = obj.content[0][0]
-            elif obj.command == "subsubsection":
-                subsubsection = obj.content[0][0]
-            elif obj.command == "set":
+            elif obj.command ==  ParseCommands.section:
+                section = obj.content
+            elif obj.command == ParseCommands.subsection:
+                subsection = obj.content
+            elif obj.command == ParseCommands.subsubsection:
+                subsubsection = obj.content
+            elif obj.command == ParseCommands.set:
+                log('processing set command ' )
+                words = []
                 question_words = []
                 # for each word prepare a special item
                 # except for marked items
-                for i in range(0, len(obj.content)):
-                    log("checking in set obj.content[$i]: " + str(obj.content[i]))
-                    if obj.content[i][1] != '^': # and not is in ignored words
+                for i in range(0, len(obj.children)):
+                    words.append(obj.children[i].content)
+                    if obj.children[i].get_option('marker') != '^': # and not is in ignored words
                         question_words.append(i)
 
                 for i in question_words:
-                    question = self.build_question(obj.content, i)
-                    answer = obj.content[i][0]
+                    question = self.build_question(words, i)
+                    answer = words[i]
 
                     if not prefix.endswith(": "):
                         prefix = prefix + ": "
-                    items.add_item(question, answer)
+                    items.add_item(prefix + question, answer)
 
-            elif obj.command == "cloze":
+            elif obj.command == ParseCommands.cloze:
+                log( 'processing cloze command. with $len(obj.children) children ' )
+                words = []
                 question_words = []
                 # this will be in contrast to set
                 # marked items will be included only
-                for i in range(len(obj.content)):
-                    if obj.content[i][1] == '_':
+                for i in range(len(obj.children)):
+                    words.append(obj.children[i].content)
+                    if obj.children[i].get_option('marker') == '_':
                         question_words.append(i)
 
+
+                log('cloze words: ' + str(words))
+                log('cloze question words ' + str(question_words))
                 for i in question_words:
-                    question = self.build_question(obj.content, i)
-                    answer = obj.content[i][0]
+                    question = self.build_question(words, i)
+                    answer = words[i]
 
                     if not prefix.endswith(": "):
                         prefix = prefix + ": "
@@ -571,10 +588,7 @@ class Processor(object):
 # 1}}} Processor classes
 
 
-
 # {{{1 Main program
-
-
 
 def main():
     """This is the main program."""
@@ -603,8 +617,6 @@ def main():
     input = args[0]
     processor = Processor()
     processor.process(input)
-
-
 
 
 if __name__ == "__main__":
