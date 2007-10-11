@@ -25,7 +25,6 @@ import re
 import sys
 import os
 
-# ADD DEBUGGING / STR TO PARSERS ITEMS
 # OPTION RESTRICTIONS LIKE IN OPTPARSE
 
 
@@ -52,6 +51,18 @@ class ParseOptions(object):
     """This class will restrict options to a given set."""
     def __init__(self):
         self.options = {}
+
+    def __str__(self):
+        # print only keys which are set
+        # if not options is set, then return empty string
+        print_options = {}
+        for key in self.options.keys():
+            if self.options[key] is not None:
+                print_options[key] = self.options[key]
+        if len(print_options) > 0:
+            return ' opt=' + str(print_options)
+        else:
+            return ''
 
     def clear(self):
         pass
@@ -80,6 +91,7 @@ class ParseOptions(object):
 ### 2}}} ParseOptions
 
 
+
 ### {{{2 ParseObject
 class ParseObject(object):
 
@@ -90,6 +102,23 @@ class ParseObject(object):
         self.options = ParseOptions()
         self.children = []
         self.init_options()
+
+
+    def calculate_hierarchy_level(self):
+        """Calculate it's level in parent-children hierarchy so that I know where to print myself."""
+        level = 0
+        parent = self.parent
+        while parent is not None:
+            parent = parent.parent
+            level += 1
+        return level
+
+
+    def get_print_indent(self):
+        return ' ' * 2 * self.calculate_hierarchy_level()
+
+    def get_print_name(self):
+        return self.__class__.__name__.upper().replace('PARSE', '')
 
 
     def add_child(self, child):
@@ -113,14 +142,14 @@ class ParseObject(object):
         self.options.add_option('init', ParseOptions.String, default='OK')
         self.options.add_option('sample', ParseOptions.Enumeration, values=['yes', 'no'])
 
-
     def __str__(self):
-        # TODO print self and all children in a nice tree
-        # print self
-        # print all trees moved by indent
-        pass
-        # return "CMD: " + str(self.command) + " OPT: " + str(self.options) + " CONT: "  + str(self.content)
-### 2}}} ParseObject
+        indent = self.get_print_indent()
+        name = self.get_print_name()
+        result = indent + "[%s %s%s]\n " % (name, str(self.content), str(self.options))
+        for c in self.children:
+            result += str(c)
+        return result
+
 
 
 ### {{{2 ParseText
@@ -133,13 +162,12 @@ class ParseText(ParseObject):
         self.content = content
         self.set_option('marker', marker)
 
-    def __str__(self):
-        return self.content
 
     def init_options(self):
         # restrict marker to _ and ^
         self.options.clear()
         self.options.add_option('marker', ParseOptions.Enumeration, values=('^', '_'))
+
 ### 2}}} ParseText
 
 
@@ -162,8 +190,6 @@ class ParseCommand(ParseObject):
         self.parse_options(options)
         self.parse_content(content)
 
-    def __str__(self):
-        pass
 
     def generate_items(self, options):
         """This will be also have to subclassed if I would have a plugin to write"""
@@ -526,6 +552,10 @@ class Processor(object):
         subsubsection = ""
         prefix        = "" # prefix used
         items         = Items()
+
+        log('Printing parse tree: ' )
+        print str(parse_tree)
+        log('Printing parse tree done.')
 
         for obj in parse_tree.children:
             log( 'parsing for command: ' + str(obj.command))
