@@ -16,6 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 #
 #
+
+
 __version__ = "0.0.1"
 
 from misc import istuple, matches, log, enable_logging, find_regroups, \
@@ -415,9 +417,25 @@ class Parser(object):
 
         root = ParseObject(parent=None, name='root') # a list of parse objects
         fcontent = fobject.read()
+        # preprocess the file
+        # remove the comments
+        fcontent = re.sub("(?m)(^|[^\\\\])(%.*$)", "", fcontent)
+
         patterns = re.findall(probe_regexp, fcontent, re.M)
 
+        # maybe have to use finditer here instead to know the position?
+        # check for default setting
+
+        # take from beginning to first pattern
+        # and use it as default
         for p in patterns:
+            # take space between patterns and parse it wich default class
+            # find match
+            # process it
+            # proces text to the next match or  end of file with the default
+            # class
+            # process next match
+            #
             if p[0] == 'title':
                 obj = ParseTitle(parent=root, name=p[0], options=p[1], content=p[2])
             elif p[0] == 'section':
