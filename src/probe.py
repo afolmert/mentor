@@ -25,23 +25,9 @@ import re
 import sys
 import os
 
-# OPTION RESTRICTIONS LIKE IN OPTPARSE
-
-
 # {{{1 Parser classes
-# TODO
-# the classes should be more like file-objects
-# wich - > they should get file objets and read data from them ]
-# until is enough
-
 
 ### {{{2 ParseOptions
-# also positional and default options so I can write something like this
-# \title[good]
-# or \title[good, ok, best]
-# or \title[good, type=ok]
-# options should work as keyword arguments
-# params: position, name, value
 class ParseOptions(object):
 
     # possible options
@@ -89,8 +75,6 @@ class ParseOptions(object):
         assert self.options.has_key(name), "Option not available: " + name
         return self.options[name]
 ### 2}}} ParseOptions
-
-
 
 ### {{{2 ParseObject
 class ParseObject(object):
@@ -149,8 +133,7 @@ class ParseObject(object):
         for c in self.children:
             result += str(c)
         return result
-
-
+### 2}}} ParseObject
 
 ### {{{2 ParseText
 class ParseText(ParseObject):
@@ -169,7 +152,6 @@ class ParseText(ParseObject):
         self.options.add_option('marker', ParseOptions.Enumeration, values=('^', '_'))
 
 ### 2}}} ParseText
-
 
 ### {{{2 ParseCommand
 # TODO this will be more elaborate to enable dynamically creating parse classes
@@ -226,8 +208,7 @@ class ParseCommand(ParseObject):
 
 ### 2}}} ParseCommand
 
-
-### {{{2 Parse other custom classes
+### {{{2 Parse other custom command classes
 class ParseTitle(ParseCommand):
     """This is parser for the \\title command."""
     def init_options(self):
@@ -248,8 +229,9 @@ class ParseSubsection(ParseCommand):
     def init_options(self):
         self.options.clear()
         self.options.add_option('sec2')
+### 2}}} Parse other custom command classes
 
-
+### {{{2 ParseClassCommand
 
 class ParseClassCommand(ParseCommand):
     """This is generic class for class commands which process text."""
@@ -259,7 +241,7 @@ class ParseClassCommand(ParseCommand):
         log("parsing content: $content")
         if len(content) > 2:
             content = content[1:-1] # strip the { } braces
-            words = re.split(" +", content)
+            words = re.split("[ \t\n]+", content)
             for w in words:
                 # check for special marking in words
                 marker = None
@@ -321,10 +303,7 @@ class ParseSentence(ParseCommand):
     pass
 
 
-
-
-### 2}}} Parse other custom classes
-
+### 2}}} Parse class command
 
 ### {{{2 Main parser class
 
@@ -392,6 +371,7 @@ class Parser(object):
 # 1}}}
 
 
+
 # {{{1 Item storage classes
 # items is a list of tuples question - answer
 
@@ -444,6 +424,7 @@ class Items(object):
 # 1}}}
 
 
+
 # {{{1 Exporter classes
 
 
@@ -487,6 +468,7 @@ class MentorExporter(Exporter):
             f.write("\n")
 
 # 1}}}
+
 
 
 # {{{1 Processor classes
@@ -616,6 +598,7 @@ class Processor(object):
 
 
 # 1}}} Processor classes
+
 
 
 # {{{1 Main program
