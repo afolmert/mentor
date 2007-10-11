@@ -31,7 +31,7 @@ import os
 class ParseOptions(object):
 
     # possible options
-    String, Enumeration, Integer = range(3)
+    String, Enumeration, Integer, Boolean = range(4)
 
     # only possible options
     """This class will restrict options to a given set."""
@@ -135,8 +135,8 @@ class ParseObject(object):
         return result
 ### 2}}} ParseObject
 
-### {{{2 ParseText
-class ParseText(ParseObject):
+### {{{2 ParseWord
+class ParseWord(ParseObject):
     """This is a simple object consisting of text."""
 
     # possibility to set a marker
@@ -150,8 +150,34 @@ class ParseText(ParseObject):
         # restrict marker to _ and ^
         self.options.clear()
         self.options.add_option('marker', ParseOptions.Enumeration, values=('^', '_'))
+### 2}}} ParseWord
 
-### 2}}} ParseText
+### {{{2 ParseBlock
+class ParseBlock(ParseObject):
+    """ParseBlock is a block of content. It usually consists of ParseWord objects."""
+
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('ignored', ParseOptions.Boolean)
+### 2}}} ParseBlock
+
+### {{{2 ParseHint
+class ParseHint(ParseObject):
+    """ParseHint is hint added to other blocks or better understanding."""
+    pass
+### 2}}} ParseHint
+
+### {{{2 ParseQuestionHint
+class ParseQuestionHint(ParseHint):
+    """ParseHint which is generated for question."""
+    pass
+### 2}}} ParseQuestionHint
+
+### {{{2 ParseAnswerHint
+class ParseAnswerHint(ParseHint):
+    """ParseHint which is generated for answer."""
+    pass
+### 2}}} ParseAnswerHint
 
 ### {{{2 ParseCommand
 # TODO this will be more elaborate to enable dynamically creating parse classes
@@ -236,28 +262,59 @@ class ParseSubsection(ParseCommand):
 class ParseClassCommand(ParseCommand):
     """This is generic class for class commands which process text."""
 
+    def get_block_split_regex(self):
+        """Virtual function to be overriden in subclasses.
+        This regex will be used to split content into blocks.
+        Function parse_content uses this to parse content."""
+        return '[\.!?]+'
+
+    def get_word_split_regex(self):
+        """Virtual function to be overriden in subclasses.
+        This regex will be used to split words in blocks.
+        Function parse_content uses this to parse content."""
+        return '[ \t\n]+'
+
+    def get_word_markers(self):
+        """Virtual function to be overriden in subclasses.
+        This returns a set (string) of markers which may be used on the word.
+        """
+        return '^_'
+
     def parse_content(self, content):
         """This will parse content and result a list of words with info on marked, unmarked."""
         log("parsing content: $content")
+        # first split text into blocks
+        # and then into words
+        # using regex as defined in functions get_block_split_regex and
+        # get_word_split_regex
+        # It also uses get_word_markers to check out what word markers are
+        # possible
         if len(content) > 2:
             content = content[1:-1] # strip the { } braces
-            words = re.split("[ \t\n]+", content)
-            for w in words:
-                # check for special marking in words
-                marker = None
-                if w.find('^') >= 0:
-                    if w[0] == '^':
-                        w = w[1:]
-                    w = w.replace('^', ' ')
-                    marker = '^'
-                elif w.find('_') >= 0:
-                    if w[0] == '_':
-                        w = w[1:]
-                    w = w.replace('_', ' ')
-                    marker = '_'
+            blocks = re.split(self.get_block_split_regex(), content)#{{{
+            for b in blocks:
+                parse_block = ParseBlock(self)
 
-                self.add_child(ParseText(self, w, marker))
-            log("parsing contet end. ")
+                words = re.split(self.get_word_split_regex(), b)
+                for w in words:
+                    # check for special marking in words
+                    marker = None
+                    if w.find('^') >= 0:
+                        if w[0] == '^':
+                            w = w[1:]
+                        w = w.replace('^', ' ')
+                        marker = '^'
+                    elif w.find('_') >= 0:
+                        if w[0] == '_':
+                            w = w[1:]
+                        w = w.replace('_', ' ')
+                        marker = '_'
+                    parse_block.add_child(ParseWord(parse_block, w, marker))
+
+                self.add_child(parse_block)
+
+#}}}
+        log("parsing content end. ")
 
 
 
@@ -552,44 +609,46 @@ class Processor(object):
                 subsubsection = obj.content
             elif obj.command == ParseCommands.set:
                 log('processing set command ' )
-                words = []
-                question_words = []
-                # for each word prepare a special item
-                # except for marked items
-                for i in range(0, len(obj.children)):
-                    words.append(obj.children[i].content)
-                    if obj.children[i].get_option('marker') != '^': # and not is in ignored words
-                        question_words.append(i)
+                for block in obj.children:
+                    words = []
+                    question_words = []
+                    # for each word prepare a special item
+                    # except for marked items
+                    for i in range(0, len(block.children)):
+                        words.append(block.children[i].content)
+                        if block.children[i].get_option('marker') != '^': # and not is in ignored words
+                            question_words.append(i)
 
-                for i in question_words:
-                    question = self.build_question(words, i)
-                    answer = words[i]
+                    for i in question_words:
+                        question = self.build_question(words, i)
+                        answer = words[i]
 
-                    if not prefix.endswith(": "):
-                        prefix = prefix + ": "
-                    items.add_item(prefix + question, answer)
+                        if not prefix.endswith(": "):
+                            prefix = prefix + ": "
+                        items.add_item(prefix + question, answer)
 
             elif obj.command == ParseCommands.cloze:
                 log( 'processing cloze command. with $len(obj.children) children ' )
-                words = []
-                question_words = []
-                # this will be in contrast to set
-                # marked items will be included only
-                for i in range(len(obj.children)):
-                    words.append(obj.children[i].content)
-                    if obj.children[i].get_option('marker') == '_':
-                        question_words.append(i)
+                for block in obj.children:
+                    words = []
+                    question_words = []
+                    # this will be in contrast to set
+                    # marked items will be included only
+                    for i in range(len(block.children)):
+                        words.append(block.children[i].content)
+                        if block.children[i].get_option('marker') == '_':
+                            question_words.append(i)
 
 
-                log('cloze words: ' + str(words))
-                log('cloze question words ' + str(question_words))
-                for i in question_words:
-                    question = self.build_question(words, i)
-                    answer = words[i]
+                    log('cloze words: ' + str(words))
+                    log('cloze question words ' + str(question_words))
+                    for i in question_words:
+                        question = self.build_question(words, i)
+                        answer = words[i]
 
-                    if not prefix.endswith(": "):
-                        prefix = prefix + ": "
-                    items.add_item(prefix + question, answer)#}}}
+                        if not prefix.endswith(": "):
+                            prefix = prefix + ": "
+                        items.add_item(prefix + question, answer)#}}}
 
 
         # now export items using exporter
