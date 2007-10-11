@@ -298,18 +298,16 @@ class ParseClassCommand(ParseCommand):
                 words = re.split(self.get_word_split_regex(), b)
                 for w in words:
                     # check for special marking in words
-                    marker = None
-                    if w.find('^') >= 0:
-                        if w[0] == '^':
-                            w = w[1:]
-                        w = w.replace('^', ' ')
-                        marker = '^'
-                    elif w.find('_') >= 0:
-                        if w[0] == '_':
-                            w = w[1:]
-                        w = w.replace('_', ' ')
-                        marker = '_'
-                    parse_block.add_child(ParseWord(parse_block, w, marker))
+                    m = None
+                    for marker in self.get_word_markers():
+                        if w.find(marker) >= 0:
+                            if w[0] == marker:
+                                w = w[1:]
+                            w = w.replace(marker, ' ')
+                            m = marker
+                    # add word and marker , only if not empty
+                    if w.strip() != "":
+                        parse_block.add_child(ParseWord(parse_block, w.strip(), m))
 
                 self.add_child(parse_block)
 
@@ -338,7 +336,22 @@ class ParseSet(ParseClassCommand):
 
 class ParseTabbed(ParseClassCommand):
     """This is parser the the \\tabbed class command."""
-    pass
+
+    def get_block_split_regex(self):
+        """Virtual function to be overriden in subclasses.
+        This regex will be used to split content into blocks.
+        Function parse_content uses this to parse content."""
+        return '[\n]+'
+
+    def get_word_split_regex(self):
+        """Virtual function to be overriden in subclasses.
+        This regex will be used to split words in blocks.
+        Function parse_content uses this to parse content."""
+        return '[\t,]+'
+        # but it should format question in another way
+        # q
+        # a should be below
+
 
 
 class ParseVerbatim(ParseClassCommand):
@@ -397,7 +410,7 @@ class Parser(object):
         # depending on the texts given.
         log('parse file begin')
 
-        probe_regexp = re.compile("\\\\(title|section|cloze|set|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
+        probe_regexp = re.compile("\\\\(title|section|cloze|set|tabbed|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
 
 
         root = ParseObject(parent=None, name='root') # a list of parse objects
@@ -405,18 +418,21 @@ class Parser(object):
         patterns = re.findall(probe_regexp, fcontent, re.M)
 
         for p in patterns:
-            if p[0] == "title":
+            if p[0] == 'title':
                 obj = ParseTitle(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == "section":
+            elif p[0] == 'section':
                 obj = ParseSection(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == "subsection":
+            elif p[0] == 'subsection':
                 obj = ParseSubsection(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == "subsubsection":
+            elif p[0] == 'subsubsection':
                 obj = ParseCloze(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == "cloze":
+            elif p[0] == 'cloze':
                 obj = ParseCloze(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == "set":
+            elif p[0] == 'set':
                 obj = ParseSet(parent=root, name=p[0], options=p[1], content=p[2])
+            elif p[0] == 'tabbed':
+                log('running ParseTabbed command. ')
+                obj = ParseTabbed(parent=root, name=p[0], options=p[1], content=p[2])
 
             root.add_child(obj)
         return root
@@ -607,7 +623,7 @@ class Processor(object):
                 subsection = obj.content
             elif obj.command == ParseCommands.subsubsection:
                 subsubsection = obj.content
-            elif obj.command == ParseCommands.set:
+            elif obj.command in (ParseCommands.set, ParseCommands.tabbed):
                 log('processing set command ' )
                 for block in obj.children:
                     words = []
