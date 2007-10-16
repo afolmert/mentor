@@ -34,12 +34,11 @@ import sys
 import os
 
 
+# {{{1 AST classes
+# These classes form the abstract syntax tree
 
-
-# {{{1 Parser classes
-
-### {{{2 ParseOptions
-class ParseOptions(object):
+### {{{2 ASTOptions
+class ASTOptions(object):
 
     # possible options
     String, Enumeration, Integer, Boolean = range(4)
@@ -85,16 +84,17 @@ class ParseOptions(object):
         """This will be overriden in parse object to return option as attribute"""
         assert self.options.has_key(name), "Option not available: " + name
         return self.options[name]
-### 2}}} ParseOptions
+### 2}}} ASTOptions
 
-### {{{2 ParseObject
-class ParseObject(object):
+### {{{2 ASTObject
+class ASTObject(object):
+    """The root of all AST objects."""
 
     def __init__(self, parent=None, name="", content=""):
         self.parent = parent
         self.name = name
         self.content = content
-        self.options = ParseOptions()
+        self.options = ASTOptions()
         self.children = []
         self.init_options()
 
@@ -113,12 +113,13 @@ class ParseObject(object):
         return ' ' * 2 * self.calculate_hierarchy_level()
 
     def get_print_name(self):
-        return self.__class__.__name__.upper().replace('PARSE', '')
+        return self.__class__.__name__.upper().replace('AST', '')
 
 
     def add_child(self, child):
         """Appends child to parse object children."""
-        assert issubclass(child.__class__, ParseObject)
+        assert issubclass(child.__class__, ASTObject)
+        child.parent = self
         self.children.append(child)
 
     def set_option(self, name, value):
@@ -134,25 +135,32 @@ class ParseObject(object):
         # declarative way of setting possible option values
         # self.add_option
         self.options.clear()
-        self.options.add_option('init', ParseOptions.String, default='OK')
-        self.options.add_option('sample', ParseOptions.Enumeration, values=['yes', 'no'])
+        self.options.add_option('init', ASTOptions.String, default='OK')
+        self.options.add_option('sample', ASTOptions.Enumeration, values=['yes', 'no'])
 
     def __str__(self):
         indent = self.get_print_indent()
         name = self.get_print_name()
-        result = indent + "[%s %s%s]\n " % (name, str(self.content), str(self.options))
+        # use str_* to get rid of annoying space at the end
+        str_content = str(self.content).strip()
+        str_options = str(self.options).strip()
+        if str_options != "" or str_content != "":
+            result = indent + "[%s %s%s]\n " % (name, str(self.content), str(self.options))
+        else:
+            result = indent + "[%s]\n " % name
+        # add all children to result as well
         for c in self.children:
             result += str(c)
         return result
-### 2}}} ParseObject
+### 2}}} ASTObject
 
-### {{{2 ParseWord
-class ParseWord(ParseObject):
+### {{{2 ASTWord
+class ASTWord(ASTObject):
     """This is a simple object consisting of text."""
 
     # possibility to set a marker
     def __init__(self, parent=None, content='', marker=''):
-        ParseObject.__init__(self, parent, content)
+        ASTObject.__init__(self, parent, content)
         self.content = content
         self.set_option('marker', marker)
 
@@ -160,76 +168,210 @@ class ParseWord(ParseObject):
     def init_options(self):
         # restrict marker to _ and ^
         self.options.clear()
-        self.options.add_option('marker', ParseOptions.Enumeration, values=('^', '_'))
-### 2}}} ParseWord
+        self.options.add_option('marker', ASTOptions.Enumeration, values=('^', '_'))
+### 2}}} ASTWord
 
-### {{{2 ParseBlock
-class ParseBlock(ParseObject):
-    """ParseBlock is a block of content. It usually consists of ParseWord objects."""
+### {{{2 ASTBlock
+class ASTBlock(ASTObject):
+    """ASTBlock is a block of content. It usually consists of ASTWord objects."""
 
     def init_options(self):
         self.options.clear()
-        self.options.add_option('ignored', ParseOptions.Boolean)
-### 2}}} ParseBlock
+        self.options.add_option('ignored', ASTOptions.Boolean)
+### 2}}} ASTBlock
 
-### {{{2 ParseHint
-class ParseHint(ParseObject):
-    """ParseHint is hint added to other blocks or better understanding."""
+### {{{2 ASTHint
+class ASTHint(ASTObject):
+    """ASTHint is hint added to other blocks or better understanding."""
     pass
-### 2}}} ParseHint
+### 2}}} ASTHint
 
-### {{{2 ParseQuestionHint
-class ParseQuestionHint(ParseHint):
-    """ParseHint which is generated for question."""
+### {{{2 ASTQuestionHint
+class ASTQuestionHint(ASTHint):
+    """ASTHint which is generated for question."""
     pass
-### 2}}} ParseQuestionHint
+### 2}}} ASTQuestionHint
 
-### {{{2 ParseAnswerHint
-class ParseAnswerHint(ParseHint):
-    """ParseHint which is generated for answer."""
+### {{{2 ASTAnswerHint
+class ASTAnswerHint(ASTHint):
+    """ASTHint which is generated for answer."""
     pass
-### 2}}} ParseAnswerHint
+### 2}}} ASTAnswerHint
 
-### {{{2 ParseCommand
+### {{{2 ASTCommand
+
+class ASTCommand(ASTObject):
+    """Generic AST command object."""
+
+    def __init__(self, parent=None, name='', content=''):
+        ASTObject.__init__(self, parent, name, content)
+        self.command = None
+
+
+class ASTTitle(ASTCommand):
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('big')
+        self.options.add_option('a12pt')
+        self.options.add_option('title')
+
+class ASTSection(ASTCommand):
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('sec2')
+
+class ASTSubsection(ASTCommand):
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('sec2')
+
+class ASTCloze(ASTCommand):
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('simple')
+        self.options.add_option('area')
+        self.options.add_option('hint')
+
+class ASTSet(ASTCommand):
+    def init_options(self):
+        self.options.clear()
+        self.options.add_option('simple')
+        self.options.add_option('area')
+        self.options.add_option('hint')
+
+
+class ASTTabbed(ASTCommand):
+    pass
+
+
+### 2}}}
+
+
+# 1}}}
+
+
+# {{{1 Output classes
+# These are output classes which generate items for Mentor and SuperMemo
+
+# items is a list of tuples question - answer
+
+class OutputItem(object):
+    """This is basic item for storing questions and answers."""
+    def __init__(self, question="", answer=""):
+        self.question = question
+        self.answer = answer
+
+    def get_question(self):
+        return self.question
+
+    def set_question(self, question):
+        self.question = question
+
+    def get_answer(self):
+        return self.answer
+
+    def set_answer(self, answer):
+        self.answer = answer
+
+    def __str__(self):
+        return "q: %s\na: %s\n" % (self.question, self.answer)
+
+
+
+class OutputItems(object):
+    """This is a basic of collection of items which are question and answers."""
+    # todo provide iterator container for these
+    def __init__(self):
+        self.contents = []
+
+    def add_item(self, question, answer):
+        item = OutputItem(question, answer)
+        self.contents.append(item)
+
+    def debug_items(self):
+        print "OutputItems of length %d" % len(self.contents)
+        for it in self.contents:
+            print str(it)
+
+    def export_to_file(self, fname):
+        f = open(fname, "rt")
+        for it in self.contents:
+            f.write(str(it))
+            f.write("\n")
+        f.close()
+
+
+# 1}}}
+
+
+# {{{1 Parser classes
+# These classes form the parse routines family
+# They are more like function object
+# with one significant function --> parse which task is to transform
+# text to a tree of AST objects
+#
+#
 # TODO this will be more elaborate to enable dynamically creating parse classes
 # will be a function , register parse command - or not a function
 # i will just put this file in plugins and it will read it's name and change it to command class
 # will have to provide function for parse_content returning list of child object
 ParseCommands = Enumeration("ParseCommands", ["title", "section", "cloze", "set", "subsection", "tabbed",
                                              "subsubsection"])
+# main regexp used to search for parsed object
+ParseRegexp = re.compile("\\\\(title|section|cloze|set|tabbed|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
+
+### {{{2 ParseObject
+# The root of all parse classes
+
+class ParseObject(object):
+
+    def parse(self, text=''):
+        """Returns ast object which is the result of the parsing procedure"""
+        return self.init_ast_object()
+
+    def init_ast_object(self):
+        return ASTObject()
+
+### 2}}}
+
+### {{{2 ParseCommand
+
 
 class ParseCommand(ParseObject):
-    def __init__(self, parent=None, name="", options="", content=""):
-        log("ParseCommand init.")
-        ParseObject.__init__(self, parent, name)
-        # check if name is one of given in enumeration
-        # if not then raise error
-        # set command to the value of enumeration
-        self.parse_command(name)
-        self.parse_options(options)
-        self.parse_content(content)
 
+    def parse(self, text=''):
+        """Parse procedure for commands."""
+        ast_obj = self.init_ast_object()
 
-    def generate_items(self, options):
-        """This will be also have to subclassed if I would have a plugin to write"""
-        pass
+        match = re.match(ParseRegexp, text, re.M)
+        if match:
+            self.parse_command(ast_obj, match.groups()[0])
+            self.parse_options(ast_obj, match.groups()[1])
+            self.parse_content(ast_obj, match.groups()[2])
+            return ast_obj
+        else:
+            error("No match found in parsing command for text = " + text)
 
-    def parse_command(self, command):
+    def init_ast_object(self):
+        """This is to be overriden to return the object to be returned."""
+        return ASTCommand()
+
+    def parse_command(self, ast_obj, command):
         """Returns command from ParseCommands enumeration type."""
         log('parse_command for command = $command')
-        self.command = ParseCommands.lookup[command]
+        ast_obj.command = ParseCommands.lookup[command]
         # ! enumaration not working !!!!
         # right now it does not do anything
         # TODO command should be enumerations which shall be returned in here
 
-    def parse_content(self, content):
+    def parse_content(self, ast_obj, content):
         """Returns content."""
         if len(content) > 2:
-            self.content = content[1:-1]
+            ast_obj.content = content[1:-1]
         else:
-            self.content = None
+            ast_obj.content = None
 
-    def parse_options(self, options):
+    def parse_options(self, ast_obj, options):
         """This will parse options embedded in begin or option statement."""
         log("parsing options $options")
         if options != None:
@@ -241,31 +383,26 @@ class ParseCommand(ParseObject):
                 name = name.strip()
                 value = value.strip()
                 if name != "":
-                    self.set_option(name, value)
+                    ast_obj.set_option(name, value)
 
 ### 2}}} ParseCommand
 
 ### {{{2 Parse other custom command classes
 class ParseTitle(ParseCommand):
     """This is parser for the \\title command."""
-    def init_options(self):
-        self.options.clear()
-        self.options.add_option('big')
-        self.options.add_option('a12pt')
-        self.options.add_option('title')
+    def init_ast_object(self):
+        return ASTTitle()
 
 class ParseSection(ParseCommand):
     """This is parser for the \\section command."""
-    def init_options(self):
-        self.options.clear()
-        self.options.add_option('sec2')
+    def init_ast_object(self):
+        return ASTSection()
 
 
 class ParseSubsection(ParseCommand):
     """This is a parser for the \\subsection command."""
-    def init_options(self):
-        self.options.clear()
-        self.options.add_option('sec2')
+    def init_ast_object(self):
+        return ASTSubsection()
 ### 2}}} Parse other custom command classes
 
 ### {{{2 ParseClassCommand
@@ -291,7 +428,7 @@ class ParseClassCommand(ParseCommand):
         """
         return '^_'
 
-    def parse_content(self, content):
+    def parse_content(self, ast_obj, content):
         """This will parse content and result a list of words with info on marked, unmarked."""
         log("parsing content: $content")
         # first split text into blocks
@@ -304,7 +441,7 @@ class ParseClassCommand(ParseCommand):
             content = content[1:-1] # strip the { } braces
             blocks = re.split(self.get_block_split_regex(), content)#{{{
             for b in blocks:
-                parse_block = ParseBlock(self)
+                ast_block = ASTBlock(self)
 
                 words = re.split(self.get_word_split_regex(), b)
                 for w in words:
@@ -318,9 +455,11 @@ class ParseClassCommand(ParseCommand):
                             m = marker
                     # add word and marker , only if not empty
                     if w.strip() != "":
-                        parse_block.add_child(ParseWord(parse_block, w.strip(), m))
+                        ast_block.add_child(ASTWord(ast_block, w.strip(), m))
 
-                self.add_child(parse_block)
+                # add block, only if not empty
+                if len(ast_block.children) > 0:
+                    ast_obj.add_child(ast_block)
 
 #}}}
         log("parsing content end. ")
@@ -329,24 +468,22 @@ class ParseClassCommand(ParseCommand):
 
 class ParseCloze(ParseClassCommand):
     """This is parser for the \\cloze command."""
-    def init_options(self):
-        self.options.clear()
-        self.options.add_option('simple')
-        self.options.add_option('area')
-        self.options.add_option('hint')
+
+    def init_ast_object(self):
+        return ASTCloze()
 
 
 class ParseSet(ParseClassCommand):
     """This is parser for the \\set class command."""
-    def init_options(self):
-        self.options.clear()
-        self.options.add_option('simple')
-        self.options.add_option('area')
-        self.options.add_option('hint')
+    def init_ast_object(self):
+        return ASTSet()
 
 
 class ParseTabbed(ParseClassCommand):
     """This is parser the the \\tabbed class command."""
+
+    def init_ast_object(self):
+        return ASTSet()
 
     def get_block_split_regex(self):
         """Virtual function to be overriden in subclasses.
@@ -386,14 +523,11 @@ class ParseSentence(ParseCommand):
 
 ### 2}}} Parse class command
 
-### {{{2 Main parser class
 
-# Main parser class creates a abstract syntax tree of parse objects
-#
-
-
-class Parser(object):
-    """This will be a general class for parsing text files.
+### {{{2 ParseFile
+# whole file parsing
+class ParseFile(ParseObject):
+    """This class is for parsing the whole file.
     It will read whole files and act according to the probe syntax
     given in the file.
     It will initiate specific import classes and keep track of the
@@ -403,129 +537,72 @@ class Parser(object):
     It does not use a full tokenizer yet.
     """
 
-    def __init__(self):
-        pass
-        # find a command, then, optionally a [] block, and then, optionally a
-        # {} block
-        # what about maybe the regexp will be used as a start only and then it
-        # will be parsed more reguralry
-        # what about this { ass{}   } -> this will fail to be found
-        # can a regexp make a counting progress? ?
+    def parse(self, text=''):
 
-
-    def parse_file(self, fobject):
-        """Returns a tree of parsed objects read from file-like object."""
-        # open file , read it line by line
-        # if encounters syntax item then interpret it in some way
-        # specific environment parsers will be launched
-        # depending on the texts given.
-        log('parse file begin')
-
-        probe_regexp = re.compile("\\\\(title|section|cloze|set|tabbed|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
-
-
-        root = ParseObject(parent=None, name='root') # a list of parse objects
-        fcontent = fobject.read()
         # preprocess the file
         # remove the comments
-        fcontent = re.sub("(?m)(^|[^\\\\])(%.*$)", "", fcontent)
+        text = re.sub("(?m)(^|[^\\\\])(%.*$)", "", text)
+        subtext = ''
 
-        patterns = re.findall(probe_regexp, fcontent, re.M)
+        # initialize search#{{{
+        root = self.init_ast_object()
+        pos = 0
 
-        # maybe have to use finditer here instead to know the position?
-        # check for default setting
+        match = -1
+        while match and pos < len(text):
+            match = ParseRegexp.search(text, pos)
+            if match:
+                # if match is after our current position
+                # then parse in-between text with default parse class
+                if match.start() > pos:
+                    subtext = text[pos:match.start()]
+                    if re.sub('\s', '', subtext) != '':
+                        log('Found non-marked text: $subtext' )
+                        parse_obj = ParseCloze()
+                        ast_obj = parse_obj.parse(r'\cloze[]{' + subtext + r'}')
+                        root.add_child(ast_obj)
+                # parse what's in match with
+                # corresponding class
+                command = match.groups()[0]
+                if command == 'title':
+                    parse_obj = ParseTitle()
+                elif command == 'section':
+                    parse_obj = ParseSection()
+                elif command == 'subsection':
+                    parse_obj = ParseSubsection()
+                elif command == 'subsubsection':
+                    parse_obj = ParseCloze()
+                elif command == 'cloze':
+                    parse_obj = ParseCloze()
+                elif command == 'set':
+                    parse_obj = ParseSet()
+                elif command == 'tabbed':
+                    parse_obj = ParseTabbed()
+                subtext = text[match.start():match.end()]
+                ast_obj = parse_obj.parse(subtext)
+                root.add_child(ast_obj)
+                # pos now points after last match
+                pos = match.end() + 1
 
-        # take from beginning to first pattern
-        # and use it as default
-        for p in patterns:
-            # take space between patterns and parse it wich default class
-            # find match
-            # process it
-            # proces text to the next match or  end of file with the default
-            # class
-            # process next match
-            #
-            if p[0] == 'title':
-                obj = ParseTitle(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == 'section':
-                obj = ParseSection(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == 'subsection':
-                obj = ParseSubsection(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == 'subsubsection':
-                obj = ParseCloze(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == 'cloze':
-                obj = ParseCloze(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == 'set':
-                obj = ParseSet(parent=root, name=p[0], options=p[1], content=p[2])
-            elif p[0] == 'tabbed':
-                log('running ParseTabbed command. ')
-                obj = ParseTabbed(parent=root, name=p[0], options=p[1], content=p[2])
-
-            root.add_child(obj)
+        # surround the last block with default command
+        if pos < len(text):
+            subtext = text[pos:]
+            if re.sub('\s', '', subtext):
+                log('Found non-marked text: $subtext' )
+                parse_obj = ParseCloze()
+                ast_obj = parse_obj.parse(r'\cloze[]{' + subtext + r'}')
+                root.add_child(ast_obj)
+#}}}
         return root
 
-        log('parse file end')
 
-### 2}}}
-
-# 1}}}
-
-
-
-# {{{1 Item storage classes
-# items is a list of tuples question - answer
-
-class Item(object):
-    """This is basic item for storing questions and answers."""
-    def __init__(self, question="", answer=""):
-        self.question = question
-        self.answer = answer
-
-    def get_question(self):
-        return self.question
-
-    def set_question(self, question):
-        self.question = question
-
-    def get_answer(self):
-        return self.answer
-
-    def set_answer(self, answer):
-        self.answer = answer
-
-    def __str__(self):
-        return "q: %s\na: %s\n" % (self.question, self.answer)
-
-
-
-class Items(object):
-    """This is a basic of collection of items which are question and answers."""
-    # todo provide iterator container for these
-    def __init__(self):
-        self.contents = []
-
-    def add_item(self, question, answer):
-        item = Item(question, answer)
-        self.contents.append(item)
-
-    def debug_items(self):
-        print "Items of length %d" % len(self.contents)
-        for it in self.contents:
-            print str(it)
-
-    def export_to_file(self, fname):
-        f = open(fname, "rt")
-        for it in self.contents:
-            f.write(str(it))
-            f.write("\n")
-        f.close()
-
+# 2}}}
 
 # 1}}}
-
 
 
 # {{{1 Exporter classes
+# These classes export items basing on output classes
 
 
 class Exporter(object):
@@ -570,7 +647,6 @@ class MentorExporter(Exporter):
 # 1}}}
 
 
-
 # {{{1 Processor classes
 # Here are main classes which use parser to get a parse tree of parse objects
 # use it to build items
@@ -611,19 +687,19 @@ class Processor(object):
     def process(self, input, output=None):
         """Processes input file and export output file.
         Utilizes input classes like Parser and output like Exporter
-        Uses Items objects to build Items
+        Uses OutputItems objects to build OutputItems
         """
-        finput = open(input, "rt")
-
 
         # parse tree
-        parser = Parser()
-        parse_tree = parser.parse_file(finput)
+        finput = open(input, "rt")
+        fcontent = finput.read()
         finput.close()
+        parser = ParseFile()
+        ast_tree = parser.parse(fcontent)
 
-        log('parse returned ' + str(len(parse_tree.children)) + ' children. ' )
+        log('parse returned ' + str(len(ast_tree.children)) + ' children. ' )
 
-        # process parse tree to create Items structure
+        # process parse tree to create OutputItems structure
         # is this step necessary ??
 
         # items
@@ -633,13 +709,13 @@ class Processor(object):
         subsection    = ""
         subsubsection = ""
         prefix        = "" # prefix used
-        items         = Items()
+        items         = OutputItems()
 
         log('Printing parse tree: ' )
-        print str(parse_tree)
+        print str(ast_tree)
         log('Printing parse tree done.')
 
-        for obj in parse_tree.children:
+        for obj in ast_tree.children:
             log( 'parsing for command: ' + str(obj.command))
             prefix = self.build_prefix(section, subsection, subsubsection)
             if obj.command == ParseCommands.title:#{{{
@@ -700,7 +776,6 @@ class Processor(object):
 
 
 # 1}}} Processor classes
-
 
 
 # {{{1 Main program
