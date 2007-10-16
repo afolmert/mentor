@@ -688,9 +688,11 @@ class Processor(object):
         return " ".join(words2)
 
 
-    def build_prefix(self, section, subsection, subsubsection):
+    def build_prefix(self, title, section, subsection, subsubsection):
         """Returns prefix basing on section settings."""
         result = []
+        if title is not None and title.strip() != "":
+            result.append(title + ": ")
         if section is not None and section.strip() != "":
             result.append(section + ": ")
         if subsection is not None and subsection.strip() != "":
@@ -740,7 +742,7 @@ class Processor(object):
 
         # items
         # initialize variables
-        title         = ""
+        title         = os.path.basename(os.path.splitext(input)[0])
         section       = ""
         subsection    = ""
         subsubsection = ""
@@ -750,7 +752,7 @@ class Processor(object):
         print str(ast_tree)
 
         for obj in ast_tree.children:
-            prefix = self.build_prefix(section, subsection, subsubsection)
+            prefix = self.build_prefix(title, section, subsection, subsubsection)
             if obj.command == ParseCommands.title:
                 title = obj.content
             elif obj.command ==  ParseCommands.section:
