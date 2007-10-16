@@ -68,6 +68,21 @@ class FreqDatabase(object):
             cur.close()
 
 
+    def get_info_on_word(self, word):
+        """Returns info on word or none if word not found."""
+        cur = self.connection.cursor()
+        occur, pos, pos_lvl = -1, -1, -1
+        try:
+            result = cur.execute('SELECT OCCUR, POSITION, POSITION_LVL FROM TFREQ WHERE WORD = ? ', (word,))
+            for row in result:
+                occur, pos, pos_lvl = row
+        finally:
+            cur.close()
+        if occur > -1:
+            return word, occur, pos, pos_lvl
+        else:
+            return None
+
 
     def print_rows(self, max=100):
         """Prints rows from database."""
@@ -115,6 +130,7 @@ def get_usage_info():
 Commands:
   print                 prints database contents
   import                import a file (use with -t and -f options)
+  show                  shows frequencies of words used in a file (use with -t options)
 
 Options:
   -h, --help            show this help message and exit
@@ -140,6 +156,25 @@ def print_db_rows(db, limit):
 def msg(text):
     print text
     sys.stdout.flush()
+
+
+def show_text_file(db, fname):
+    """Shows frequencies of words in a text file."""
+    msg("Showing frequences of words in file %s..." % fname)
+    f = open(fname)
+    content = f.read()
+    cnt = 0
+    f.close()
+    words = re.split('\W+', content)
+    for w in words:
+        w = w.strip().lower()
+        info = db.get_info_on_word(w)
+        if info:
+            word, occur, pos, pos_lvl = info
+            print "%20s 15%s 10%s 10%s" % (word, occur, pos, pos_lvl)
+        else:
+            print "No info for word " + w
+
 
 def import_text_file(db, fname):
     """Imports words from a text file."""
@@ -199,7 +234,7 @@ def main():
     parser.add_option("-f", "--freq", action="store", dest="frequency",
                       metavar="FILE", help="specifices a frequency file in format: word occur; used with import command")
     parser.add_option("-t", "--text", action="store", dest="text",
-                      metavar="FILE", help="specifies a text file to import; used with import command")
+                      metavar="FILE", help="specifies a text file to import; used with import and show command")
     parser.add_option("-p", "--print", action="store_true", dest="pretend", default=False,
                       help="run a a simulation only")
     parser.add_option("-l", "--limit", action="store", type="int", dest="limit", default=100,
@@ -229,7 +264,12 @@ def main():
         elif opts.frequency is not None:
             import_freq_file(db, opts.frequency)
         else:
-            print "No import file specified. Use -f or -t option. "
+            print "No import file specified. Use -f or -t option."
+    elif command == 'SHOW':
+        if opts.text:
+            show_text_file(db, opts.text)
+        else:
+            print "No text file specified. Use -t option."
     else:
         print "Unknown command %s " % command
 
