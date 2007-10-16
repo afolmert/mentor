@@ -23,7 +23,10 @@ from text files, basing on simple markup language.
 It is best used in conjunction with repetition learning flash-card programs
 like Mentor or SuperMemo.
 """
+# 1}}}
 
+
+# {{{1 interface
 __version__ = "0.0.1"
 
 from misc import istuple, matches, log, enable_logging, find_regroups, \
@@ -32,6 +35,14 @@ from StringIO import StringIO
 import re
 import sys
 import os
+
+# corpus specific settings
+# using this option will make ignore often used words in set class
+# TODO move them to user settings file
+LANG_CORPUS_USED = 1
+LANG_CORPUS_DB = 'd:/Projects/Mentor/Sources/draft/tools/freq/corpus_en.db'
+LANG_CORPUS_IGNORE_LVL = 2
+
 
 # 1}}}
 
@@ -656,7 +667,11 @@ class MentorExporter(Exporter):
 class Processor(object):
 
     def __init__(self):
-        pass
+        # used for lang corpus db
+        # in ignored words for set class
+        self.corpus_db = None
+        self.corpus_db_cache = {}
+
         # initialize options
         #self.use_swap = False
         #self.use_dict = False
@@ -684,6 +699,27 @@ class Processor(object):
             result.append(subsubsection + ": ")
         return "".join(result)
 
+    def is_word_ignored(self, word):
+        """Returns true if corpus is used and word is ignored at current level."""
+        if LANG_CORPUS_USED:
+            word = word.strip().lower()
+            if self.corpus_db_cache.has_key(word):
+                return self.corpus_db_cache[word]
+            else:
+                import sqlite3
+                if self.corpus_db is None:
+                    self.corpus_db = sqlite3.connect(LANG_CORPUS_DB)
+                # initially set to not-ignored
+                self.corpus_db_cache[word] = False
+                cursor = self.corpus_db.cursor()
+                # if is found under current ignore level then is set to True
+                for row in cursor.execute('SELECT WORD FROM TFREQ WHERE POSITION_LVL <= ?', (LANG_CORPUS_IGNORE_LVL,)):
+                    self.corpus_db_cache[row[0]] = True
+                cursor.close()
+                return self.corpus_db_cache[word]
+        else:
+            return False
+
 
     def process(self, input, output=None):
         """Processes input file and export output file.
@@ -698,7 +734,6 @@ class Processor(object):
         parser = ParseFile()
         ast_tree = parser.parse(fcontent)
 
-        log('parse returned ' + str(len(ast_tree.children)) + ' children. ' )#{{{
 
         # process parse tree to create OutputItems structure
         # is this step necessary ??
@@ -712,12 +747,9 @@ class Processor(object):
         prefix        = "" # prefix used
         items         = OutputItems()
 
-        log('Printing parse tree: ' )
         print str(ast_tree)
-        log('Printing parse tree done.')
 
         for obj in ast_tree.children:
-            log( 'parsing for command: ' + str(obj.command))
             prefix = self.build_prefix(section, subsection, subsubsection)
             if obj.command == ParseCommands.title:
                 title = obj.content
@@ -728,15 +760,15 @@ class Processor(object):
             elif obj.command == ParseCommands.subsubsection:
                 subsubsection = obj.content
             elif obj.command in (ParseCommands.set, ParseCommands.tabbed):
-                log('processing set command ' )
                 for block in obj.children:
                     words = []
                     question_words = []
                     # for each word prepare a special item
                     # except for marked items
                     for i in range(0, len(block.children)):
-                        words.append(block.children[i].content)
-                        if block.children[i].get_option('marker') != '^': # and not is in ignored words
+                        word = block.children[i]
+                        words.append(word.content)
+                        if word.get_option('marker') != '^' and not self.is_word_ignored(word.content): # and not is in ignored words
                             question_words.append(i)
 
                     for i in question_words:
@@ -748,7 +780,6 @@ class Processor(object):
                         items.add_item(prefix + question, answer)
 
             elif obj.command == ParseCommands.cloze:
-                log( 'processing cloze command. with $len(obj.children) children ' )
                 for block in obj.children:
                     words = []
                     question_words = []
@@ -759,9 +790,6 @@ class Processor(object):
                         if block.children[i].get_option('marker') == '_':
                             question_words.append(i)
 
-
-                    log('cloze words: ' + str(words))
-                    log('cloze question words ' + str(question_words))
                     for i in question_words:
                         question = self.build_question(words, i)
                         answer = words[i]
