@@ -16,7 +16,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 #
 #
-
+"""
+This is the main file for probe tool.
+Probe is a tool for incremental reading. It extracts useful fragments of information
+from text files, basing on simple markup language.
+It is best used in conjunction with repetition learning flash-card programs
+like Mentor or SuperMemo.
+"""
 
 __version__ = "0.0.1"
 
@@ -26,6 +32,9 @@ from StringIO import StringIO
 import re
 import sys
 import os
+
+
+
 
 # {{{1 Parser classes
 
@@ -729,4 +738,5 @@ if __name__ == "__main__":
     main()
 
 # 1}}}
+
 
