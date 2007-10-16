@@ -701,7 +701,7 @@ class Processor(object):
 
     def is_word_ignored(self, word):
         """Returns true if corpus is used and word is ignored at current level."""
-        if LANG_CORPUS_USED:
+        if LANG_CORPUS_USED: #{{{2
             word = word.strip().lower()
             if self.corpus_db_cache.has_key(word):
                 return self.corpus_db_cache[word]
@@ -716,7 +716,7 @@ class Processor(object):
                 for row in cursor.execute('SELECT WORD FROM TFREQ WHERE POSITION_LVL <= ?', (LANG_CORPUS_IGNORE_LVL,)):
                     self.corpus_db_cache[row[0]] = True
                 cursor.close()
-                return self.corpus_db_cache[word]
+                return self.corpus_db_cache[word] #2}}}
         else:
             return False
 
@@ -734,7 +734,7 @@ class Processor(object):
         parser = ParseFile()
         ast_tree = parser.parse(fcontent)
 
-
+        # {{{2
         # process parse tree to create OutputItems structure
         # is this step necessary ??
 
@@ -768,7 +768,8 @@ class Processor(object):
                     for i in range(0, len(block.children)):
                         word = block.children[i]
                         words.append(word.content)
-                        if word.get_option('marker') != '^' and not self.is_word_ignored(word.content): # and not is in ignored words
+                        if word.get_option('marker') != '^' \
+                            and not self.is_word_ignored(word.content): # and not is in ignored words
                             question_words.append(i)
 
                     for i in question_words:
@@ -796,8 +797,7 @@ class Processor(object):
 
                         if not prefix.endswith(": "):
                             prefix = prefix + ": "
-                        items.add_item(prefix + question, answer)
-#}}}
+                        items.add_item(prefix + question, answer)#2}}}
 
         # now export items using exporter
         exporter = SuperMemoExporter()
@@ -805,6 +805,7 @@ class Processor(object):
 
 
 # 1}}} Processor classes
+
 
 
 # {{{1 Main program
