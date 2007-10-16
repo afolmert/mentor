@@ -1,5 +1,5 @@
 #!/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-    {{{1 Intro
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@ from StringIO import StringIO
 import re
 import sys
 import os
+
+# 1}}}
 
 
 # {{{1 AST classes
@@ -523,7 +525,6 @@ class ParseSentence(ParseCommand):
 
 ### 2}}} Parse class command
 
-
 ### {{{2 ParseFile
 # whole file parsing
 class ParseFile(ParseObject):
@@ -697,7 +698,7 @@ class Processor(object):
         parser = ParseFile()
         ast_tree = parser.parse(fcontent)
 
-        log('parse returned ' + str(len(ast_tree.children)) + ' children. ' )
+        log('parse returned ' + str(len(ast_tree.children)) + ' children. ' )#{{{
 
         # process parse tree to create OutputItems structure
         # is this step necessary ??
@@ -718,7 +719,7 @@ class Processor(object):
         for obj in ast_tree.children:
             log( 'parsing for command: ' + str(obj.command))
             prefix = self.build_prefix(section, subsection, subsubsection)
-            if obj.command == ParseCommands.title:#{{{
+            if obj.command == ParseCommands.title:
                 title = obj.content
             elif obj.command ==  ParseCommands.section:
                 section = obj.content
@@ -767,8 +768,8 @@ class Processor(object):
 
                         if not prefix.endswith(": "):
                             prefix = prefix + ": "
-                        items.add_item(prefix + question, answer)#}}}
-
+                        items.add_item(prefix + question, answer)
+#}}}
 
         # now export items using exporter
         exporter = SuperMemoExporter()
