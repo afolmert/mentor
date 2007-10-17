@@ -46,8 +46,8 @@ SNIPPETS and CARDS
 __version__ = "0.0.1"
 __revision__ = "$Id$"
 
-
-
+# WARNING !
+# <!--- Run pyrcc4 mentor.qrc to mentor_rc.py file -->
 
 # TODO
 # set mainwidget
