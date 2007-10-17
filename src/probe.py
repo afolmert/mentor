@@ -1,5 +1,5 @@
 #!/bin/env python
-# -*- coding: utf-8 -*-    {{{1 Intro
+# -*- coding: utf-8 -*-
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,10 +23,8 @@ from text files, basing on simple markup language.
 It is best used in conjunction with repetition learning flash-card programs
 like Mentor or SuperMemo.
 """
-# 1}}}
 
 
-# {{{1 interface
 __version__ = "0.0.1"
 
 from misc import istuple, matches, log, enable_logging, find_regroups, \
@@ -44,13 +42,10 @@ LANG_CORPUS_DB = 'd:/Projects/Mentor/Sources/draft/tools/freq/corpus_en.db'
 LANG_CORPUS_IGNORE_LVL = 2
 
 
-# 1}}}
 
-
-# {{{1 AST classes
+# AST classes
 # These classes form the abstract syntax tree
 
-### {{{2 ASTOptions
 class ASTOptions(object):
 
     # possible options
@@ -97,9 +92,8 @@ class ASTOptions(object):
         """This will be overriden in parse object to return option as attribute"""
         assert self.options.has_key(name), "Option not available: " + name
         return self.options[name]
-### 2}}} ASTOptions
 
-### {{{2 ASTObject
+
 class ASTObject(object):
     """The root of all AST objects."""
 
@@ -165,9 +159,8 @@ class ASTObject(object):
         for c in self.children:
             result += str(c)
         return result
-### 2}}} ASTObject
 
-### {{{2 ASTWord
+
 class ASTWord(ASTObject):
     """This is a simple object consisting of text."""
 
@@ -182,36 +175,31 @@ class ASTWord(ASTObject):
         # restrict marker to _ and ^
         self.options.clear()
         self.options.add_option('marker', ASTOptions.Enumeration, values=('^', '_'))
-### 2}}} ASTWord
 
-### {{{2 ASTBlock
+
 class ASTBlock(ASTObject):
     """ASTBlock is a block of content. It usually consists of ASTWord objects."""
 
     def init_options(self):
         self.options.clear()
         self.options.add_option('ignored', ASTOptions.Boolean)
-### 2}}} ASTBlock
 
-### {{{2 ASTHint
+
 class ASTHint(ASTObject):
     """ASTHint is hint added to other blocks or better understanding."""
     pass
-### 2}}} ASTHint
 
-### {{{2 ASTQuestionHint
+
 class ASTQuestionHint(ASTHint):
     """ASTHint which is generated for question."""
     pass
-### 2}}} ASTQuestionHint
 
-### {{{2 ASTAnswerHint
+
+
 class ASTAnswerHint(ASTHint):
     """ASTHint which is generated for answer."""
     pass
-### 2}}} ASTAnswerHint
 
-### {{{2 ASTCommand
 
 class ASTCommand(ASTObject):
     """Generic AST command object."""
@@ -221,22 +209,27 @@ class ASTCommand(ASTObject):
         self.command = None
 
 
+
 class ASTTitle(ASTCommand):
+    """AST object for titles."""
     def init_options(self):
         self.options.clear()
         self.options.add_option('big')
         self.options.add_option('a12pt')
         self.options.add_option('title')
 
+
 class ASTSection(ASTCommand):
     def init_options(self):
         self.options.clear()
         self.options.add_option('sec2')
 
+
 class ASTSubsection(ASTCommand):
     def init_options(self):
         self.options.clear()
         self.options.add_option('sec2')
+
 
 class ASTCloze(ASTCommand):
     def init_options(self):
@@ -244,6 +237,7 @@ class ASTCloze(ASTCommand):
         self.options.add_option('simple')
         self.options.add_option('area')
         self.options.add_option('hint')
+
 
 class ASTSet(ASTCommand):
     def init_options(self):
@@ -268,16 +262,11 @@ class ASTCode(ASTVerbatim):
 class ASTPythonCode(ASTVerbatim):
     pass
 
-
-### 2}}}
-
-
-# 1}}}
+#
 
 
-# {{{1 Output classes
+#  Output classes
 # These are output classes which generate items for Mentor and SuperMemo
-
 # items is a list of tuples question - answer
 
 class OutputItem(object):
@@ -326,10 +315,9 @@ class OutputItems(object):
         f.close()
 
 
-# 1}}}
 
 
-# {{{1 Parser classes
+# Parser classes
 # These classes form the parse routines family
 # They are more like function object
 # with one significant function --> parse which task is to transform
@@ -345,8 +333,6 @@ ParseCommands = Enumeration("ParseCommands", ["title", "section", "cloze", "set"
 # main regexp used to search for parsed object
 ParseRegexp = re.compile("\\\\(title|section|cloze|set|tabbed|subsection|verbatim|code|pythoncode)(\[[^]]*\])?({[^}]*})?", re.M)
 
-### {{{2 ParseObject
-# The root of all parse classes
 
 class ParseObject(object):
 
@@ -357,9 +343,6 @@ class ParseObject(object):
     def init_ast_object(self):
         return ASTObject()
 
-### 2}}}
-
-### {{{2 ParseCommand
 
 
 class ParseCommand(ParseObject):
@@ -410,13 +393,13 @@ class ParseCommand(ParseObject):
                 if name != "":
                     ast_obj.set_option(name, value)
 
-### 2}}} ParseCommand
 
-### {{{2 Parse other custom command classes
 class ParseTitle(ParseCommand):
     """This is parser for the \\title command."""
     def init_ast_object(self):
         return ASTTitle()
+
+
 
 class ParseSection(ParseCommand):
     """This is parser for the \\section command."""
@@ -424,13 +407,12 @@ class ParseSection(ParseCommand):
         return ASTSection()
 
 
+
 class ParseSubsection(ParseCommand):
     """This is a parser for the \\subsection command."""
     def init_ast_object(self):
         return ASTSubsection()
-### 2}}} Parse other custom command classes
 
-### {{{2 ParseClassCommand
 
 class ParseClassCommand(ParseCommand):
     """This is generic class for class commands which process text."""
@@ -464,7 +446,7 @@ class ParseClassCommand(ParseCommand):
         # possible
         if len(content) > 2:
             content = content[1:-1] # strip the { } braces
-            blocks = re.split(self.get_block_split_regex(), content)#{{{
+            blocks = re.split(self.get_block_split_regex(), content)#
             for b in blocks:
                 ast_block = ASTBlock(self)
 
@@ -486,7 +468,6 @@ class ParseClassCommand(ParseCommand):
                 if len(ast_block.children) > 0:
                     ast_obj.add_child(ast_block)
 
-#}}}
         log("parsing content end. ")
 
 
@@ -562,9 +543,9 @@ class ParseSentence(ParseCommand):
     pass
 
 
-### 2}}} Parse class command
 
-### {{{2 ParseFile
+
+
 # whole file parsing
 class ParseFile(ParseObject):
     """This class is for parsing the whole file.
@@ -577,6 +558,7 @@ class ParseFile(ParseObject):
     It does not use a full tokenizer yet.
     """
 
+
     def parse(self, text=''):
 
         # preprocess the file
@@ -584,7 +566,7 @@ class ParseFile(ParseObject):
         text = re.sub("(?m)(^|[^\\\\])(%.*$)", "", text)
         subtext = ''
 
-        # initialize search#{{{
+        # initialize search#
         root = self.init_ast_object()
         pos = 0
 
@@ -641,16 +623,11 @@ class ParseFile(ParseObject):
                 parse_obj = ParseCloze()
                 ast_obj = parse_obj.parse(r'\cloze[]{' + subtext + r'}')
                 root.add_child(ast_obj)
-#}}}
+#
         return root
 
 
-# 2}}}
-
-# 1}}}
-
-
-# {{{1 Exporter classes
+#  Exporter classes
 # These classes export items basing on output classes
 
 
@@ -667,6 +644,7 @@ class Exporter(object):
         """
         pass
 
+
 class SuperMemoExporter(Exporter):
     def __init__(self):
         Exporter.__init__(self)
@@ -682,6 +660,7 @@ class SuperMemoExporter(Exporter):
         if output is not None:
             f.close()
 
+
 class MentorExporter(Exporter):
     """This will be exporting to my custom Mentor program."""
     def __init__(self):
@@ -693,10 +672,9 @@ class MentorExporter(Exporter):
             f.write(str(it))
             f.write("\n")
 
-# 1}}}
 
 
-# {{{1 Processor classes
+#  Processor classes
 # Here are main classes which use parser to get a parse tree of parse objects
 # use it to build items
 # and then use Exporter objects to export those items
@@ -740,7 +718,7 @@ class Processor(object):
 
     def is_word_ignored(self, word):
         """Returns true if corpus is used and word is ignored at current level."""
-        if LANG_CORPUS_USED: #{{{2
+        if LANG_CORPUS_USED: #
             word = word.strip().lower()
             if self.corpus_db_cache.has_key(word):
                 return self.corpus_db_cache[word]
@@ -755,7 +733,7 @@ class Processor(object):
                 for row in cursor.execute('SELECT WORD FROM TFREQ WHERE POSITION_LVL <= ?', (LANG_CORPUS_IGNORE_LVL,)):
                     self.corpus_db_cache[row[0]] = True
                 cursor.close()
-                return self.corpus_db_cache[word] #2}}}
+                return self.corpus_db_cache[word] #
         else:
             return False
 
@@ -773,7 +751,7 @@ class Processor(object):
         parser = ParseFile()
         ast_tree = parser.parse(fcontent)
 
-        # {{{2
+        #
         # process parse tree to create OutputItems structure
         # is this step necessary ??
 
@@ -836,18 +814,16 @@ class Processor(object):
 
                         if not prefix.endswith(": "):
                             prefix = prefix + ": "
-                        items.add_item(prefix + question, answer)#2}}}
+                        items.add_item(prefix + question, answer)#
 
         # now export items using exporter
         exporter = SuperMemoExporter()
         exporter.export_file(items, output=None)
 
 
-# 1}}} Processor classes
 
 
-
-# {{{1 Main program
+#  Main program
 
 def main():
     """This is the main program."""
@@ -880,7 +856,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# 1}}}
-
-
