@@ -257,6 +257,18 @@ class ASTTabbed(ASTCommand):
     pass
 
 
+class ASTVerbatim(ASTCommand):
+    pass
+
+
+class ASTCode(ASTVerbatim):
+    pass
+
+
+class ASTPythonCode(ASTVerbatim):
+    pass
+
+
 ### 2}}}
 
 
@@ -329,9 +341,9 @@ class OutputItems(object):
 # i will just put this file in plugins and it will read it's name and change it to command class
 # will have to provide function for parse_content returning list of child object
 ParseCommands = Enumeration("ParseCommands", ["title", "section", "cloze", "set", "subsection", "tabbed",
-                                             "subsubsection"])
+                                             "subsubsection", "verbatim", "code", "pythoncode"])
 # main regexp used to search for parsed object
-ParseRegexp = re.compile("\\\\(title|section|cloze|set|tabbed|subsection)(\[[^]]*\])?({[^}]*})?", re.M)
+ParseRegexp = re.compile("\\\\(title|section|cloze|set|tabbed|subsection|verbatim|code|pythoncode)(\[[^]]*\])?({[^}]*})?", re.M)
 
 ### {{{2 ParseObject
 # The root of all parse classes
@@ -517,16 +529,32 @@ class ParseTabbed(ParseClassCommand):
 
 class ParseVerbatim(ParseClassCommand):
     """This is verbatim code parse command."""
-    pass
+    def init_ast_object(self):
+        return ASTVerbatim()
+
+    def get_block_split_regex(self):
+        """Virtual function to be overriden in subclasses.
+        This regex will be used to split content into blocks.
+        Function parse_content uses this to parse content."""
+        return ''
+
+    def get_word_split_regex(self):
+        """Virtual function to be overriden in subclasses.
+        This regex will be used to split words in blocks.
+        Function parse_content uses this to parse content."""
+        return ' \b'
 
 
-class ParseCode(ParseClassCommand):
-    pass
+class ParseCode(ParseVerbatim):
+    """This is customized code parse command."""
+    def init_ast_object(self):
+        return ASTCode()
 
 
-class ParsePythonCode(ParseClassCommand):
+class ParsePythonCode(ParseCode):
     """This is a customized code importer working on Python code."""
-    pass
+    def init_ast_object(self):
+        return ASTPythonCode()
 
 
 class ParseSentence(ParseCommand):
@@ -590,6 +618,15 @@ class ParseFile(ParseObject):
                     parse_obj = ParseSet()
                 elif command == 'tabbed':
                     parse_obj = ParseTabbed()
+                elif command == 'verbatim':
+                    parse_obj = ParseVerbatim()
+                elif command == 'code':
+                    parse_obj = ParseCode()
+                elif command == 'pythoncode':
+                    parse_obj = ParsePythonCode()
+                else:
+                    raise "Unknown command '%s' encountered." % command
+
                 subtext = text[match.start():match.end()]
                 ast_obj = parse_obj.parse(subtext)
                 root.add_child(ast_obj)
