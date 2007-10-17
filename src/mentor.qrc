@@ -1,0 +1,23 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+   <file>demos.xml</file>
+   <file>examples.xml</file>
+   <file>images/qt4-logo.png</file>
+   <file>images/rb-logo.png</file>
+   <file>images/clock_delete.png</file>
+   <file>images/world_delete.png</file>
+   <file>images/world_edit.png</file>
+   <file>images/world_go.png</file>
+   <file>images/clock_play.png</file>
+   <file>images/world_add.png</file>
+   <file>images/package_link.png</file>
+   <file>images/clock_pause.png</file>
+   <file>images/style_edit.png</file>
+   <file>images/clock_add.png</file>
+   <file>images/world.png</file>
+   <file>images/clock_stop.png</file>
+   <file>images/chart_pie.png</file>
+   <file>images/script_palette.png</file>
+   <file>images/telephone_link.png</file>
+</qresource>
+</RCC>
