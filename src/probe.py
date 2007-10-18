@@ -42,8 +42,14 @@ LANG_CORPUS_DB = 'd:/Projects/Mentor/Sources/draft/tools/freq/corpus_en.db'
 LANG_CORPUS_IGNORE_LVL = 2
 
 
+# handling of options :
+# TODO this must be handled differently !!!
+# options may be parse specific and ast specific
+# the default parse option right now sets / passes the options to ast object
 
-# AST classes
+
+
+# AST classes {{{
 # These classes form the abstract syntax tree
 
 class ASTOptions(object):
@@ -177,6 +183,26 @@ class ASTWord(ASTObject):
         self.options.add_option('marker', ASTOptions.Enumeration, values=('^', '_'))
 
 
+class ASTSeparatorWord(ASTWord):
+    """This is a separator class used in verbatim mode."""
+    def __init__(self, parent=None, content=''):
+        ASTObject.__init__(self, parent, content)
+        self.content = content
+
+class ASTIdentWord(ASTWord):
+    """This is a identifier word class used in verbatim mode."""
+    def __init__(self, parent=None, content=''):
+        ASTObject.__init__(self, parent, content)
+        self.content = content
+
+class ASTPunctationWord(ASTWord):
+    """This is a punctation word class used in verbatim mode."""
+    def __init__(self, parent=None, content=''):
+        ASTObject.__init__(self, parent, content)
+        self.content = content
+
+
+
 class ASTBlock(ASTObject):
     """ASTBlock is a block of content. It usually consists of ASTWord objects."""
 
@@ -208,6 +234,11 @@ class ASTCommand(ASTObject):
         ASTObject.__init__(self, parent, name, content)
         self.command = None
 
+    def init_options(self):
+        self.options.add_option('cloze', ASTOptions.Boolean)
+        self.options.add_option('set', ASTOptions.Boolean)
+
+
 
 
 class ASTTitle(ASTCommand):
@@ -231,7 +262,7 @@ class ASTSubsection(ASTCommand):
         self.options.add_option('sec2')
 
 
-class ASTCloze(ASTCommand):
+class AST(ASTCommand):
     def init_options(self):
         self.options.clear()
         self.options.add_option('simple')
@@ -262,18 +293,26 @@ class ASTCode(ASTVerbatim):
 class ASTPythonCode(ASTVerbatim):
     pass
 
+# }}} ASTClasses
 #
 
 
-#  Output classes
+#  Output classes {{{
 # These are output classes which generate items for Mentor and SuperMemo
 # items is a list of tuples question - answer
 
 class OutputItem(object):
     """This is basic item for storing questions and answers."""
-    def __init__(self, question="", answer=""):
+    def __init__(self, prefix='', question='', answer=''):
+        self.prefix = prefix
         self.question = question
         self.answer = answer
+
+    def get_prefix(self):
+        return self.prefix
+
+    def set_prefix(self, prefix):
+        self.prefix = prefix
 
     def get_question(self):
         return self.question
@@ -288,7 +327,7 @@ class OutputItem(object):
         self.answer = answer
 
     def __str__(self):
-        return "q: %s\na: %s\n" % (self.question, self.answer)
+        return "PREFIX: [%s] QUESTION: [%s] ANSWER:[%s]" % (self.prefix, self.question, self.answer)
 
 
 
@@ -296,28 +335,21 @@ class OutputItems(object):
     """This is a basic of collection of items which are question and answers."""
     # todo provide iterator container for these
     def __init__(self):
-        self.contents = []
+        self.items = []
 
-    def add_item(self, question, answer):
-        item = OutputItem(question, answer)
-        self.contents.append(item)
+    def add_item(self, item):
+        self.items.append(item)
 
     def debug_items(self):
-        print "OutputItems of length %d" % len(self.contents)
-        for it in self.contents:
+        print "OutputItems of length %d" % len(self.items)
+        for it in self.items:
             print str(it)
 
-    def export_to_file(self, fname):
-        f = open(fname, "rt")
-        for it in self.contents:
-            f.write(str(it))
-            f.write("\n")
-        f.close()
+# Output classes }}}
 
 
 
-
-# Parser classes
+# Parser classes {{{
 # These classes form the parse routines family
 # They are more like function object
 # with one significant function --> parse which task is to transform
@@ -507,23 +539,43 @@ class ParseTabbed(ParseClassCommand):
         # a should be below
 
 
+#
+class ParseVerbatim(ParseCommand):
+    # it does not inherit from ParseClassCommand because it parses contents in
+    # it's own waye
 
-class ParseVerbatim(ParseClassCommand):
     """This is verbatim code parse command."""
     def init_ast_object(self):
         return ASTVerbatim()
 
-    def get_block_split_regex(self):
-        """Virtual function to be overriden in subclasses.
-        This regex will be used to split content into blocks.
-        Function parse_content uses this to parse content."""
-        return ''
 
-    def get_word_split_regex(self):
-        """Virtual function to be overriden in subclasses.
-        This regex will be used to split words in blocks.
-        Function parse_content uses this to parse content."""
-        return ' \b'
+    def parse_content(self, ast_obj, content):
+        """Parses content to ast syntax tree."""
+        if len(content) > 2:
+            content = content[1:-1]
+
+            ast_block = ASTBlock()
+
+            # collect all paterns
+            # to ast_block
+            ident_pattern = r'[\w]+'
+            punct_pattern = r'[^\w\s]+'
+            whitespace_pattern = r'\s+'
+
+            all_pattern = re.compile('(%s)|(%s)|(%s)' % (ident_pattern, punct_pattern, whitespace_pattern))
+
+            matches = re.findall(all_pattern, content, re.M)
+            print matches
+
+            for match in matches:
+                if match[0]:
+                    ast_word = ASTIdentWord(ast_block, match[0])
+                elif match[1]:
+                    ast_word = ASTPunctationWord(ast_block, match[1])
+                elif match[2]:
+                    ast_word = ASTSeparatorWord(ast_block, match[2])
+                ast_block.add_child(ast_word)
+            ast_obj.add_child(ast_block)
 
 
 class ParseCode(ParseVerbatim):
@@ -579,9 +631,8 @@ class ParseFile(ParseObject):
                 if match.start() > pos:
                     subtext = text[pos:match.start()]
                     if re.sub('\s', '', subtext) != '':
-                        log('Found non-marked text: $subtext' )
                         parse_obj = ParseCloze()
-                        ast_obj = parse_obj.parse(r'\cloze[]{' + subtext + r'}')
+                        ast_obj = parse_obj.parse(r'\[]{' + subtext + r'}')
                         root.add_child(ast_obj)
                 # parse what's in match with
                 # corresponding class
@@ -593,7 +644,7 @@ class ParseFile(ParseObject):
                 elif command == 'subsection':
                     parse_obj = ParseSubsection()
                 elif command == 'subsubsection':
-                    parse_obj = ParseCloze()
+                    parse_obj = ParseSubSubSection()
                 elif command == 'cloze':
                     parse_obj = ParseCloze()
                 elif command == 'set':
@@ -626,8 +677,10 @@ class ParseFile(ParseObject):
 #
         return root
 
+# Parser classes }}}
 
-#  Exporter classes
+
+#  Exporter classes {{{
 # These classes export items basing on output classes
 
 
@@ -645,18 +698,40 @@ class Exporter(object):
         pass
 
 
-class SuperMemoExporter(Exporter):
+class QAExporter(Exporter):
     def __init__(self):
         Exporter.__init__(self)
 
     def export_file(self, items, output=None):
+        """Exports given items to output in 'question and answer' style."""
         if output is None:
             f = sys.stdout
         else:
             f = open(output, "wt")
-        for it in items.contents:
-            f.write(str(it))
-            f.write("\n")
+        # print items
+        for item in items.items:
+            # print question
+            if item.question.count('\n') == 0:
+                # if one line then just prefix item and print as item is
+                f.write('q: %s %s\n' % (item.prefix, item.question))
+            else:
+                # if more lines then prefix to first line and each line printed with q: or a:
+                f.write('q: %s\n' % item.prefix)
+                lines = item.question.split('\n')
+                for i in range(len(lines)):
+                    line = lines[i]
+                    # first and last line is skipped if empty
+                    if not ((i == 0 or i == len(lines) - 1) and line.strip() == ''):
+                        f.write('q: %s\n' % line)
+
+            # print answer
+            if item.question.count('\n') == 0:
+                f.write('a: %s\n' % item.answer)
+            else:
+                lines = item.answer.split('\n')
+                for line in lines:
+                    f.write('a: %s\n' % line)
+            f.write('\n')
         if output is not None:
             f.close()
 
@@ -667,17 +742,25 @@ class MentorExporter(Exporter):
         Exporter.__init__(self)
 
     def export_file(self, fname, items):
-        f = open(fname, "wt")
-        for it in items.contents:
-            f.write(str(it))
-            f.write("\n")
+        pass
+        # TODO to be implemented
 
 
+# }}} Exporter classes
 
-#  Processor classes
+
+#  Processor classes {{{
 # Here are main classes which use parser to get a parse tree of parse objects
 # use it to build items
 # and then use Exporter objects to export those items
+
+def ensure_endswith(string, suffix):
+    """Returns string with suffix added. Nothing is added if suffix already exists."""
+    if not string.endswith(suffix):
+        return string + suffix
+    else:
+        return string
+
 
 class Processor(object):
 
@@ -687,10 +770,6 @@ class Processor(object):
         self.corpus_db = None
         self.corpus_db_cache = {}
 
-        # initialize options
-        #self.use_swap = False
-        #self.use_dict = False
-        #self.use_other_option = True
 
     def build_question(self, words, hidenth):
         """Returns question build from given words, replacing hidenth with dots ... """
@@ -701,6 +780,19 @@ class Processor(object):
             else:
                 words2.append('...')
         return " ".join(words2)
+
+
+    def build_question_verbatim(self, words, hidenth):
+        """Builds question from words but constructing them in intact way.
+        It is used with verbatim style questions. """
+        result = []
+        for i in range(len(words)):
+            if i == hidenth:
+                word = ' ... '
+            else:
+                word = words[i].content
+            result.append(word)
+        return ''.join(result)
 
 
     def build_prefix(self, title, section, subsection, subsubsection):
@@ -715,6 +807,7 @@ class Processor(object):
         if subsubsection is not None and subsubsection.strip() != "":
             result.append(subsubsection + ": ")
         return "".join(result)
+
 
     def is_word_ignored(self, word):
         """Returns true if corpus is used and word is ignored at current level."""
@@ -740,12 +833,13 @@ class Processor(object):
 
     def process(self, input, output=None):
         """Processes input file and export output file.
+
         Utilizes input classes like Parser and output like Exporter
         Uses OutputItems objects to build OutputItems
         """
 
         # parse tree
-        finput = open(input, "rt")
+        finput = open(input, 'rt')
         fcontent = finput.read()
         finput.close()
         parser = ParseFile()
@@ -758,10 +852,10 @@ class Processor(object):
         # items
         # initialize variables
         title         = os.path.basename(os.path.splitext(input)[0])
-        section       = ""
-        subsection    = ""
-        subsubsection = ""
-        prefix        = "" # prefix used
+        section       = ''
+        subsection    = ''
+        subsubsection = ''
+        prefix        = '' # prefix used
         items         = OutputItems()
 
         print str(ast_tree)
@@ -776,6 +870,8 @@ class Processor(object):
                 subsection = obj.content
             elif obj.command == ParseCommands.subsubsection:
                 subsubsection = obj.content
+            # generating items for set and tabbed classes
+            # both generate like in set
             elif obj.command in (ParseCommands.set, ParseCommands.tabbed):
                 for block in obj.children:
                     words = []
@@ -793,10 +889,10 @@ class Processor(object):
                         question = self.build_question(words, i)
                         answer = words[i]
 
-                        if not prefix.endswith(": "):
-                            prefix = prefix + ": "
-                        items.add_item(prefix + question, answer)
+                        item = OutputItem(ensure_endswith(prefix, ': '), question, answer)
+                        items.add_item(item)
 
+            # parsing of  commands
             elif obj.command == ParseCommands.cloze:
                 for block in obj.children:
                     words = []
@@ -812,18 +908,42 @@ class Processor(object):
                         question = self.build_question(words, i)
                         answer = words[i]
 
-                        if not prefix.endswith(": "):
-                            prefix = prefix + ": "
-                        items.add_item(prefix + question, answer)#
+                        item = OutputItem(ensure_endswith(prefix, ': '), question, answer)
+                        items.add_item()
+
+            # parsing of verbatim commands (works either as cloze or set,
+            # depending on option)
+
+            elif obj.command == ParseCommands.verbatim:
+                for block in obj.children:
+                    words = block.children
+                    if obj.get_option('cloze'):
+                        hide_words_idx = [i for i in range(len(block.children)) \
+                                            if block.children[i].get_option('marker') == '_']
+                    else: # default option is set asking for all words
+                        hide_words_idx =  [i for i in range(len(block.children)) \
+                                            if block.children[i].get_option('marker') != '^' and \
+                                                type(block.children[i]) != ASTSeparatorWord]
+                        log('hide words idx: $hide_words_idx')
+
+                    for hide_idx in hide_words_idx:
+                        question = self.build_question_verbatim(words, hide_idx)
+                        answer = words[hide_idx].content.strip()
+
+                        item = OutputItem(ensure_endswith(prefix, ': '), question, answer)
+                        items.add_item(item)
+
+
 
         # now export items using exporter
-        exporter = SuperMemoExporter()
+        exporter = QAExporter()
         exporter.export_file(items, output=None)
 
 
+# }}} Processor classes
 
 
-#  Main program
+#  Main program {{{
 
 def main():
     """This is the main program."""
