@@ -1,8 +1,10 @@
 " Vim syntax file
-" This is syntax file for Mentor Probe markup language
-" Language:	Mentor Probe source file
-" Maintainer:	Adam Folmert <afolmert@gmail.com)
-" Last Change:	Fr, 04 Nov 2005 12:46:45 CET
+" Language:	Mentor Probe markup language
+" Maintainer:	Adam Folmert <afolmert@gmail.com>
+" Last Change:	2007.10.19
+" License:	GNU GPL, version 2.0 or later
+" URL:		http://code.google.com/p/mentor/
+
 
 " Quit when a syntax file was already loaded
 if exists("b:current_syntax")
@@ -10,7 +12,7 @@ if exists("b:current_syntax")
 endif
 
 
-"
+" Define syntax groups
 " PrbComment: either beginning of line or any char not backspace \
 syn match PrbComment /\(^\|[^\\]\)%.*/ containedin=ALL
 syn match PrbCommand /\\tabbed\|\\title\|\\section\|\\subsection\\|\\set\|\\cloze/
@@ -23,6 +25,8 @@ syn region PrbOption start=+\[+ end=+\]+
 syn region PrbGroup start=+{+ end=+}+ contains=PrbCloze,PrbHint
 syn match PrbHint /#{[^{}]*}/
 
+
+" Define colors links
 
 " hi def link PrbContent   Comment
 hi def link PrbComment   Comment

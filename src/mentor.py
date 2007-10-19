@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: iso-8859-2 -*-
 #
+# Copyright (C) 2007 Adam Folmert <afolmert@gmail.com>
+#
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
@@ -16,8 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 #
 #
-# Authors:
-#   Adam Folmert <Adam.Folmert@gmail.com>, 2007
 #
 
 """This is mentor main program.
