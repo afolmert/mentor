@@ -24,8 +24,6 @@ It is included in other project files to embed vital information about current
 release.
 """
 
-from utils import load_stamped_buildno
-
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'mentor'
@@ -44,12 +42,19 @@ name = 'mentor'
 __major    = '0'
 __minor    = '1'
 __revision = '0'
-__buildno  = load_stamped_buildno()
+
+__buildno = None
+try:
+    import build_stamp
+    __buildno = build_stamp.buildno
+except:
+    pass
+
 version    = '%s.%s.%s build: %s' % (__major, __minor, __revision, __buildno)
 
 
 # more detailed description
-description = "An enhanced interactive Python shell."
+description = "Flashcard program for improving the learning process."
 
 long_description = \
 """

@@ -28,8 +28,7 @@ like Mentor or SuperMemo.
 
 
 
-from misc import istuple, matches, log, enable_logging, find_regroups, \
-    Enumeration, error
+from utils import log, enable_logging, Enumeration, error
 from StringIO import StringIO
 import re
 import sys

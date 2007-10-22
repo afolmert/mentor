@@ -51,7 +51,8 @@ __license__ = release.license
 __version__ = release.version
 
 # WARNING !
-# <!--- Run pyrcc4 mentor.qrc to mentor_rc.py file -->
+# TODO move this to build script
+# Run pyrcc4 mentor.qrc to mentor_rc.py file
 
 # TODO
 # set mainwidget
@@ -67,8 +68,8 @@ __version__ = release.version
 from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import QWidget, QPushButton, QApplication, QMainWindow, \
      QKeySequence, QAction, QIcon, qApp
-from miscqt import msgbox, lazyshow, tr
-from misc import log
+from utils_qt import msgbox, lazyshow, tr
+from utils import log
 import sys
 import mentor_rc
 
@@ -356,7 +357,7 @@ class MainWindow(QMainWindow):
 
     def on_actAbout_triggered(self):
         log("this is actabout triggered " )
-        msgbox(tr("MENTOR Version %s\nA learning tool\n\nDistributed under license: %s\n\nAuthors: \n%s" \
+        msgbox(tr("MENTOR version %s\nA learning tool\n\nDistributed under license: %s.\n\nAuthors: \n%s" \
             % (__version__, __license__, str(__author__))))
 
 
@@ -371,11 +372,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
