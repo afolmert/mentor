@@ -27,7 +27,6 @@ like Mentor or SuperMemo.
 """
 
 
-__version__ = "0.0.1"
 
 from misc import istuple, matches, log, enable_logging, find_regroups, \
     Enumeration, error
@@ -35,6 +34,10 @@ from StringIO import StringIO
 import re
 import sys
 import os
+import release
+
+
+__version__ = release.version
 
 # corpus specific settings
 # using this option will make ignore often used words in set class
@@ -951,7 +954,7 @@ def main():
     """This is the main program."""
     from optparse import OptionParser
 
-    parser = OptionParser(version=__version__)
+    parser = OptionParser(version='Mentor Probe ' + __version__)
     parser.add_option("-d", "--debug", action="store_true", dest="debug", default=True,
                       help="run program in debugged mode" )
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,

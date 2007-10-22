@@ -39,7 +39,11 @@
 import subprocess
 import shutil
 import os
+from src.utils import save_stamped_buildno
 
+
+print "Generating new version number..."
+save_stamped_buildno()
 
 print "Preparing..."
 

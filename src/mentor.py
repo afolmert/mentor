@@ -43,8 +43,12 @@ SNIPPETS and CARDS
 
 """
 
-__version__ = "0.0.1"
-__revision__ = "$Id$"
+import release
+__author__  = '%s <%s>' % \
+              ( release.authors['afolmert'][0], release.authors['afolmert'][1])
+
+__license__ = release.license
+__version__ = release.version
 
 # WARNING !
 # <!--- Run pyrcc4 mentor.qrc to mentor_rc.py file -->
@@ -79,7 +83,7 @@ class MainWindow(QMainWindow):
         button = QPushButton("Press me!", self)
         self.connect(button, SIGNAL("clicked(bool)"), self.onClicked)
 
-        self.setWindowTitle("Mentor %s " % __version__)
+        self.setWindowTitle("Mentor" )
 
         button.move(40, 40)
 
@@ -352,7 +356,8 @@ class MainWindow(QMainWindow):
 
     def on_actAbout_triggered(self):
         log("this is actabout triggered " )
-        msgbox(tr("This is Mentor software <p> Designed and implemented by Adam Folmert "))
+        msgbox(tr("MENTOR Version %s\nA learning tool\n\nDistributed under license: %s\n\nAuthors: \n%s" \
+            % (__version__, __license__, str(__author__))))
 
 
 
