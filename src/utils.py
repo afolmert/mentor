@@ -27,7 +27,6 @@ These function may be well used in another project.
 
 import os
 import time
-from misc import log
 
 
 
@@ -63,9 +62,20 @@ def generate_buildno(path):
     buildsha1 = ''
     git_root_dir = get_git_root_dir(path)
     if git_root_dir:
-        head = open(os.path.join(git_root_dir, 'HEAD')).read().strip()[5:]
-        log('head file : $head')
-        headsha1 = open(os.path.join(git_root_dir, head)).read().strip()
+        # try to read SHA1 from head file directly
+        try:
+            head = open(os.path.join(git_root_dir, 'HEAD')).read().strip()[5:]
+            headsha1 = open(os.path.join(git_root_dir, head)).read().strip()
+        except:
+            # try to run git to retrieve the name directly
+            # if it's not found then try to run git process
+            import subprocess
+            import StringIO
+            olddir = os.getcwd()
+            os.chdir(git_root_dir)
+            output = subprocess.Popen(['git', 'show', '-s'], stdout=subprocess.PIPE).communicate()[0]
+            headsha1 = output[7:]
+            os.chdir(olddir)
         buildsha1 = headsha1[0:6]
     else:
         return None
@@ -95,4 +105,3 @@ def save_stamped_buildno():
     f.write('# All contents here will be overwritten.\n\n')
     f.write('buildno = "%s"' % generate_buildno(root_dir))
     f.close()
-
