@@ -39,7 +39,7 @@
 import subprocess
 import shutil
 import os
-from src.utils import save_stamped_buildno
+from src.utils import save_stamped_buildno, delete_stamped_buildno
 
 
 print "Generating new version number..."
@@ -75,6 +75,10 @@ print "Moving dist to Releases..."
 removetree("../../Releases/current")
 shutil.move("dist", "../../Releases/current")
 
+
+# This deletes the stamp to avoid showing build number
+# in non built version
+delete_stamped_buildno()
 
 print "Done."
 
