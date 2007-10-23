@@ -588,7 +588,6 @@ def generate_buildno(path):
             # try to run git to retrieve the name directly
             # if it's not found then try to run git process
             import subprocess
-            import StringIO
             olddir = os.getcwd()
             os.chdir(git_root_dir)
             output = subprocess.Popen(['git', 'show', '-s'], stdout=subprocess.PIPE).communicate()[0]
