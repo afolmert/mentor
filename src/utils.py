@@ -37,6 +37,22 @@ import string
 __version__ = release.version
 
 
+
+#----------------------------------------------------------
+# String utils
+
+# Here are main classes which use parser to get a parse tree of parse objects
+# use it to build items
+# and then use Exporter objects to export those items
+
+def ensure_endswith(string, suffix):
+    """Returns string with suffix added. Nothing is added if suffix already exists."""
+    if not string.endswith(suffix):
+        return string + suffix
+    else:
+        return string
+
+
 #----------------------------------------------------------
 # Enumeration type
 
