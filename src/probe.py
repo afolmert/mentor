@@ -214,19 +214,20 @@ class ASTObject(object):
 class ASTWord(ASTObject):
     """This is a simple object consisting of text."""
 
-    # possibility to set a marker
-    def __init__(self, parent=None, content='', marker=''):
+    def __init__(self, parent=None, content=''):
         ASTObject.__init__(self, parent, content)
         self.content = content
-        self.set_option('marker', marker)
 
 
     def init_options(self):
-        # restrict marker to _ and ^
         self.options.clear()
-        self.options.add_option('marker', ASTOptions.Enumeration, values=('^', '_'))
-        self.options.add_option('question_hint', ASTOptions.String)
-        self.options.add_option('answer_hint', ASTOptions.String)
+        # should the word be included in questioning
+        self.options.add_option('include', ASTOptions.Boolean, default=False)
+        # should the word be excluded from questioning
+        self.options.add_option('exclude', ASTOptions.Boolean, default=False)
+        # question and answer hint connected with the word
+        self.options.add_option('question_hint', ASTOptions.String, default='')
+        self.options.add_option('answer_hint', ASTOptions.String, default='')
 
 
 class ASTSeparatorWord(ASTWord):
@@ -521,11 +522,6 @@ class ParseClassCommand(ParseCommand):
         Function parse_content uses this to parse content."""
         return '[ \t\n]+'
 
-    def get_word_markers(self):
-        """Virtual function to be overriden in subclasses.
-        This returns a set (string) of markers which may be used on the word.
-        """
-        return '^_'
 
     def parse_content(self, ast_obj, content):
         """This will parse content and result a list of words with info on marked, unmarked."""
@@ -534,11 +530,9 @@ class ParseClassCommand(ParseCommand):
         # and then into words
         # using regex as defined in functions get_block_split_regex and
         # get_word_split_regex
-        # It also uses get_word_markers to check out what word markers are
-        # possible
         if len(content) > 2:
             content = content[1:-1] # strip the { } braces
-            blocks = re.split(self.get_block_split_regex(), content)#
+            blocks = re.split(self.get_block_split_regex(), content)
             for b in blocks:
                 ast_block = ASTBlock(self)
 
@@ -546,7 +540,7 @@ class ParseClassCommand(ParseCommand):
                 for w in words:
                     # check for special marking in words
                     m = None
-                    for marker in self.get_word_markers():
+                    for marker in '_^':
                         if w.find(marker) >= 0:
                             if w[0] == marker:
                                 w = w[1:]
@@ -554,7 +548,13 @@ class ParseClassCommand(ParseCommand):
                             m = marker
                     # add word and marker , only if not empty
                     if w.strip() != "":
-                        ast_block.add_child(ASTWord(ast_block, unescape_special_chars(w.strip()), m))
+                        ast_word = ASTWord(ast_block, unescape_special_chars(w.strip()))
+                        if m == '^':
+                            ast_word.set_option('exclude', True)
+                        elif m == '_':
+                            ast_word.set_option('include', True)
+
+                        ast_block.add_child(ast_word)
 
                 # add block, only if not empty
                 if len(ast_block.children) > 0:
@@ -638,7 +638,7 @@ class ParseVerbatim(ParseCommand):
                 ast_word.set_option('answer_hint', hint)
         else:
             raise "Invalid include block - not matched! %s " % content
-        ast_word.set_option('marker', '_')
+        ast_word.set_option('include', True)
         ast_block.add_child(ast_word)
 
 
@@ -651,7 +651,7 @@ class ParseVerbatim(ParseCommand):
         if len(content) > 1:
             content = content[1:-1]
         ast_word = ASTWord(ast_block, unescape_special_chars(content))
-        ast_word.set_option('marker', '^')
+        ast_word.set_option('exclude', True)
         ast_block.add_child(ast_word)
 
 
@@ -697,9 +697,9 @@ class ParseVerbatim(ParseCommand):
             # find |   |    /    /    and unmarked blocks
             # and each block process seperately
             # unmarked blocks are between | | and / / blocks
-            cloze_pattern = r'\|[^\|]*\|'
+            include_pattern = r'\|[^\|]*\|'
             exclude_pattern = r'/[^/]*/'
-            regexp = re.compile('(%s)|(%s)' % (cloze_pattern, exclude_pattern), re.M)
+            regexp = re.compile('(%s)|(%s)' % (include_pattern, exclude_pattern), re.M)
             pos = 0
             match = -1
             while pos < len(content) and match:
@@ -1039,7 +1039,7 @@ class Processor(object):
                     for i in range(0, len(block.children)):
                         word = block.children[i]
                         words.append(word.content)
-                        if word.get_option('marker') != '^' \
+                        if not word.get_option('exclude')  \
                             and not self.is_word_ignored(word.content): # and not is in ignored words
                             question_words.append(i)
 
@@ -1059,7 +1059,7 @@ class Processor(object):
                     # marked items will be included only
                     for i in range(len(block.children)):
                         words.append(block.children[i].content)
-                        if block.children[i].get_option('marker') == '_':
+                        if block.children[i].get_option('include'):
                             question_words.append(i)
 
                     for i in question_words:
@@ -1077,10 +1077,10 @@ class Processor(object):
                     words = block.children
                     if obj.get_option('cloze'):
                         hide_words_idx = [i for i in range(len(block.children)) \
-                                            if block.children[i].get_option('marker') == '_']
+                                            if block.children[i].get_option('include')]
                     else: # default option is set asking for all words
                         hide_words_idx =  [i for i in range(len(block.children)) \
-                                            if block.children[i].get_option('marker') != '^' and \
+                                            if not block.children[i].get_option('exclude') and \
                                                 type(block.children[i]) != ASTSeparatorWord]
                         log('hide words idx: $hide_words_idx')
 
