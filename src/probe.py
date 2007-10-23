@@ -225,6 +225,8 @@ class ASTWord(ASTObject):
         # restrict marker to _ and ^
         self.options.clear()
         self.options.add_option('marker', ASTOptions.Enumeration, values=('^', '_'))
+        self.options.add_option('question_hint', ASTOptions.String)
+        self.options.add_option('answer_hint', ASTOptions.String)
 
 
 class ASTSeparatorWord(ASTWord):
@@ -347,10 +349,12 @@ class ASTPythonCode(ASTVerbatim):
 
 class OutputItem(object):
     """This is basic item for storing questions and answers."""
-    def __init__(self, prefix='', question='', answer=''):
+    def __init__(self, prefix='', question='', answer='', question_hint='', answer_hint=''):
         self.prefix = prefix
         self.question = question
         self.answer = answer
+        self.question_hint = question_hint
+        self.answer_hint = answer_hint
 
     def get_prefix(self):
         return self.prefix
@@ -364,11 +368,23 @@ class OutputItem(object):
     def set_question(self, question):
         self.question = question
 
+    def get_question_hint(self):
+        return self.question_hint
+
+    def set_question_hint(self, question_hint):
+        self.question_hint = question_hint
+
     def get_answer(self):
         return self.answer
 
     def set_answer(self, answer):
         self.answer = answer
+
+    def get_answer_hint(self):
+        return self.answer_hint
+
+    def set_answer_hint(self, answer_hint):
+        self.answer_hint = answer_hint
 
     def __str__(self):
         return "PREFIX: [%s] QUESTION: [%s] ANSWER:[%s]" % (self.prefix, self.question, self.answer)
@@ -593,6 +609,83 @@ class ParseVerbatim(ParseCommand):
         return ASTVerbatim()
 
 
+    def parse_include_block(self, ast_block, content):
+        """Parses a group of words | | which should be included in repetition.
+        This group is treated as single entity.
+        Optionally it may contain question and answer hints.
+        """
+        log('parse_include_block for block $content')
+        # strip off | | chars
+        if len(content) > 1:
+            content = content[1:-1]
+        # include block may be in format:
+        # |question hint? answer hint! text|
+        regexp = r'([^\?\!]*\?)?([^\?\!]*\!)?(.*)'
+        match = re.match(regexp, content)
+        log('parse_include_block match groups $match.groups()')
+        if match:
+            # add word with content
+            ast_word = ASTWord(ast_block, unescape_special_chars(match.groups()[2]))
+            # add hints if they exist
+            # question hint (?)
+            if match.groups()[0]:
+                hint = match.groups()[0].strip()
+                hint = unescape_special_chars(hint)[:-1].strip() # remove the question mark ?
+                ast_word.set_option('question_hint', hint)
+            if match.groups()[1]:
+                hint = match.groups()[1].strip()
+                hint = unescape_special_chars(hint)[:-1].strip() # remove the exclamation !
+                ast_word.set_option('answer_hint', hint)
+        else:
+            raise "Invalid include block - not matched! %s " % content
+        ast_word.set_option('marker', '_')
+        ast_block.add_child(ast_word)
+
+
+    def parse_exclude_block(self, ast_block, content):
+        """Parses group of words / /  which should be excluded from repetition.
+        The group is treated as a single entity.
+        """
+        log('parse_exclude_block $content')
+        # strip ending and beginning / /
+        if len(content) > 1:
+            content = content[1:-1]
+        ast_word = ASTWord(ast_block, unescape_special_chars(content))
+        ast_word.set_option('marker', '^')
+        ast_block.add_child(ast_word)
+
+
+
+    def parse_unmarked_block(self, ast_block, content):
+        """Parses block which is not in any group || or //
+        All text is split to ident , punct , whitespace and entity patterns
+        """
+        # I can unescape them now, because this parsing does not need special markup
+        log('parse_unmarked_block $content ' )
+        content = unescape_special_chars(content)
+        ident_pattern = r'[\w]+'
+        punct_pattern = r'[^\w\s]+'
+        whitespace_pattern = r'\s+'
+        regexp = re.compile(r'(%s)|(%s)|(%s)' % \
+                    (ident_pattern, punct_pattern, whitespace_pattern), re.M)
+        # TODO how to ensure EscapePattern has higher priority than all other patterns
+        # is it enough that it's on first position?
+        # maybe exclude the following punctation in the next patterns ??!
+        matches = re.findall(regexp, content, re.M)
+        for match in matches:
+            if match[0]:
+                ast_word = ASTIdentWord(ast_block, match[0])
+            elif match[1]:
+                ast_word = ASTPunctationWord(ast_block, match[1])
+            elif match[2]:
+                ast_word = ASTSeparatorWord(ast_block, match[2])
+            else:
+                raise "Match not found for content: %s" % content
+
+            log('adding word $str(ast_word)')
+            ast_block.add_child(ast_word)
+
+
     def parse_content(self, ast_obj, content):
         """Parses content to ast syntax tree."""
         if len(content) > 2:
@@ -600,26 +693,39 @@ class ParseVerbatim(ParseCommand):
 
             ast_block = ASTBlock()
 
-            # collect all paterns
-            # to ast_block
-            ident_pattern = r'[\w]+'
-            punct_pattern = r'[^\w\s]+'
-            whitespace_pattern = r'\s+'
+            # go through text finding
+            # find |   |    /    /    and unmarked blocks
+            # and each block process seperately
+            # unmarked blocks are between | | and / / blocks
+            cloze_pattern = r'\|[^\|]*\|'
+            exclude_pattern = r'/[^/]*/'
+            regexp = re.compile('(%s)|(%s)' % (cloze_pattern, exclude_pattern), re.M)
+            pos = 0
+            match = -1
+            while pos < len(content) and match:
+                match = regexp.search(content, pos)
+                if match:
+                    log('parse_content matches: $match.groups()')
+                    # process unmarked block between last pos and new match start
+                    if match.start() > pos:
+                        self.parse_unmarked_block(ast_block, content[pos:match.start()])
+                    # process include block | |
+                    if match.groups()[0]:
+                        self.parse_include_block(ast_block, content[match.start():match.end()])
+                    # process exclude block / /
+                    elif match.groups()[1]:
+                        self.parse_exclude_block(ast_block, content[match.start():match.end()])
+                    else:
+                        raise "Unknown group!"
+                    pos = match.end()
 
-            all_pattern = re.compile('(%s)|(%s)|(%s)' % (ident_pattern, punct_pattern, whitespace_pattern))
+            if pos < len(content):
+                self.parse_unmarked_block(ast_block, content[pos:])
 
-            matches = re.findall(all_pattern, content, re.M)
-            print matches
-
-            for match in matches:
-                if match[0]:
-                    ast_word = ASTIdentWord(ast_block, match[0])
-                elif match[1]:
-                    ast_word = ASTPunctationWord(ast_block, match[1])
-                elif match[2]:
-                    ast_word = ASTSeparatorWord(ast_block, match[2])
-                ast_block.add_child(ast_word)
+            # add block to parent
             ast_obj.add_child(ast_block)
+
+
 
 
 class ParseCode(ParseVerbatim):
@@ -677,6 +783,8 @@ class ParseFile(ParseObject):
         while match and pos < len(text):
             match = ParseRegexp.search(text, pos)
             if match:
+                # text which is not enclosed by any class will be processed with a
+                # default class
                 # if match is after our current position
                 # then parse in-between text with default parse class
                 if match.start() > pos:
@@ -774,6 +882,9 @@ class QAExporter(Exporter):
                     # first and last line is skipped if empty
                     if not ((i == 0 or i == len(lines) - 1) and line.strip() == ''):
                         f.write('q: %s\n' % line)
+            if item.question_hint:
+                f.write('q:\n')
+                f.write('q: %s?\n' % item.question_hint)
 
             # print answer
             if item.question.count('\n') == 0:
@@ -782,6 +893,11 @@ class QAExporter(Exporter):
                 lines = item.answer.split('\n')
                 for line in lines:
                     f.write('a: %s\n' % line)
+
+            if item.answer_hint:
+                f.write('a:\n')
+                f.write('a: %s!\n' % item.answer_hint)
+
             f.write('\n')
         if output is not None:
             f.close()
@@ -981,7 +1097,10 @@ class Processor(object):
                         question = self.build_question_verbatim(words, hide_idx)
                         answer = words[hide_idx].content.strip()
 
-                        item = OutputItem(ensure_endswith(prefix, ': '), question, answer)
+                        question_hint = words[hide_idx].get_option('question_hint')
+                        answer_hint = words[hide_idx].get_option('answer_hint')
+
+                        item = OutputItem(ensure_endswith(prefix, ': '), question, answer, question_hint, answer_hint)
                         items.add_item(item)
 
 
