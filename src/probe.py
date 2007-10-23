@@ -28,7 +28,7 @@ like Mentor or SuperMemo.
 
 
 
-from utils import log, enable_logging, Enumeration, error, ensure_endswith
+from utils import log, info, enable_logging, Enumeration, error, ensure_endswith
 from StringIO import StringIO
 import re
 import sys
@@ -222,9 +222,9 @@ class ASTWord(ASTObject):
     def init_options(self):
         self.options.clear()
         # should the word be included in questioning
-        self.options.add_option('include', ASTOptions.Boolean, default=False)
-        # should the word be excluded from questioning
-        self.options.add_option('exclude', ASTOptions.Boolean, default=False)
+        self.options.add_option('marked', ASTOptions.Boolean, default=False)
+        # should the word be ignored from questioning
+        self.options.add_option('ignored', ASTOptions.Boolean, default=False)
         # question and answer hint connected with the word
         self.options.add_option('question_hint', ASTOptions.String, default='')
         self.options.add_option('answer_hint', ASTOptions.String, default='')
@@ -282,8 +282,7 @@ class ASTCommand(ASTObject):
         self.command = None
 
     def init_options(self):
-        self.options.add_option('cloze', ASTOptions.Boolean)
-        self.options.add_option('set', ASTOptions.Boolean)
+        self.options.add_option('ask', ASTOptions.Enumeration, values=('all', 'marked', 'corpus'))
 
 
 
@@ -309,27 +308,33 @@ class ASTSubsection(ASTCommand):
         self.options.add_option('sec2')
 
 
-class ASTCloze(ASTCommand):
+class ASTSubsubsection(ASTCommand):
     def init_options(self):
         self.options.clear()
-        self.options.add_option('simple')
-        self.options.add_option('area')
-        self.options.add_option('hint')
+        self.options.add_option('sec2')
 
 
-class ASTSet(ASTCommand):
-    def init_options(self):
-        self.options.clear()
-        self.options.add_option('simple')
-        self.options.add_option('area')
-        self.options.add_option('hint')
-
-
-class ASTTabbed(ASTCommand):
+class ASTClassCommand(ASTCommand):
     pass
 
 
-class ASTVerbatim(ASTCommand):
+class ASTSentence(ASTClassCommand):
+    pass
+
+
+class ASTDefinition(ASTClassCommand):
+    pass
+
+
+class ASTParagraph(ASTClassCommand):
+    pass
+
+
+class ASTTabbed(ASTClassCommand):
+    pass
+
+
+class ASTVerbatim(ASTClassCommand):
     pass
 
 
@@ -421,10 +426,10 @@ class OutputItems(object):
 # will be a function , register parse command - or not a function
 # i will just put this file in plugins and it will read it's name and change it to command class
 # will have to provide function for parse_content returning list of child object
-ParseCommands = Enumeration("ParseCommands", ["title", "section", "cloze", "set", "subsection", "tabbed",
-                                             "subsubsection", "verbatim", "code", "pythoncode"])
+ParseCommands = Enumeration('ParseCommands', ['title', 'section', 'subsection', 'tabbed', 'sentence', 'paragraph', 'definition'
+                                             'subsubsection', 'verbatim', 'code', 'pythoncode'])
 # main regexp used to search for parsed object
-ParseRegexp = re.compile("\\\\(title|section|cloze|set|tabbed|subsection|verbatim|code|pythoncode)(\[[^]]*\])?({[^}]*})?", re.M)
+ParseRegexp = re.compile("\\\\(title|section|tabbed|sentence|paragraph|definition|subsection|verbatim|code|pythoncode)(\[[^]]*\])?({[^}]*})?", re.M)
 
 
 class ParseObject(object):
@@ -514,7 +519,7 @@ class ParseClassCommand(ParseCommand):
         """Virtual function to be overriden in subclasses.
         This regex will be used to split content into blocks.
         Function parse_content uses this to parse content."""
-        return '[\.!?]+'
+        return '[\.]+|#&prbquest;|#&prbexclam;'
 
     def get_word_split_regex(self):
         """Virtual function to be overriden in subclasses.
@@ -523,58 +528,143 @@ class ParseClassCommand(ParseCommand):
         return '[ \t\n]+'
 
 
+    def parse_marked_content(self, ast_block, content):
+        """Parses a group of words | | which should be included in repetition.
+        This group is treated as single entity.
+        Optionally it may contain question and answer hints.
+        """
+        log('parse_marked_content for block $content')
+        # strip off | | chars
+        if len(content) > 1:
+            content = content[1:-1]
+        # include block may be in format:
+        # |question hint? answer hint! text|
+        regexp = r'([^\?\!]*\?)?([^\?\!]*\!)?(.*)'
+        match = re.match(regexp, content)
+        log('parse_marked_content match groups $match.groups()')
+        if match:
+            # add word with content
+            ast_word = ASTWord(ast_block, unescape_special_chars(match.groups()[2]))
+            # add hints if they exist
+            # question hint (?)
+            if match.groups()[0]:
+                hint = match.groups()[0].strip()
+                hint = unescape_special_chars(hint)[:-1].strip() # remove the question mark ?
+                ast_word.set_option('question_hint', hint)
+            if match.groups()[1]:
+                hint = match.groups()[1].strip()
+                hint = unescape_special_chars(hint)[:-1].strip() # remove the exclamation !
+                ast_word.set_option('answer_hint', hint)
+        else:
+            raise "Invalid include block - not matched! %s " % content
+        ast_word.set_option('marked', True)
+        ast_block.add_child(ast_word)
+
+
+    def parse_ignored_content(self, ast_block, content):
+        """Parses group of words / /  which should be excluded from repetition.
+        The group is treated as a single entity.
+        """
+        log('parse_ignored_content $content')
+        # strip ending and beginning / /
+        if len(content) > 1:
+            content = content[1:-1]
+        ast_word = ASTWord(ast_block, unescape_special_chars(content))
+        ast_word.set_option('ignored', True)
+        ast_block.add_child(ast_word)
+
+
+
     def parse_content(self, ast_obj, content):
+        """Parses content to ast syntax tree."""
+        log('parse_content for content $content')
+        if len(content) > 2:
+            content = content[1:-1]
+
+            # split to blocks using block seperators
+            blocks = re.split(self.get_block_split_regex(), content)
+            # for each block :
+            # split content looking for content groups
+            for block in blocks:
+                info('parse_content processing block: $block')
+                ast_block = ASTBlock()
+                # go through text finding
+                # find |   |    /    /    and unmarked blocks
+                # and each block process seperately
+                # unmarked blocks are between | | and / / blocks
+                marked_pattern = r'\|[^\|]*\|'
+                ignored_pattern = r'/[^/]*/'
+                regexp = re.compile('(%s)|(%s)' % (marked_pattern, ignored_pattern), re.M)
+                pos = 0
+                match = -1
+                while pos < len(block) and match:
+                    match = regexp.search(block, pos)
+                    if match:
+                        log('parse_content matches: $match.groups()')
+                        # process unmarked block between
+                        if match.start() > pos:
+                            self.parse_unmarked_content(ast_block, block[pos:match.start()])
+                        # process include block | |
+                        if match.groups()[0]:
+                            self.parse_marked_content(ast_block, block[match.start():match.end()])
+                        # process ignored block / /
+                        elif match.groups()[1]:
+                            self.parse_ignored_content(ast_block, block[match.start():match.end()])
+                        else:
+                            raise "Unknown group!"
+                        pos = match.end()
+
+                if pos < len(block):
+                    self.parse_unmarked_content(ast_block, block[pos:])
+
+                # add block to parent
+                ast_obj.add_child(ast_block)
+
+
+    def parse_unmarked_content(self, ast_block, content):
         """This will parse content and result a list of words with info on marked, unmarked."""
-        log("parsing content: $content")
+        log("parsing unmarked content: $content")
         # first split text into blocks
         # and then into words
         # using regex as defined in functions get_block_split_regex and
-        # get_word_split_regex
-        if len(content) > 2:
-            content = content[1:-1] # strip the { } braces
-            blocks = re.split(self.get_block_split_regex(), content)
-            for b in blocks:
-                ast_block = ASTBlock(self)
-
-                words = re.split(self.get_word_split_regex(), b)
-                for w in words:
-                    # check for special marking in words
-                    m = None
-                    for marker in '_^':
-                        if w.find(marker) >= 0:
-                            if w[0] == marker:
-                                w = w[1:]
-                            w = w.replace(marker, ' ')
-                            m = marker
-                    # add word and marker , only if not empty
-                    if w.strip() != "":
-                        ast_word = ASTWord(ast_block, unescape_special_chars(w.strip()))
-                        if m == '^':
-                            ast_word.set_option('exclude', True)
-                        elif m == '_':
-                            ast_word.set_option('include', True)
-
-                        ast_block.add_child(ast_word)
-
-                # add block, only if not empty
-                if len(ast_block.children) > 0:
-                    ast_obj.add_child(ast_block)
-
-        log("parsing content end. ")
+        words = re.split(self.get_word_split_regex(), content)
+        for w in words:
+            if w.strip() != "":
+                ast_word = ASTWord(ast_block, unescape_special_chars(w.strip()))
+                ast_block.add_child(ast_word)
 
 
 
-class ParseCloze(ParseClassCommand):
-    """This is parser for the \\cloze command."""
 
+class ParseSentence(ParseClassCommand):
+    """This is a customized importer working on sentences.
+    By sentence I mean a set words characters, seperated by dot .
+    """
     def init_ast_object(self):
-        return ASTCloze()
+        return ASTSentence()
+
+    def get_block_split_regex(self):
+        return '[\.]+|#&prbquest;|#&prbexclam;'
 
 
-class ParseSet(ParseClassCommand):
-    """This is parser for the \\set class command."""
+class ParseParagraph(ParseClassCommand):
+    """This is a customized importer working on paragraphs.
+    By paragraph I mean a block of text seperated by double \n chars.
+    """
     def init_ast_object(self):
-        return ASTSet()
+        return ASTParagraph()
+
+
+class ParseDefinition(ParseClassCommand):
+    """This is a customized parsers working on definitions
+    Definitions is defined as:
+    question?
+    answer
+    The while answer is taken as question.
+    """
+    def init_ast_object(self):
+        return ASTDefinition()
+
 
 
 class ParseTabbed(ParseClassCommand):
@@ -599,64 +689,17 @@ class ParseTabbed(ParseClassCommand):
         # a should be below
 
 
-#
+
 class ParseVerbatim(ParseCommand):
     # it does not inherit from ParseClassCommand because it parses contents in
-    # it's own waye
+    # it's own way
 
     """This is verbatim code parse command."""
     def init_ast_object(self):
         return ASTVerbatim()
 
 
-    def parse_include_block(self, ast_block, content):
-        """Parses a group of words | | which should be included in repetition.
-        This group is treated as single entity.
-        Optionally it may contain question and answer hints.
-        """
-        log('parse_include_block for block $content')
-        # strip off | | chars
-        if len(content) > 1:
-            content = content[1:-1]
-        # include block may be in format:
-        # |question hint? answer hint! text|
-        regexp = r'([^\?\!]*\?)?([^\?\!]*\!)?(.*)'
-        match = re.match(regexp, content)
-        log('parse_include_block match groups $match.groups()')
-        if match:
-            # add word with content
-            ast_word = ASTWord(ast_block, unescape_special_chars(match.groups()[2]))
-            # add hints if they exist
-            # question hint (?)
-            if match.groups()[0]:
-                hint = match.groups()[0].strip()
-                hint = unescape_special_chars(hint)[:-1].strip() # remove the question mark ?
-                ast_word.set_option('question_hint', hint)
-            if match.groups()[1]:
-                hint = match.groups()[1].strip()
-                hint = unescape_special_chars(hint)[:-1].strip() # remove the exclamation !
-                ast_word.set_option('answer_hint', hint)
-        else:
-            raise "Invalid include block - not matched! %s " % content
-        ast_word.set_option('include', True)
-        ast_block.add_child(ast_word)
-
-
-    def parse_exclude_block(self, ast_block, content):
-        """Parses group of words / /  which should be excluded from repetition.
-        The group is treated as a single entity.
-        """
-        log('parse_exclude_block $content')
-        # strip ending and beginning / /
-        if len(content) > 1:
-            content = content[1:-1]
-        ast_word = ASTWord(ast_block, unescape_special_chars(content))
-        ast_word.set_option('exclude', True)
-        ast_block.add_child(ast_word)
-
-
-
-    def parse_unmarked_block(self, ast_block, content):
+    def parse_unmarked_content(self, ast_block, content):
         """Parses block which is not in any group || or //
         All text is split to ident , punct , whitespace and entity patterns
         """
@@ -686,50 +729,12 @@ class ParseVerbatim(ParseCommand):
             ast_block.add_child(ast_word)
 
 
-    def parse_content(self, ast_obj, content):
-        """Parses content to ast syntax tree."""
-        if len(content) > 2:
-            content = content[1:-1]
-
-            ast_block = ASTBlock()
-
-            # go through text finding
-            # find |   |    /    /    and unmarked blocks
-            # and each block process seperately
-            # unmarked blocks are between | | and / / blocks
-            include_pattern = r'\|[^\|]*\|'
-            exclude_pattern = r'/[^/]*/'
-            regexp = re.compile('(%s)|(%s)' % (include_pattern, exclude_pattern), re.M)
-            pos = 0
-            match = -1
-            while pos < len(content) and match:
-                match = regexp.search(content, pos)
-                if match:
-                    log('parse_content matches: $match.groups()')
-                    # process unmarked block between last pos and new match start
-                    if match.start() > pos:
-                        self.parse_unmarked_block(ast_block, content[pos:match.start()])
-                    # process include block | |
-                    if match.groups()[0]:
-                        self.parse_include_block(ast_block, content[match.start():match.end()])
-                    # process exclude block / /
-                    elif match.groups()[1]:
-                        self.parse_exclude_block(ast_block, content[match.start():match.end()])
-                    else:
-                        raise "Unknown group!"
-                    pos = match.end()
-
-            if pos < len(content):
-                self.parse_unmarked_block(ast_block, content[pos:])
-
-            # add block to parent
-            ast_obj.add_child(ast_block)
-
-
-
 
 class ParseCode(ParseVerbatim):
-    """This is customized code parse command."""
+    """This is general class for parsing code.
+    It uses knowledge about given programming language to include/exclude specific words from questioning.
+    It is used by many other class as parent class.
+    """
     def init_ast_object(self):
         return ASTCode()
 
@@ -740,10 +745,14 @@ class ParsePythonCode(ParseCode):
         return ASTPythonCode()
 
 
-class ParseSentence(ParseCommand):
-    """This is a customized importer working on sentences."""
+class ParsePascalSignatureCode(ParseCode):
+    """Class for parsing Pascal language signature code."""
     pass
 
+
+class ParseCSignatureCode(ParseCode):
+    """Class for parsing C language signature code."""
+    pass
 
 
 
@@ -790,7 +799,7 @@ class ParseFile(ParseObject):
                 if match.start() > pos:
                     subtext = text[pos:match.start()]
                     if re.sub('\s', '', subtext) != '':
-                        parse_obj = ParseCloze()
+                        parse_obj = ParseSentence()
                         ast_obj = parse_obj.parse(r'\[]{' + subtext + r'}')
                         root.add_child(ast_obj)
                 # parse what's in match with
@@ -803,13 +812,15 @@ class ParseFile(ParseObject):
                 elif command == 'subsection':
                     parse_obj = ParseSubsection()
                 elif command == 'subsubsection':
-                    parse_obj = ParseSubSubSection()
-                elif command == 'cloze':
-                    parse_obj = ParseCloze()
-                elif command == 'set':
-                    parse_obj = ParseSet()
+                    parse_obj = ParseSubsubsection()
                 elif command == 'tabbed':
                     parse_obj = ParseTabbed()
+                elif command == 'sentence':
+                    parse_obj = ParseSentence()
+                elif command == 'definition':
+                    parse_obj = ParseDefinition()
+                elif command == 'paragraph':
+                    parse_obj = ParseParagraph()
                 elif command == 'verbatim':
                     parse_obj = ParseVerbatim()
                 elif command == 'code':
@@ -830,8 +841,8 @@ class ParseFile(ParseObject):
             subtext = text[pos:]
             if re.sub('\s', '', subtext):
                 log('Found non-marked text: $subtext' )
-                parse_obj = ParseCloze()
-                ast_obj = parse_obj.parse(r'\cloze[]{' + subtext + r'}')
+                parse_obj = ParseSentence()
+                ast_obj = parse_obj.parse(r'\sentence[]{' + subtext + r'}')
                 root.add_child(ast_obj)
 #
         return root
@@ -929,28 +940,20 @@ class Processor(object):
         self.corpus_db_cache = {}
 
 
-    def build_question(self, words, hidenth):
-        """Returns question build from given words, replacing hidenth with dots ... """
-        words2 = []
-        for i in range(len(words)):
-            if i <> hidenth:
-                words2.append(words[i])
-            else:
-                words2.append('...')
-        return " ".join(words2)
-
-
-    def build_question_verbatim(self, words, hidenth):
+    def build_question(self, words, hidenth, verbatim=False):
         """Builds question from words but constructing them in intact way.
         It is used with verbatim style questions. """
         result = []
         for i in range(len(words)):
             if i == hidenth:
-                word = ' ... '
+                word = '[...]'
             else:
                 word = words[i].content
-            result.append(word)
-        return ''.join(result)
+            result.append(word if verbatim else word.strip())
+        if verbatim:
+            return ''.join(result)
+        else:
+            return ' '.join(result)
 
 
     def build_prefix(self, title, section, subsection, subsubsection):
@@ -969,7 +972,7 @@ class Processor(object):
 
     def is_word_ignored(self, word):
         """Returns true if corpus is used and word is ignored at current level."""
-        if LANG_CORPUS_USED: #
+        if LANG_CORPUS_USED:
             word = word.strip().lower()
             if self.corpus_db_cache.has_key(word):
                 return self.corpus_db_cache[word]
@@ -1003,7 +1006,6 @@ class Processor(object):
         parser = ParseFile()
         ast_tree = parser.parse(fcontent)
 
-        #
         # process parse tree to create OutputItems structure
         # is this step necessary ??
 
@@ -1020,72 +1022,31 @@ class Processor(object):
 
         for obj in ast_tree.children:
             prefix = self.build_prefix(title, section, subsection, subsubsection)
-            if obj.command == ParseCommands.title:
+            if type(obj) is ASTTitle:
                 title = obj.content
-            elif obj.command ==  ParseCommands.section:
+            elif type(obj) is ASTSection:
                 section = obj.content
-            elif obj.command == ParseCommands.subsection:
+            elif type(obj) is ASTSubsection:
                 subsection = obj.content
-            elif obj.command == ParseCommands.subsubsection:
+            elif type(obj) is ASTSubsubsection:
                 subsubsection = obj.content
-            # generating items for set and tabbed classes
-            # both generate like in set
-            elif obj.command in (ParseCommands.set, ParseCommands.tabbed):
-                for block in obj.children:
-                    words = []
-                    question_words = []
-                    # for each word prepare a special item
-                    # except for marked items
-                    for i in range(0, len(block.children)):
-                        word = block.children[i]
-                        words.append(word.content)
-                        if not word.get_option('exclude')  \
-                            and not self.is_word_ignored(word.content): # and not is in ignored words
-                            question_words.append(i)
-
-                    for i in question_words:
-                        question = self.build_question(words, i)
-                        answer = words[i]
-
-                        item = OutputItem(ensure_endswith(prefix, ': '), question, answer)
-                        items.add_item(item)
-
-            # parsing of  commands
-            elif obj.command == ParseCommands.cloze:
-                for block in obj.children:
-                    words = []
-                    question_words = []
-                    # this will be in contrast to set
-                    # marked items will be included only
-                    for i in range(len(block.children)):
-                        words.append(block.children[i].content)
-                        if block.children[i].get_option('include'):
-                            question_words.append(i)
-
-                    for i in question_words:
-                        question = self.build_question(words, i)
-                        answer = words[i]
-
-                        item = OutputItem(ensure_endswith(prefix, ': '), question, answer)
-                        items.add_item(item)
-
-            # parsing of verbatim commands (works either as cloze or set,
-            # depending on option)
-
-            elif obj.command == ParseCommands.verbatim:
+            # process each class command
+            # by generating output items from its ast child items
+            elif isinstance(obj, ASTClassCommand):
                 for block in obj.children:
                     words = block.children
-                    if obj.get_option('cloze'):
+                    # which words it should ask for?
+                    if obj.get_option('ask') == 'marked' or obj.get_option('ask') == '':
                         hide_words_idx = [i for i in range(len(block.children)) \
-                                            if block.children[i].get_option('include')]
+                                            if words[i].get_option('marked')]
                     else: # default option is set asking for all words
                         hide_words_idx =  [i for i in range(len(block.children)) \
-                                            if not block.children[i].get_option('exclude') and \
-                                                type(block.children[i]) != ASTSeparatorWord]
-                        log('hide words idx: $hide_words_idx')
+                                            if not words[i].get_option('ignored') and \
+                                                type(words[i]) != ASTSeparatorWord]
 
+                    # build question (output item) for each hidden words
                     for hide_idx in hide_words_idx:
-                        question = self.build_question_verbatim(words, hide_idx)
+                        question = self.build_question(words, hide_idx, isinstance(obj, ASTVerbatim))
                         answer = words[hide_idx].content.strip()
 
                         question_hint = words[hide_idx].get_option('question_hint')
@@ -1095,10 +1056,14 @@ class Processor(object):
                         items.add_item(item)
 
 
-
         # now export items using exporter
         exporter = QAExporter()
         exporter.export_file(items, output=None)
+
+
+        # now export items using exporter
+        exporter = QAExporter()
+
 
 
 # }}} Processor classes
