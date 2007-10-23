@@ -1110,15 +1110,28 @@ def main():
     """This is the main program."""
     from optparse import OptionParser
 
-    parser = OptionParser(version='Mentor Probe ' + __version__)
+    parser = OptionParser(version='Mentor Probe version ' + __version__)
     parser.add_option("-d", "--debug", action="store_true", dest="debug", default=True,
                       help="run program in debugged mode" )
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
                       help="print output verbosely")
     parser.add_option("-p", "--pretend", action="store_true", dest="pretend", default=False,
                       help="run a a simulation only")
+    parser.add_option("-t", "--test", action="store_true", dest="test", default=False,
+                      help="runs a series of tests")
 
     opts, args = parser.parse_args(sys.argv[1:])
+
+    if opts.test:
+        # import path from tests
+        # sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests"))
+        from tests import test_utils, test_probe
+        import unittest
+        suite = unittest.TestSuite([test_utils.suite(), test_probe.suite()])
+        runner = unittest.TextTestRunner(verbosity=2)
+        runner.run(suite)
+        sys.exit()
+
 
     if opts.debug:
         enable_logging(True)
