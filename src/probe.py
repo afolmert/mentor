@@ -45,6 +45,46 @@ LANG_CORPUS_USED = 1
 LANG_CORPUS_DB = 'd:/Projects/Mentor/Sources/draft/tools/freq/corpus_en.db'
 LANG_CORPUS_IGNORE_LVL = 2
 
+# special functions
+EscapeChars = [(r'\|', '#&prbbar;'),
+               (r'\\', '#&prbbsp;'),
+               (r'\/', '#&prbslash;'),
+               (r'\{', '#&prbbrcleft;'),
+               (r'\}', '#&prbbrcright;'),
+               (r'\?', '#&prbquest;'),
+               (r'\!', '#&prbexclam;')]
+EscapePattern = r'#&prbbar;|#&prbbsp;|#&prbslash;|#&prbbrcleft;|#&prbbrcright;|#&prbquest;|#&prbexclam;'
+
+
+
+
+def escape_special_chars(text):
+    """Escapes special chars with custom codes.
+    This prepares text for processing.
+    """
+    # TODO This is very primite escaping and very time consuming because I read the
+    # text many times
+    # I should escape the text as I read it online in a tokenizer - whenever I
+    # encounter \ backslash, I should check the next char and return normal char
+    # instead of control char
+    for sequence, escape in EscapeChars:
+        text = text.replace(sequence, escape)
+    return text
+
+
+def unescape_special_chars(text):
+    """Unescapes special chars with custom codes.
+    This fixes text after processing.
+    """
+    # see escape_special_chars on comment how to do it the right way
+    # currently, this is symmetric to escape_special_chars
+    for sequence, escape in EscapeChars:
+    # obviously, I have to omit the backslash in output text
+        text = text.replace(escape, sequence[1:])
+    return text
+
+
+
 
 # handling of options :
 # TODO this must be handled differently !!!
@@ -266,7 +306,7 @@ class ASTSubsection(ASTCommand):
         self.options.add_option('sec2')
 
 
-class AST(ASTCommand):
+class ASTCloze(ASTCommand):
     def init_options(self):
         self.options.clear()
         self.options.add_option('simple')
@@ -411,7 +451,7 @@ class ParseCommand(ParseObject):
     def parse_content(self, ast_obj, content):
         """Returns content."""
         if len(content) > 2:
-            ast_obj.content = content[1:-1]
+            ast_obj.content = unescape_special_chars(content[1:-1])
         else:
             ast_obj.content = None
 
@@ -498,7 +538,7 @@ class ParseClassCommand(ParseCommand):
                             m = marker
                     # add word and marker , only if not empty
                     if w.strip() != "":
-                        ast_block.add_child(ASTWord(ast_block, w.strip(), m))
+                        ast_block.add_child(ASTWord(ast_block, unescape_special_chars(w.strip()), m))
 
                 # add block, only if not empty
                 if len(ast_block.children) > 0:
@@ -615,12 +655,19 @@ class ParseFile(ParseObject):
     """
 
 
+
+    def remove_comments(self, text=''):
+        """Preprocesses given text, removes comments """
+        # remove lines beginning with $ or after not-escaped $
+        return re.sub("(?m)(^|[^\\\\])(%.*$)", "", text)
+
+
     def parse(self, text=''):
 
         # preprocess the file
         # remove the comments
-        text = re.sub("(?m)(^|[^\\\\])(%.*$)", "", text)
-        subtext = ''
+        text = self.remove_comments(text)
+        text = escape_special_chars(text)
 
         # initialize search#
         root = self.init_ast_object()
@@ -913,7 +960,7 @@ class Processor(object):
                         answer = words[i]
 
                         item = OutputItem(ensure_endswith(prefix, ': '), question, answer)
-                        items.add_item()
+                        items.add_item(item)
 
             # parsing of verbatim commands (works either as cloze or set,
             # depending on option)
