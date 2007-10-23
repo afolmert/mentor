@@ -29,6 +29,7 @@ like Mentor or SuperMemo.
 
 
 from utils import log, info, enable_logging, Enumeration, error, ensure_endswith
+from config import config
 from StringIO import StringIO
 import re
 import sys
@@ -37,13 +38,6 @@ import release
 
 
 __version__ = release.version
-
-# corpus specific settings
-# using this option will make ignore often used words in set class
-# TODO move them to user settings file
-LANG_CORPUS_USED = 1
-LANG_CORPUS_DB = 'd:/Projects/Mentor/Sources/draft/tools/freq/corpus_en.db'
-LANG_CORPUS_IGNORE_LVL = 2
 
 # special functions
 EscapeChars = [(r'\|', '#&prbbar;'),
@@ -586,7 +580,7 @@ class ParseClassCommand(ParseCommand):
             # for each block :
             # split content looking for content groups
             for block in blocks:
-                info('parse_content processing block: $block')
+                log('parse_content processing block: $block')
                 ast_block = ASTBlock()
                 # go through text finding
                 # find |   |    /    /    and unmarked blocks
@@ -972,19 +966,19 @@ class Processor(object):
 
     def is_word_ignored(self, word):
         """Returns true if corpus is used and word is ignored at current level."""
-        if LANG_CORPUS_USED:
+        if config.LANG_CORPUS_USED:
             word = word.strip().lower()
             if self.corpus_db_cache.has_key(word):
                 return self.corpus_db_cache[word]
             else:
                 import sqlite3
                 if self.corpus_db is None:
-                    self.corpus_db = sqlite3.connect(LANG_CORPUS_DB)
+                    self.corpus_db = sqlite3.connect(config.LANG_CORPUS_DB)
                 # initially set to not-ignored
                 self.corpus_db_cache[word] = False
                 cursor = self.corpus_db.cursor()
                 # if is found under current ignore level then is set to True
-                for row in cursor.execute('SELECT WORD FROM TFREQ WHERE POSITION_LVL <= ?', (LANG_CORPUS_IGNORE_LVL,)):
+                for row in cursor.execute('SELECT WORD FROM TFREQ WHERE POSITION_LVL <= ?', (config.LANG_CORPUS_IGNORE_LVL,)):
                     self.corpus_db_cache[row[0]] = True
                 cursor.close()
                 return self.corpus_db_cache[word] #
@@ -1018,7 +1012,8 @@ class Processor(object):
         prefix        = '' # prefix used
         items         = OutputItems()
 
-        print str(ast_tree)
+        if config.DEBUG:
+            print str(ast_tree)
 
         for obj in ast_tree.children:
             prefix = self.build_prefix(title, section, subsection, subsubsection)
@@ -1075,19 +1070,27 @@ def main():
     """This is the main program."""
     from optparse import OptionParser
 
+    # TODO I might move this to config but there is problem of mentor and probe
+    # being different apps !
     parser = OptionParser(version='Mentor Probe version ' + __version__)
-    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=True,
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=config.DEBUG,
                       help="run program in debugged mode" )
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=config.VERBOSE,
                       help="print output verbosely")
-    parser.add_option("-p", "--pretend", action="store_true", dest="pretend", default=False,
+    parser.add_option("-p", "--pretend", action="store_true", dest="pretend", default=config.PRETEND,
                       help="run a a simulation only")
-    parser.add_option("-t", "--test", action="store_true", dest="test", default=False,
+    parser.add_option("-t", "--test", action="store_true", dest="test", default=config.TEST,
                       help="runs a series of tests")
 
     opts, args = parser.parse_args(sys.argv[1:])
+    # apply to config
+    config.TEST    =  opts.test
+    config.VERBOSE =  opts.verbose
+    config.PRETEND =  opts.pretend
+    config.DEBUG   =  opts.debug
 
-    if opts.test:
+
+    if config.TEST:
         # import path from tests
         # sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests"))
         from tests import test_utils, test_probe
@@ -1098,7 +1101,7 @@ def main():
         sys.exit()
 
 
-    if opts.debug:
+    if config.DEBUG:
         enable_logging(True)
     else:
         enable_logging(False)
