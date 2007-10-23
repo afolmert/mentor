@@ -28,10 +28,16 @@ release.
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'mentor'
 
-# Version number is built like this: major.minor.revision build: buildno
-# Major version happen on big feature introductions and major rewrites
-# Minor version include new features
-# Revision are usually bugfix releases
+# Version number is built like this: major.minor[release_info] build: buildno
+# Major version happen on big rewrites, significant features and backward
+# compatibility breaks
+# Minor version include new minor features
+# Release_info is additional information about the type of release of this version:
+# can be one of: alpha, beta, rc1, rc2, rc3, or .1, .2 etc. in case of bug-fix
+# releases
+#
+# Minor version and bug-fixe releases are released officially and
+# get tagged in Git repository
 #
 # Build number is created as yyyymmdd plus six digits of SHA1 of the git head
 # It is embedded in the build_stamp.py file and regenerated every time by the
@@ -39,9 +45,10 @@ name = 'mentor'
 # The build_stamp file is not included in the git repository because it gets
 # modified frequently
 
-__major    = '0'
-__minor    = '1'
-__revision = '0'
+
+__major         = '0'
+__minor         = '.1'
+__release_lvl   = '-alpha'
 
 __buildno = None
 try:
@@ -50,7 +57,7 @@ try:
 except:
     pass
 
-version    = '%s.%s.%s build: %s' % (__major, __minor, __revision, __buildno)
+version    = '%s%s%s build: %s' % (__major, __minor, __release_lvl, __buildno)
 
 
 # more detailed description
