@@ -13,30 +13,28 @@ endif
 
 
 " Define syntax groups
-" PrbComment: either beginning of line or any char not backspace \
+" PrbComment: either beginning of line or any char not backspaced \
 syn match PrbComment /\(^\|[^\\]\)%.*/ containedin=ALL
-syn match PrbCommand /\\tabbed\|\\title\|\\section\|\\subsection\\|\\set\|\\cloze/
-syn match PrbCloze  /[a-zA-Z0-9-]*_[a-zA-Z0-9-]*/
-
-" PrbRange is a virtual region which contains all other regions
-" It was created to avoid false highlighting of items outside probe command
-syn region PrbRange start=+\\tabbed\|\\title\|\\section\|\\subsection\\|\\set\|\\cloze+ end=+}+ contains=PrbCommand,PrbOption,PrbGroup,PrbHint keepend
+syn match PrbCommand /\\title\|\\section\|\\subsection\|\\tabbed\|\\sentence\|\\paragraph\|\\definition\|\\subsubsection\|\\verbatim\|\\code\|\\pythoncode/
+" this only if it starts after PrbCommand !
 syn region PrbOption start=+\[+ end=+\]+
-syn region PrbGroup start=+{+ end=+}+ contains=PrbCloze,PrbHint
-syn match PrbHint /#{[^{}]*}/
-
+" this only if it starts after PrbCommand !
+syn region PrbContent start=+{+ end=+}+ contains=PrbMarked,PrbIgnored
+syn region PrbMarked start=+|+ end=+|+ contains=PrbHint,PrbMarkup keepend
+syn region PrbIgnored start=+/+ end=+/+ contains=PrbMarkup keepend
+syn match PrbHint /.\+\(?\|!\)/
+" special markup which should be hidden so it does not clutter screen
+syn match PrbMarkup /|\|\//  containedin=PrbMarked,PrbIgnored,PrbHint
 
 " Define colors links
-
-" hi def link PrbContent   Comment
 hi def link PrbComment   Comment
-hi def link PrbGroup     Normal
+hi def link PrbContent   Normal
 hi def link PrbOption    Keyword
 hi def link PrbCommand   Keyword
-hi def link PrbCloze     Typedef
-hi def link PrbHint      String
-hi def link PrbRange     Error
-
+hi def link PrbMarked    Normal
+hi def link PrbIgnored   Normal
+hi def link PrbHint      Comment
+hi def link PrbMarkup    Comment
 
 
 let b:current_syntax = "probe"
