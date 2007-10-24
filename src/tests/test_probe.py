@@ -29,10 +29,9 @@ class TestArithmetics(unittest.TestCase):
 
     def test_plus(self):
         self.assertEqual(2 + 2, 4)
-        self.assertEqual(2 + 3, 4)
 
     def test_minus(self):
-        self.assertEqual(1 - 2, -2)
+        self.assertEqual(1 - 2, -1)
 
 
 

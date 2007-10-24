@@ -45,6 +45,8 @@ class Config(object):
         self.LANG_CORPUS_USED       = 1
         self.LANG_CORPUS_DB         = 'd:/Projects/Mentor/Sources/draft/tools/freq/corpus_en.db'
         self.LANG_CORPUS_IGNORE_LVL = 2
+        # database version
+        self.DB_VERSION             = '01'
 
 
 

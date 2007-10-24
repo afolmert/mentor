@@ -350,11 +350,11 @@ class ASTPythonCode(ASTVerbatim):
 class OutputItem(object):
     """This is basic item for storing questions and answers."""
     def __init__(self, prefix='', question='', answer='', question_hint='', answer_hint=''):
-        self.prefix = prefix
-        self.question = question
-        self.answer = answer
+        self.prefix        = prefix
+        self.question      = question
+        self.answer        = answer
         self.question_hint = question_hint
-        self.answer_hint = answer_hint
+        self.answer_hint   = answer_hint
 
     def get_prefix(self):
         return self.prefix
@@ -1093,9 +1093,9 @@ def main():
     if config.TEST:
         # import path from tests
         # sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests"))
-        from tests import test_utils, test_probe
+        from tests import test_utils, test_probe, test_cards
         import unittest
-        suite = unittest.TestSuite([test_utils.suite(), test_probe.suite()])
+        suite = unittest.TestSuite([test_utils.suite(), test_probe.suite(), test_cards.suite()])
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
         sys.exit()
