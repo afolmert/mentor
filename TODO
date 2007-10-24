@@ -19,6 +19,23 @@ diagrams
 uml
 conversion from source code
 automatic knowledge retrieval
+
+- each config option should have params
+  like possible values if stored in settings or constant
+  if modifiable from commandline
+  if usable in probe or in mentor or in freq
+
+- add to config parse_probe_commandline and parse_mentor_commandline
+  ? maybe better will be splitting them ?
+  and pass optparse to them
+  also will need get_probe_usage and get_mentor_usage
+
+- upgrade the database upon entering
+  when opening database should check the result
+  if version is lower then ask if proceed with upgrade
+   upgrade implemented similarly to upgrade procedure we did use in Vademecum
+   Szefa
+
 }}}
 
 
@@ -165,6 +182,15 @@ INSTALL {{{
 The build script should also perform a set of tests after making the build
 to make sure the build is correct
 all the test suite should be run
+
+- move this to build script
+ Run pyrcc4 mentor.qrc to mentor_rc.py file
+ but only if file mentor_rc.pyc does not exist or is older than mentor.qrc
+
+- add time-sensitive building by default:
+by default action build will not touch files like mentor.pdf or mentor_rc.pyc
+if they have not been touched after the last build
+   but also add option to do a full rebuild
 
 }}}
 

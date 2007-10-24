@@ -37,11 +37,13 @@ It enables text-mode and graphical-mode snippet creation and drill.
 It also provides functionality for scheduling repetitions for created cards,
 which is useful if one wants to make repetitions over longer time period.
 
-Dictionary:
-CHANGE ITEMS to CARDS
-SNIPPETS and CARDS
-
 """
+
+# TODO
+#
+# Dictionary:
+# CHANGE ITEMS to CARDS
+# SNIPPETS and CARDS
 
 import release
 __author__  = '%s <%s>' % \
@@ -49,10 +51,6 @@ __author__  = '%s <%s>' % \
 
 __license__ = release.license
 __version__ = release.version
-
-# WARNING !
-# TODO move this to build script
-# Run pyrcc4 mentor.qrc to mentor_rc.py file
 
 # TODO
 # set mainwidget
