@@ -31,7 +31,6 @@ import release
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-import win32ui
 
 __version__ = release.version
 
@@ -56,15 +55,9 @@ def tr(text):
 
 
 def msgbox(aMesg, parent = None):
-    import win32ui
-    win32ui.MessageBox(str(aMesg), 'Information')
-    #try:
-        #import win32ui
-        #win32ui.MessageBox(aMesg)
-    #except:
-        #QMessageBox.information( parent
-                               #, "Info"
-                               #, aMesg )
+    QMessageBox.information( parent
+                            , "Info"
+                            , aMesg )
 
 
 def show_info(message, parent=None):
