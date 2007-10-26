@@ -14,6 +14,6 @@ setup(version="0.0.1"
       , windows=["src/mentor.py"]
       , console=["src/probe.py"]
       , zipfile = "lib/shared.zip"
-      , options={"py2exe":{"includes":["sip"], "compressed": 1, "optimize": 2, "bundle_files": 1}}
+      , options={"py2exe":{"includes":["sip"], "compressed": 1, "bundle_files": 1}}
       )
 
