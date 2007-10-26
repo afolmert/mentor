@@ -18,13 +18,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 #
 #
-#
 """
 This is a test file for cards module.
 """
 
 import unittest
-from cards import Cards, Card
+from cards import CardDb, Card
 from utils import log
 
 
@@ -45,7 +44,7 @@ class TestCards(unittest.TestCase):
 
 
     def setUp(self):
-        self.cards = Cards()
+        self.cards = CardDb()
         self.cards.open(':memory:')
 
     def tearDown(self):
@@ -97,12 +96,52 @@ class TestCards(unittest.TestCase):
         self.assertEqual(self.cards.get_card(id3), Card(id3, 'three', 'drei'))
 
 
+    def test_get_card_headers(self):
+        id1 = self.cards.add_card(Card(None, 'one', 'eins'))
+        id2 = self.cards.add_card(Card(None, 'two', 'zwei'))
+        id3 = self.cards.add_card(Card(None, 'three', 'drei'))
+        id4 = self.cards.add_card(Card(None, 'four', 'vier'))
+        id5 = self.cards.add_card(Card(None, 'five', 'fuenf'))
+        id6 = self.cards.add_card(Card(None, 'six', 'sechs'))
+        id7 = self.cards.add_card(Card(None, 'seven', 'sieben'))
+        id8 = self.cards.add_card(Card(None, 'eight', 'acht'))
+        id9 = self.cards.add_card(Card(None, 'nine', 'neun'))
+        # retrieve cards from rownum 2 to 4
+        cards = self.cards.get_card_headers('', 2, 6)
+        self.assertEqual(len(cards), 4)
+        self.assertEqual(cards[0], (3, 'three'))
+        self.assertEqual(cards[1], (4, 'four'))
+        self.assertEqual(cards[2], (5, 'five'))
+        self.assertEqual(cards[3], (6, 'six'))
+
+        # delete some and check retrieve again
+        # retrieve cards < 7
+        self.cards.delete_card(id3)
+        self.cards.delete_card(id4)
+        cards = self.cards.get_card_headers('ID < 7', 2, 4)
+        self.assertEqual(len(cards), 2)
+        self.assertEqual(cards[0], (5, 'five'))
+        self.assertEqual(cards[1], (6, 'six'))
+
+        # add some cards and check retrieve again
+        # retrieve last 3 cards
+        id10 = self.cards.add_card(Card(None, 'ten', 'zehn'))
+        id11 = self.cards.add_card(Card(None, 'eleven', 'einzehn'))
+        id12 = self.cards.add_card(Card(None, 'twelve', 'zwoelf'))
+        cards = self.cards.get_card_headers('', 7, 13)
+        self.assertEqual(len(cards), 3)
+        self.assertEqual(cards[0], (id10, 'ten'))
+        self.assertEqual(cards[1], (id11, 'eleven'))
+        self.assertEqual(cards[2], (id12, 'twelve'))
+
+        # check for query when no range is added
+        cards = self.cards.get_card_headers()
+        self.assertEqual(len(cards), 10)
+
+        # check for assertion error when invalid minrow, maxrow
+        self.assertRaises(AssertionError, self.cards.get_card_headers, '', 4, 1)
 
 
-    # TODO
-    # test delete_card, exists_card, update_card
-    # test for more !
-    # don't use polish words '
 
     # TODO
     # write a model using cards

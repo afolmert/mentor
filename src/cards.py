@@ -19,18 +19,39 @@
 #
 #
 #
-"""This is module for managing cards: storage, management, reptition algorithms,
+"""This is module for managing cards: storage, management, repetition algorithms,
 scheduling etc."""
 
 import release
 import sqlite3
 from config import config
-from misc import log
+from utils import nvl, log
 
 __version__ = release.version
 
 
 # TODO write Qt Model  using my cards object (cached?)
+# mode lcaching result ?
+# create index - create for first record
+  # for nth record in database
+  # what about filters and sorting
+  # refresh
+  # get index get next basing on current sorting criteria
+
+  # I think i will have to read all and refresh on demand ?
+  # display name and id and the rest will be read on demand
+  #
+  # how the model works
+  # how many doe it reads?
+  #
+  # what if I had 1000 in database
+  # i would read in chunks
+  # read 1000 and if asked then fetch more
+  #
+  # first try to do one without model just ismple load to list
+  # see how qt model works !!!
+
+
 
 
 
@@ -80,7 +101,7 @@ class Card(object):
 # a crash, the data is always safe.
 #
 #
-class Cards(object):
+class CardDb(object):
     """Cards storage. This is an interface for sqlite database keeping cards."""
     def __init__(self):
         self.db = None
@@ -165,6 +186,46 @@ class Cards(object):
         card = Card(*row)
         cur.close()
         return card
+
+    def get_card_headers(self, sqlwhere='', minrow=None, maxrow=None):
+        """Returns card ids using sqlwhere and minrow, maxrow range
+        Params: minrow and maxrows are both counted from 0.
+        Params: minrow is inclusive and maxrows is exclusive - this is similar to
+        how range works:
+        e.g.  get_card_headers('', 1, 3) will return rows: 1 and 2
+        """
+        # using sqlite-only LIMIT clause for getting the result
+        # from http://sqlite.org/lang_select.html:
+        # "The LIMIT clause places an upper bound on the number of rows
+        # returned in the result. A negative LIMIT indicates no upper bound.
+        # The optional OFFSET following LIMIT specifies how many rows to skip
+        # at the beginning of the result set. In a compound query, the LIMIT
+        # clause may only appear on the final SELECT statement. The limit is
+        # applied to the entire query not to the individual SELECT statement to
+        # which it is attached."
+        # in other words:
+        # it firsts skips OFFSET records and then the rest is limited to max
+        # LIMIT records
+        self.check_db()
+        cur = self.db.cursor()
+        if sqlwhere.strip():
+            sqlwhere = 'WHERE ' + sqlwhere
+        sqllimit = ''
+        if minrow or maxrow:
+            if minrow and maxrow:
+                assert minrow >= 0 and maxrow >= 0 and maxrow >= minrow, \
+                    "Invalid minrow %s maxrow %s params" % (str(minrow), str(maxrow))
+            maxrow = nvl(maxrow, -1)
+            minrow = nvl(minrow, 0)
+            limit = max(maxrow - minrow, -1) # if maxrow is -1 then we want all anyway
+            offset = max(minrow, 0)
+            sqllimit = 'LIMIT %d OFFSET %d' % (limit, offset)
+        query = r'''SELECT ID, QUESTION FROM TCARDS %s %s''' % (sqlwhere, sqllimit)
+        rows = cur.execute(query)
+        result = rows.fetchall()
+        cur.close()
+        return result
+
 
     def exists_card(self, card_id):
         """Returns True if given card_id exists in database."""
