@@ -39,6 +39,26 @@ __version__ = release.version
 
 
 #----------------------------------------------------------
+# Misc routines and classes
+
+
+def nvl(a, b):
+    """NVL from SQL: return b if a in nil."""
+    if a is None or a == "" or a == [] or a == ():
+        return b
+    else:
+        return a
+
+def decode(value, *args):
+    """DECODE-line function from SQL.  """
+    i = 0
+    while i < len(args) - 1:
+        if value == args[i]:
+            return args[i + 1]
+        i += 2
+    return args[i]
+
+#----------------------------------------------------------
 # String utils
 
 # Here are main classes which use parser to get a parse tree of parse objects

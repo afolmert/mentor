@@ -31,9 +31,21 @@ import release
 import sys
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+import win32ui
 
 __version__ = release.version
 
+
+
+
+
+#
+#----------------------------------------------------------
+# Misc routines
+
+
+def tr(text):
+    return qApp.tr(text)
 
 
 
@@ -44,10 +56,71 @@ __version__ = release.version
 
 
 def msgbox(aMesg, parent = None):
-        QMessageBox.information( parent
-                               , "Info"
-                               , aMesg )
+    import win32ui
+    win32ui.MessageBox(str(aMesg), 'Information')
+    #try:
+        #import win32ui
+        #win32ui.MessageBox(aMesg)
+    #except:
+        #QMessageBox.information( parent
+                               #, "Info"
+                               #, aMesg )
 
+
+def show_info(message, parent=None):
+    class InfoWidget(QDialog):
+        def __init__(self, parent=None):
+            QDialog.__init__(self, parent)
+            self.setWindowTitle('Information')
+            self.setGeometry(400, 300, 200, 200)
+            self.lbl = QLabel()
+            self.btn = QPushButton('OK')
+            self.btn.setStyle(Styles.windowsStyle())
+            layout = QVBoxLayout()
+            layout.addWidget(self.lbl)
+            layout.addWidget(self.btn)
+            self.setLayout(layout)
+            self.connect(self.btn, SIGNAL("clicked()"), SLOT("accept()"))
+
+    widget = InfoWidget(parent)
+    widget.lbl.setText(message)
+    widget.exec_()
+
+#
+#----------------------------------------------------------
+# styles classes and routines
+
+class Styles(object):
+    """Singleton object for retrieving styles."""
+
+    _windowsStyle   =  None
+    _cdeStyle       =  None
+    _motifStyle     =  None
+    _plastiqueStyle =  None
+
+    @staticmethod
+    def windowsStyle():
+        if Styles._windowsStyle is None:
+            Styles._windowsStyle = QStyleFactory.create('Windows')
+        return Styles._windowsStyle
+
+    @staticmethod
+    def cdeStyle():
+        if Styles._cdeStyle is None:
+            Styles._cdeStyle = QStyleFactory.create('Cde')
+        return Styles._cdeStyle
+
+    @staticmethod
+    def motifStyle():
+        if Styles._motifStyle is None:
+            Styles._motifStyle = QStyleFactory.create('Motif')
+        return Styles._motifStyle
+
+    @staticmethod
+    def plastiqueStyle():
+        if Styles._plastiqueStyle is None:
+            Styles._plastiqueStyle = QStyleFactory.create('Plastique')
+        return Styles._plastiqueStyle
 
 
 
@@ -434,17 +507,6 @@ def lazyshow(widget):
         _lazyWidget = LazyWidget()
     _lazyWidget.setWidget(widget)
     _lazyWidget.show()
-
-
-
-
-#
-#----------------------------------------------------------
-# This is a shortcut for tr operation
-
-
-def tr(text):
-    return qApp.tr(text)
 
 
 
