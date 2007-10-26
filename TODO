@@ -10,6 +10,17 @@ Also convert it to some markup format.
 GENERAL {{{
 --------------------------------------
 
+- Design goals:
+  open  - set of small utilities (probe, gui, vim) which together form
+  something advanced , ability to use open formats : xml, txt , sqlite
+  scripting - with python scripting , OLE automation and and KDE KParts
+  interface for scripting
+
+  focus on automation/user-friendliness of creating packs
+   creation of packs
+
+
+
 - General idea [MOVE TO DOCS]
 What can be used Mentor for?
 Mentor first in supermemo all possible learning means:
@@ -130,6 +141,57 @@ how it will be possible ?
 GUI {{{
 --------------------------------------
 
+- BUG : proper handling of empty items
+  maybe don't allow for empty but just block at the last ??
+    or when editing then just add new card ??
+ when deleting all items, the last content stays displayed
+  and when keeping on pressing delete then exception is thrown
+
+- TODO
+ make it run with debug version of Qt library
+ and give it full debug log so that I see what is actually going on !
+ see all signals coming out and caught by slots
+
+
+-  TODO switch to these later when I have function for automatic inserting in
+ from clause
+ from PyQt4.QtCore import SIGNAL, SLOT
+ from PyQt4.QtGui import QWidget, QPushButton, QApplication, QMainWindow, \
+      QKeySequence, QAction, QIcon, qApp
+
+
+- different views in a docking interface:
+  list view : simple and extended
+  card view : question + hint, answer + hint
+  info view: score, next review, last review reviews average score simple and
+  detailed , category? tags?
+  source view: with xml or (q and a) view on current item
+
+
+- import/export from q & a file / xml file (in Mentor format) in SuperMemo
+format  in KDE words format ??
+
+
+- advanced grid view for managing : with sql interface for querying database
+ list like excel+plsqldev table for viewing words  with filtering by tag category sorting on different
+  filtering like in lookup panel
+  ability to hide some columns if necessary
+
+- New pack
+  Close pack
+  Open pack..
+
+
+- maximally open for extensions:
+  add python scripting engine
+  in windows add ole automation server ??
+   in kde kobject for scripting
+
+- add labels to views : tree view , list view etc.
+
+- tags ? and categories
+
+-
 - automatically upgrading databases if found from older versions
 
 - checking databases , fixing them as well
@@ -553,6 +615,11 @@ But I can try to do the minimum to start learning:
 --------------------------------------
 MARKETING {{{
 --------------------------------------
+
+- info on site how users can contribute
+ filling bug reports, sending feedback and comments
+ getting and writing documentation
+
 
 - publish to sites:
 Linux: Freshmeat, KDE, PyQt
