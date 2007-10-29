@@ -49,7 +49,7 @@ __version__ = release.version
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from utils_qt import lazyshow, tr, Styles, show_info
+from utils_qt import lazyshow, tr, show_info
 from utils import log
 from cards import Card, CardDb
 import sys
@@ -59,7 +59,6 @@ import mentor_rc
 DB_LOCATION = 'd:/Temp/items.sqlite'
 
 
-# FIXME: after deleting the last changing generates an exception
 # FIXME: multi-column in the list
 # FIXME: database open/close with title changing, recent menu entries and last
 # database saved in configuration
@@ -295,20 +294,25 @@ class CardWidget(AbstractCardWidget):
         self._updatingWidget = False
         self._updatingCard = False
 
+
         self.lblQuestion = QLabel("&Question:")
         self.txtQuestion = CardTextEdit()
         self.txtQuestion.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txtQuestion.setFont(QFont("Courier New", 13, QFont.Bold))
         self.txtQuestion.setText("question text..")
-        self.txtQuestion.setStyle(Styles.windowsStyle())
+        self.txtQuestion.setMinimumHeight(100)
         self.lblQuestion.setBuddy(self.txtQuestion)
+
+
+        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.lblAnswer = QLabel("&Answer:")
         self.txtAnswer = CardTextEdit()
         self.txtAnswer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txtAnswer.setFont(QFont("Courier New", 13, QFont.Bold))
         self.txtAnswer.setText("answer text..")
-        self.txtAnswer.setStyle(Styles.windowsStyle())
+        self.txtAnswer.setMinimumHeight(100)
         self.lblAnswer.setBuddy(self.txtAnswer)
 
         self.connect(self.txtAnswer, SIGNAL('textChanged()'), self.txtAnswer_textChanged)
@@ -316,13 +320,18 @@ class CardWidget(AbstractCardWidget):
         self.connect(self.txtAnswer, SIGNAL('focusLost()'), self.txtAnswer_focusLost)
         self.connect(self.txtQuestion, SIGNAL('focusLost()'), self.txtQuestion_focusLost)
 
-        layout = QVBoxLayout()
+        #self.Splitter.addWidget(self.lblAnswer)
+        self.splitter.addWidget(self.txtQuestion)
+        self.splitter.addWidget(self.txtAnswer)
+        self.splitter.setSizes([200, 100])
+        #self.Splitter.addWidget(self.lblQuestion)
+
+
+        # FIXME how to block splitter from hiding one window completely ??
+        layout = QHBoxLayout()
         layout.setMargin(2)
         layout.setSpacing(2)
-        layout.addWidget(self.lblQuestion)
-        layout.addWidget(self.txtQuestion)
-        layout.addWidget(self.lblAnswer)
-        layout.addWidget(self.txtAnswer)
+        layout.addWidget(self.splitter)
 
         self.setLayout(layout)
 
@@ -468,15 +477,15 @@ class CardSourceWidget(AbstractCardWidget):
         AbstractCardWidget.__init__(self, parent)
         self._updatingWidget = False
 
-        self.lblSource = QLabel("&Source:")
+        #self.lblSource = QLabel("&Source:")
         self.txtSource = CardTextEdit()
         self.setFont(QFont("vt100", 8))
-        self.lblSource.setBuddy(self.txtSource)
+        #self.lblSource.setBuddy(self.txtSource)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         layout.setMargin(2)
         layout.setSpacing(2)
-        layout.addWidget(self.lblSource)
+        #layout.addWidget(self.lblSource)
         layout.addWidget(self.txtSource)
 
         self.setLayout(layout)
@@ -500,6 +509,13 @@ class MainWindow(QMainWindow):
 
     def __init__(self, parent = None):
         QMainWindow.__init__(self, parent)
+
+
+        # set up controls
+        # items panel
+        self.cardModel = CardModel()
+        self.cardModel.open(DB_LOCATION)
+
         self.setWindowTitle("Mentor")
         self.move(50, 50)
         self.createCentralWidget()
@@ -510,67 +526,28 @@ class MainWindow(QMainWindow):
 
 
     def createCentralWidget(self):
-        self.central = QWidget(self)
-        self.central.move(40, 40)
 
-        # set up controls
-        # items panel
-        self.cardModel = CardModel()
-        self.cardModel.open(DB_LOCATION)
-
-        self.lblDrill = QLabel("Drill:")
-        self.lstDrill = QListView()
-        self.lstDrill.setMaximumWidth(140)
-        self.lstDrill.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        self.lstDrill.setFocus()
-        self.lstDrill.setStyle(Styles.windowsStyle())
-
-        self.lblDrill.setBuddy(self.lstDrill)
-
-        self.lstDrill.setModel(self.cardModel)
-
-        #self.treeContents = QTreeWidget()
-        #self.treeContents.addTopLevelItem(QTreeWidgetItem(["Sample1"]))
-        #self.treeContents.addTopLevelItem(QTreeWidgetItem(["Sample2"]))
-        #self.treeContents.addTopLevelItem(QTreeWidgetItem(["Sample3"]))
-        #self.treeContents.setMaximumWidth(140)
-        #self.treeContents.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        #self.treeContents.setStyle(Styles.windowsStyle())
-
-        itemsLayout = QVBoxLayout()
-        itemsLayout.setMargin(2)
-        itemsLayout.setSpacing(2)
-        itemsLayout.addWidget(self.lblDrill)
-        itemsLayout.addWidget(self.lstDrill)
-        #itemsLayout.addWidget(self.treeContents)
+        ##########################
+        # setup central widget
 
         # question and answer panel
-
-        self.cardWidget = CardWidget()
+        self.cardWidget = CardWidget(self)
         self.cardWidget.setCardModel(self.cardModel)
 
-        self.cardSourceWidget = CardSourceWidget()
-        self.cardSourceWidget.setCardModel(self.cardModel)
-
-        self.cardDetailWidget = CardDetailWidget()
-        self.cardDetailWidget.setCardModel(self.cardModel)
-
-        # buttons
-        self.btnMoveUp = QPushButton("Up")
-        self.btnMoveDown = QPushButton("Down")
-        self.btnShowSelection = QPushButton("Show selection")
-        self.btnAdd = QPushButton("Add")
-        self.btnDelete = QPushButton("Delete")
-        self.btnLoad = QPushButton("Load...")
+        self.setCentralWidget(self.cardWidget)
 
 
-        # todo move this to actions
-        self.connect(self.btnAdd, SIGNAL("clicked()"), self.btnAdd_clicked)
-        self.connect(self.btnDelete, SIGNAL("clicked()"), self.btnDelete_clicked)
-        self.connect(self.btnLoad, SIGNAL("clicked()"), self.btnLoad_clicked)
-        self.connect(self.btnMoveUp, SIGNAL("clicked()"), self.btnMoveUp_clicked)
-        self.connect(self.btnMoveDown, SIGNAL("clicked()"), self.btnMoveDown_clicked)
-        self.connect(self.btnShowSelection, SIGNAL("clicked()"), self.btnShowSelection_clicked)
+        ##########################
+        # items view
+        self.lstDrill = QListView(self)
+        self.lstDrill.setModel(self.cardModel)
+
+        dock1 = QDockWidget('List', self)
+        dock1.setWidget(self.lstDrill)
+
+        self.addDockWidget(Qt.LeftDockWidgetArea, dock1)
+
+
         # FIXME connecting these 4 times cause sometimes I don't get proper
         # messages
         # when I edit something and press Down
@@ -590,14 +567,48 @@ class MainWindow(QMainWindow):
                         self.lstDrill_activated)
 
 
-        buttonsLayout = QHBoxLayout()
+        ##########################
+        # details widget
+        self.cardDetailWidget = CardDetailWidget(self)
+        self.cardDetailWidget.setCardModel(self.cardModel)
 
-        self.btnAdd.setStyle(Styles.windowsStyle())
-        self.btnDelete.setStyle(Styles.windowsStyle())
-        self.btnLoad.setStyle(Styles.windowsStyle())
-        self.btnMoveUp.setStyle(Styles.windowsStyle())
-        self.btnMoveDown.setStyle(Styles.windowsStyle())
-        self.btnShowSelection.setStyle(Styles.windowsStyle())
+        dock2 = QDockWidget('Details', self)
+        dock2.setWidget(self.cardDetailWidget)
+
+        self.addDockWidget(Qt.BottomDockWidgetArea , dock2)
+
+
+        ##########################
+        # card source widget
+        self.cardSourceWidget = CardSourceWidget(self)
+        self.cardSourceWidget.setCardModel(self.cardModel)
+
+        dock3 = QDockWidget('Source', self)
+        dock3.setWidget(self.cardSourceWidget)
+
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock3)
+
+
+        ##########################
+        # buttons widget
+        self.buttons = QWidget(self)
+
+        self.btnMoveUp = QPushButton("Up")
+        self.btnMoveDown = QPushButton("Down")
+        self.btnShowSelection = QPushButton("Show selection")
+        self.btnAdd = QPushButton("Add")
+        self.btnDelete = QPushButton("Delete")
+        self.btnLoad = QPushButton("Load...")
+
+        # todo move this to actions
+        self.connect(self.btnAdd, SIGNAL("clicked()"), self.btnAdd_clicked)
+        self.connect(self.btnDelete, SIGNAL("clicked()"), self.btnDelete_clicked)
+        self.connect(self.btnLoad, SIGNAL("clicked()"), self.btnLoad_clicked)
+        self.connect(self.btnMoveUp, SIGNAL("clicked()"), self.btnMoveUp_clicked)
+        self.connect(self.btnMoveDown, SIGNAL("clicked()"), self.btnMoveDown_clicked)
+        self.connect(self.btnShowSelection, SIGNAL("clicked()"), self.btnShowSelection_clicked)
+
+        buttonsLayout = QVBoxLayout()
 
         buttonsLayout.addWidget(self.btnMoveUp)
         buttonsLayout.addWidget(self.btnMoveDown)
@@ -607,20 +618,14 @@ class MainWindow(QMainWindow):
         buttonsLayout.addWidget(self.btnLoad)
 
 
+        self.buttons.setLayout(buttonsLayout)
 
-        textLayout = QVBoxLayout()
-        textLayout.addWidget(self.cardWidget)
-        textLayout.addWidget(self.cardSourceWidget)
-        textLayout.addWidget(self.cardDetailWidget)
-        textLayout.addLayout(buttonsLayout)
 
-        # main layout
-        mainLayout = QHBoxLayout()
-        mainLayout.addLayout(itemsLayout)
-        mainLayout.addLayout(textLayout)
+        dock = QDockWidget('Buttons', self)
+        dock.setWidget(self.buttons)
 
-        self.central.setLayout(mainLayout)
-        self.setCentralWidget(self.central)
+        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+
 
 
 
