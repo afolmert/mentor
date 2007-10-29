@@ -62,8 +62,8 @@ class TestCards(unittest.TestCase):
 
 
     def test_get_card_count(self):
-        self.cards.add_card(Card('co', 'tutaj'))
-        self.cards.add_card(Card('ale', 'fajnie'))
+        self.cards.add_card(Card(None, 'co', 'tutaj'))
+        self.cards.add_card(Card(None, 'ale', 'fajnie'))
         self.assertEqual(self.cards.get_cards_count(), 2)
 
 
@@ -106,6 +106,14 @@ class TestCards(unittest.TestCase):
         id7 = self.cards.add_card(Card(None, 'seven', 'sieben'))
         id8 = self.cards.add_card(Card(None, 'eight', 'acht'))
         id9 = self.cards.add_card(Card(None, 'nine', 'neun'))
+        # retrieve card from rownum 0 to 0
+        cards = self.cards.get_card_headers('', 0, 1)
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0], (1, 'one'))
+        # retrieve cards from rownum 1 to 1
+        cards = self.cards.get_card_headers('', 1, 2)
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0], (2, 'two'))
         # retrieve cards from rownum 2 to 4
         cards = self.cards.get_card_headers('', 2, 6)
         self.assertEqual(len(cards), 4)

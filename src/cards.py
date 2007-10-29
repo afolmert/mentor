@@ -25,6 +25,7 @@ scheduling etc."""
 import release
 import sqlite3
 from config import config
+import sys
 from utils import nvl, log
 
 __version__ = release.version
@@ -53,6 +54,7 @@ __version__ = release.version
 
 
 
+class ECardException(Exception): pass
 
 
 # Each card will have unique id generated from database
@@ -61,12 +63,12 @@ __version__ = release.version
 class Card(object):
     """Basic in-memory card object. """
     def __init__(self, id=None, question='', answer='', question_hint='', answer_hint='', score=None):
-        self.id            = id
-        self.question      = question
-        self.answer        = answer
-        self.question_hint = question_hint
-        self.answer_hint   = answer_hint
-        self.score         = score
+        self.id            = int(id) if id is not None else None
+        self.question      = str(question)
+        self.answer        = str(answer)
+        self.question_hint = str(question_hint)
+        self.answer_hint   = str(answer_hint)
+        self.score         = str(score)
 
 
     def __eq__(self, other):
@@ -123,9 +125,8 @@ class CardDb(object):
             result = cur.execute('SELECT VERSION FROM TVERSION')
             row = result.fetchone()
             assert row[0] == config.DB_VERSION, "Unknown database format."
-            db.rollback()
         except:
-            # if not exist
+            # if not supported version then we recreate the database
             cur.execute(r'''CREATE TABLE TCARDS (
                               ID             INTEGER PRIMARY KEY,
                               QUESTION       TEXT,
@@ -165,6 +166,9 @@ class CardDb(object):
         # TODO how to retrieve information about last without running
         # additional query ?
         # TODO remove the query if lastrowid is ok
+        # move it to tests :
+        # add a record, check max(ID) and compare if it's the id
+        # returned actually by it's
         lastrowid = cur.lastrowid
         result = cur.execute('SELECT MAX(ID) FROM TCARDS').fetchone()[0]
         assert lastrowid == result, "Internal error: Lastrowid does not return MaxID!"
@@ -183,9 +187,12 @@ class CardDb(object):
                                 WHERE ID = ?
                             ''', (card_id,))
         row = rows.fetchone()
-        card = Card(*row)
-        cur.close()
-        return card
+        if row:
+            card = Card(*row)
+            cur.close()
+            return card
+        else:
+            raise ECardException, "Card not found = %d " % card_id
 
     def get_card_headers(self, sqlwhere='', minrow=None, maxrow=None):
         """Returns card ids using sqlwhere and minrow, maxrow range
@@ -211,8 +218,8 @@ class CardDb(object):
         if sqlwhere.strip():
             sqlwhere = 'WHERE ' + sqlwhere
         sqllimit = ''
-        if minrow or maxrow:
-            if minrow and maxrow:
+        if minrow is not None or maxrow is not None:
+            if minrow is not None and maxrow is not None:
                 assert minrow >= 0 and maxrow >= 0 and maxrow >= minrow, \
                     "Invalid minrow %s maxrow %s params" % (str(minrow), str(maxrow))
             maxrow = nvl(maxrow, -1)
