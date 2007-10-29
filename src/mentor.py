@@ -56,36 +56,85 @@ import sys
 import mentor_rc
 
 
+DB_LOCATION = 'd:/Temp/items.sqlite'
 
+
+# FIXME: after deleting the last changing generates an exception
+# FIXME: multi-column in the list
+# FIXME: database open/close with title changing, recent menu entries and last
+# database saved in configuration
+#
+# FIXME:
+# add as much gui elements as possible to have a final design ready
+# and I can think of all possibilities:
+# .e.g in the list add filtering and sorting and category setting
+# add tree with parents (categories)
+# the docking view should have possibility to place as tabs or as separate
+# windows
+# configurable number of columns in the list view
+#
+# FIXME:
+# Menu: Make Open / Close working
+# Buttons add to menu ??
+#
+
+class ECardModel(Exception): pass
 
 class CardModel(QAbstractListModel):
     """Model to be used for list and tree view."""
 
     def __init__(self, parent=None):
         QAbstractListModel.__init__(self, parent)
-        self.items = ['1', '2', '3', '4', '5', '6' ,'7']
+        self.cardDb = None
+
+    def open(self, dbname):
+        if self.cardDb:
+            self.cardDb.close()
+        self.cardDb = CardDb()
+        self.cardDb.open(dbname)
+
+    def close(self):
+        self.cardDb.close()
+        self.cardDb = None
 
     def rowCount(self, parent=QModelIndex()):
+        # return cards
         if parent.isValid():
             return 0
         else:
-            return len(self.items)
+            return self.cardDb.get_cards_count()
+
 
     def columnCount(self, parent=QModelIndex()):
         if parent.isValid():
             return 0
         else:
-            return self.count
+            return 1
+
+
+    def index(self, row, column, parent=QModelIndex()):
+        if row < 0 or column < 0:
+            return QModelIndex()
+        else:
+            # returns index with given card id
+            header = self.cardDb.get_card_headers('', row, row + 1)
+            if len(header) == 1:
+                return self.createIndex(row, 0, int(header[0][0]))
+            else:
+                return QModelIndex()
+
+    # for display role only id+question in following columns will be
+    # for specific data , in the following columns
 
     def data(self, index, role=Qt.DisplayRole):
-        log('returning data for index = ' + str(index.row()))
         if role not in (Qt.DisplayRole, Qt.UserRole):
             return QVariant()
 
+        card = self.cardDb.get_card(index.internalId())
         if role == Qt.UserRole:
-            return QVariant(10)
+            return card
         else:
-            return QVariant(self.items[index.row()])
+            return QVariant('#%d %s' % (card.id, str(card.question)))
 
     def flags(self, index):
         return QAbstractListModel.flags(self, index) | Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -107,6 +156,7 @@ class CardModel(QAbstractListModel):
             return index
         else:
             return self.index(index.row() - 1, 0)
+        # pointer , get row before
 
 
     def getNextIdx(self, index):
@@ -116,6 +166,12 @@ class CardModel(QAbstractListModel):
             return index
         else:
             return self.index(index.row() + 1, 0)
+        # get row after ?
+
+    # TODO
+    # what about inserting rows
+    # and moving rows up and down ??
+    # must have parameter position or display position ??
 
     # TODO
     # add special handlers like rowsAboutToBeInserted etc .
@@ -130,21 +186,30 @@ class CardModel(QAbstractListModel):
     def addNewCard(self):
         """Adds a new empty card."""
         self.emit(SIGNAL('modelAboutToBeReset()'))
-        self.items.append(str(len(self.items)))
-        return self.createIndex(len(self.items) - 1, 0)
+
+        rowid = self.cardDb.add_card(Card())
+        # TODO is it ok to return it here?
+        result = self.createIndex(self.cardDb.get_cards_count(), 0, rowid)
+
+        # cards.addCard(Card())
         # TODO
         # why these do not work ?
         self.reset()
         self.emit(SIGNAL('modelReset()'))
+        #
+        return result
 
 
     def deleteCard(self, index):
         assert index is not None and index.isValid(), "deleteCard: Invalid index given!"
         self.emit(SIGNAL('modelAboutToBeReset()'))
-        del self.items[index.row()]
+
+        self.cardDb.delete_card(index.internalId())
+
         # why these do not work??
         self.reset()
         self.emit(SIGNAL('modelReset()'))
+        # cards - delete_card  card_id
 
     # TODO question
     # how to update card if peg is somewhere else ?
@@ -152,8 +217,10 @@ class CardModel(QAbstractListModel):
     # the items are then splitted
     def updateCard(self, index, question, answer):
         assert index is not None and index.isValid(), "updateCard: Invalid index given!"
-        self.items[index.row()] = question
-        # TODO
+
+        card = Card(index.internalId(), question, answer)
+        self.cardDb.update_card(card)
+
         # update data in the model
         self.emit(SIGNAL('dataChanged(QModelIndex)'), index)
 
@@ -165,7 +232,21 @@ class CardModel(QAbstractListModel):
 # it currently has card model assigned
 # or is it like more like listwidget
 
+# helper widget classes
+class CardTextEdit(QTextEdit):
+    """Overriden to emit focusLost signals."""
+    # TODO maybe better is to subclass the event procedure?
+
+    def __init__(self, parent=None):
+        QTextEdit.__init__(self, parent)
+
+    def focusOutEvent(self, event):
+        QTextEdit.focusOutEvent(self, event)
+        self.emit(SIGNAL('focusLost()'))
+
+
 class AbstractCardWidget(QWidget):
+    """Base abstract class for card widgets."""
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
@@ -189,9 +270,8 @@ class AbstractCardWidget(QWidget):
 
 
     def setCardModelIdx(self, index):
-        log('setCardModelIdx for index %d ' % index.row())
-        assert self.cardModel is not None, "Invalid card model"
-        assert index is not None and index.isValid(), "Invalid card model index"
+        #assert self.cardModel is not None, "Invalid card model"
+        #assert index is not None and index.isValid(), "Invalid card model index"
         # setting only if different
         self.cardModelIdx = index
         self.updateWidget()
@@ -199,7 +279,6 @@ class AbstractCardWidget(QWidget):
 
     def cardModelIdx(self):
         return self.cardModelIdx
-
 
 
 class CardWidget(AbstractCardWidget):
@@ -212,58 +291,83 @@ class CardWidget(AbstractCardWidget):
     #
     def __init__(self, parent=None):
         AbstractCardWidget.__init__(self, parent)
-        self.dirty = False
+        self._dirty = False
+        self._updatingWidget = False
+        self._updatingCard = False
 
-        self.txtQuestion = QTextEdit()
+        self.lblQuestion = QLabel("&Question:")
+        self.txtQuestion = CardTextEdit()
         self.txtQuestion.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.txtQuestion.setFont(QFont("Tahoma", 18, QFont.Bold))
+        self.txtQuestion.setFont(QFont("Courier New", 13, QFont.Bold))
         self.txtQuestion.setText("question text..")
         self.txtQuestion.setStyle(Styles.windowsStyle())
+        self.lblQuestion.setBuddy(self.txtQuestion)
 
-        self.txtAnswer = QTextEdit()
+        self.lblAnswer = QLabel("&Answer:")
+        self.txtAnswer = CardTextEdit()
         self.txtAnswer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.txtAnswer.setFont(QFont("Tahoma", 18, QFont.Bold))
+        self.txtAnswer.setFont(QFont("Courier New", 13, QFont.Bold))
         self.txtAnswer.setText("answer text..")
         self.txtAnswer.setStyle(Styles.windowsStyle())
+        self.lblAnswer.setBuddy(self.txtAnswer)
 
-        self.connect(self.txtAnswer, SIGNAL('textChanged()'), self.setDirty)
-        self.connect(self.txtQuestion, SIGNAL('textChanged()'), self.setDirty)
+        self.connect(self.txtAnswer, SIGNAL('textChanged()'), self.txtAnswer_textChanged)
+        self.connect(self.txtQuestion, SIGNAL('textChanged()'), self.txtQuestion_textChanged)
+        self.connect(self.txtAnswer, SIGNAL('focusLost()'), self.txtAnswer_focusLost)
+        self.connect(self.txtQuestion, SIGNAL('focusLost()'), self.txtQuestion_focusLost)
 
         layout = QVBoxLayout()
+        layout.setMargin(2)
+        layout.setSpacing(2)
+        layout.addWidget(self.lblQuestion)
         layout.addWidget(self.txtQuestion)
+        layout.addWidget(self.lblAnswer)
         layout.addWidget(self.txtAnswer)
 
         self.setLayout(layout)
 
-
-    def updateWidget(self):
-        if self.cardModelIdx and self.cardModelIdx.isValid():
-            try:
-                question = self.cardModel.data(self.cardModelIdx).toString()
-                answer = self.cardModel.data(self.cardModelIdx).toString()
-            except:
-                question = ''
-                answer = ''
-            self.txtQuestion.setText(question)
-            self.txtAnswer.setText(answer)
-        else:
-            self.txtQuestion.setText('')
-            self.txtAnswer.setText('')
-
-    # TODO
-    # update data only on focus lost event if is dirty
-    # right now it updates
-
-    def setDirty(self, dirty=True):
-        self.dirty = dirty
+    def updateCard(self):
+        self._updatingCard = True
         if self.cardModelIdx:
             self.cardModel.updateCard(self.cardModelIdx, \
-                 self.txtQuestion.toPlainText(), self.txtAnswer.toPlainText())
-        self.dirty = False
+                self.txtQuestion.toPlainText(), self.txtAnswer.toPlainText())
+        self._updatingCard = False
 
-    def dirty():
-        return self.dirty
+    def updateWidget(self):
+        self._updatingWidget = True
+        try:
+            assert self.cardModelIdx and self.cardModelIdx.isValid(), "Invalid card model"
 
+            card = self.cardModel.data(self.cardModelIdx, Qt.UserRole)
+
+            self.txtQuestion.setText(card.question)
+            self.txtAnswer.setText(card.answer)
+            self.txtQuestion.setEnabled(True)
+            self.txtAnswer.setEnabled(True)
+        # TODO narrow it to No data found exception !
+        except:
+            self.txtQuestion.setText("")
+            self.txtQuestion.setEnabled(False)
+            self.txtAnswer.setText("")
+            self.txtAnswer.setEnabled(False)
+        self._updatingWidget = False
+
+
+    def txtAnswer_focusLost(self):
+        if self._dirty:
+            self.updateCard()
+
+    def txtQuestion_focusLost(self):
+        if self._dirty:
+            self.updateCard()
+
+    def txtAnswer_textChanged(self):
+        if not self._updatingWidget:
+            self._dirty = True
+
+    def txtQuestion_textChanged(self):
+        if not self._updatingWidget:
+            self._dirty = True
 
 
 class CardDetailWidget(AbstractCardWidget):
@@ -271,20 +375,124 @@ class CardDetailWidget(AbstractCardWidget):
     def __init__(self, parent=None):
         AbstractCardWidget.__init__(self, parent)
 
+        self._updatingWidget = False
+
+        self.setFont(QFont("vt100", 8))
+
+        self.lblId             = QLabel("Id:")
+        self.edId              = QLabel("edId")
+        self.lblScore          = QLabel("Score:")
+        self.edScore           = QLabel("edScore")
+        self.lblDesc           = QLabel("Description:")
+        self.edDesc            = QLabel("edDescription")
+        self.lblRepetitions    = QLabel("Repetitions:")
+        self.edRepetitions     = QLabel("edRepetitions")
+        self.lblInterval       = QLabel("Interval:")
+        self.edInterval        = QLabel("edInterval")
+        self.lblLastRepetition = QLabel("Last repetition:")
+        self.edLastRepetition  = QLabel("edLast repetition")
+        self.lblNextRepetition = QLabel("Next repetition:")
+        self.edNextRepetition  = QLabel("edNext repetition")
+        self.lblAFactor        = QLabel("A-Factor:")
+        self.edAFactor         = QLabel("edA-Factor")
+        self.lblUFactor        = QLabel("U-Factor:")
+        self.edUFactor         = QLabel("edU-Factor")
+        self.lblForgettingIdx  = QLabel("Forgetting index:")
+        self.edForgettingIdx   = QLabel("edForgetting index")
+        self.lblFutureRep      = QLabel("Future reptition:")
+        self.edFutureRep       = QLabel("edFuture reptition")
+        self.lblOrdinal        = QLabel("Ordinal:")
+        self.edOrdinal         = QLabel("edOrdinal")
+        self.lblDifficulty     = QLabel("Difficulty:")
+        self.edDifficulty      = QLabel("edDifficulty")
+        self.lblFirstGrade     = QLabel("First grade:")
+        self.edFirstGrade      = QLabel("edFirst grade")
+        self.lblType           = QLabel("Type:")
+        self.edType            = QLabel("edType")
+
+        layout = QGridLayout()
+        layout.addWidget(self.lblId            , 0, 0)
+        layout.addWidget(self.edId             , 0, 1)
+        layout.addWidget(self.lblScore         , 1, 0)
+        layout.addWidget(self.edScore          , 1, 1)
+        layout.addWidget(self.lblDesc          , 2, 0)
+        layout.addWidget(self.edDesc           , 2, 1)
+        layout.addWidget(self.lblRepetitions   , 3, 0)
+        layout.addWidget(self.edRepetitions    , 3, 1)
+        layout.addWidget(self.lblInterval      , 4, 0)
+        layout.addWidget(self.edInterval       , 4, 1)
+        layout.addWidget(self.lblLastRepetition, 5, 0)
+        layout.addWidget(self.edLastRepetition , 5, 1)
+        layout.addWidget(self.lblNextRepetition, 6, 0)
+        layout.addWidget(self.edNextRepetition , 6, 1)
+        layout.addWidget(self.lblAFactor       , 7, 0)
+        layout.addWidget(self.edAFactor        , 7, 1)
+        layout.addWidget(self.lblUFactor       , 8, 0)
+        layout.addWidget(self.edUFactor        , 8, 1)
+        layout.addWidget(self.lblForgettingIdx , 9, 0)
+        layout.addWidget(self.edForgettingIdx  , 9, 1)
+        layout.addWidget(self.lblFutureRep     , 10, 0)
+        layout.addWidget(self.edFutureRep      , 10, 1)
+        layout.addWidget(self.lblOrdinal       , 11, 0)
+        layout.addWidget(self.edOrdinal        , 11, 1)
+        layout.addWidget(self.lblDifficulty    , 12, 0)
+        layout.addWidget(self.edDifficulty     , 12, 1)
+        layout.addWidget(self.lblFirstGrade    , 13, 0)
+        layout.addWidget(self.edFirstGrade     , 13, 1)
+        layout.addWidget(self.lblType          , 14, 0)
+        layout.addWidget(self.edType           , 14, 1)
+
+        layout.setMargin(1)
+        layout.setSpacing(1)
+        self.setLayout(layout)
+
+
     def updateWidget(self):
         # display information from the current cardModel and cardModelIdx
-        pass
-
+        self._updatingWidget = True
+        try:
+            assert self.cardModelIdx and self.cardModelIdx.isValid(), "Invalid cardModel index!"
+            self.edId.setText(self.cardModel.data(self.cardModelIdx).toString()[:10])
+            self.edScore.setText(self.cardModel.data(self.cardModelIdx).toString()[:10])
+            self.edDesc.setText(self.cardModel.data(self.cardModelIdx).toString()[:10])
+        except:
+            self.edId.setText("")
+            self.edScore.setText("")
+            self.edDesc.setText("")
+        self._updatingWidget = False
 
 
 class CardSourceWidget(AbstractCardWidget):
-    """Widget for displaying XML source for card """
+    """Widget for displaying XML source for card"""
     def __init__(self, parent=None):
         AbstractCardWidget.__init__(self, parent)
+        self._updatingWidget = False
+
+        self.lblSource = QLabel("&Source:")
+        self.txtSource = CardTextEdit()
+        self.setFont(QFont("vt100", 8))
+        self.lblSource.setBuddy(self.txtSource)
+
+        layout = QVBoxLayout()
+        layout.setMargin(2)
+        layout.setSpacing(2)
+        layout.addWidget(self.lblSource)
+        layout.addWidget(self.txtSource)
+
+        self.setLayout(layout)
+
 
     def updateWidget(self):
-        # display information from the current cardModel and cardModelIdx
-        pass
+        self._updatingWidget = True
+        try:
+            assert self.cardModelIdx and self.cardModelIdx.isValid(), "Invalid card model index!"
+            self.txtSource.setText(self.cardModel.data(self.cardModelIdx).toString())
+            self.txtSource.setEnabled(True)
+        except:
+            self.txtSource.setText("")
+            self.txtSource.setEnabled(False)
+
+        self._updatingWidget = False
 
 
 class MainWindow(QMainWindow):
@@ -292,13 +500,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self, parent = None):
         QMainWindow.__init__(self, parent)
-
-
         self.setWindowTitle("Mentor")
-
         self.move(50, 50)
-
-
         self.createCentralWidget()
         self.createActions()
         self.createMenus()
@@ -313,12 +516,16 @@ class MainWindow(QMainWindow):
         # set up controls
         # items panel
         self.cardModel = CardModel()
+        self.cardModel.open(DB_LOCATION)
 
+        self.lblDrill = QLabel("Drill:")
         self.lstDrill = QListView()
         self.lstDrill.setMaximumWidth(140)
         self.lstDrill.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         self.lstDrill.setFocus()
         self.lstDrill.setStyle(Styles.windowsStyle())
+
+        self.lblDrill.setBuddy(self.lstDrill)
 
         self.lstDrill.setModel(self.cardModel)
 
@@ -330,7 +537,10 @@ class MainWindow(QMainWindow):
         #self.treeContents.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         #self.treeContents.setStyle(Styles.windowsStyle())
 
-        itemsLayout = QHBoxLayout()
+        itemsLayout = QVBoxLayout()
+        itemsLayout.setMargin(2)
+        itemsLayout.setSpacing(2)
+        itemsLayout.addWidget(self.lblDrill)
         itemsLayout.addWidget(self.lstDrill)
         #itemsLayout.addWidget(self.treeContents)
 
@@ -338,6 +548,12 @@ class MainWindow(QMainWindow):
 
         self.cardWidget = CardWidget()
         self.cardWidget.setCardModel(self.cardModel)
+
+        self.cardSourceWidget = CardSourceWidget()
+        self.cardSourceWidget.setCardModel(self.cardModel)
+
+        self.cardDetailWidget = CardDetailWidget()
+        self.cardDetailWidget.setCardModel(self.cardModel)
 
         # buttons
         self.btnMoveUp = QPushButton("Up")
@@ -394,6 +610,8 @@ class MainWindow(QMainWindow):
 
         textLayout = QVBoxLayout()
         textLayout.addWidget(self.cardWidget)
+        textLayout.addWidget(self.cardSourceWidget)
+        textLayout.addWidget(self.cardDetailWidget)
         textLayout.addLayout(buttonsLayout)
 
         # main layout
@@ -670,13 +888,15 @@ class MainWindow(QMainWindow):
 
     def lstDrill_currentChanged(self, current, previous):
         if current.row() <> previous.row():
-            log('lstDrill_currentChanged for current: %d and previous: %d' % (current.row(), previous.row()))
-            if current is None:
-                current = previous
+            # TODO should not this be in the connect ?
             self.cardWidget.setCardModelIdx(current)
+            self.cardDetailWidget.setCardModelIdx(current)
+            self.cardSourceWidget.setCardModelIdx(current)
 
     def lstDrill_activated(self, index):
         self.cardWidget.setCardModelIdx(index)
+        self.cardDetailWidget.setCardModelIdx(index)
+        self.cardSourceWidget.setCardModelIdx(index)
 
 
     def lstDrill_getSelectedIdx(self):
@@ -693,8 +913,12 @@ class MainWindow(QMainWindow):
 
     def btnAdd_clicked(self):
         oldIdx = self.lstDrill_getSelectedIdx()
-        newIdx = self.cardModel.addNewCard()
+        self.cardModel.addNewCard()
         self.cardModel.reset()
+
+        # go to last index
+        # TODO what if it's not added at the end?
+        newIdx = self.cardModel.index(self.cardModel.rowCount() - 1, 0)
         # go to newly added record
         selection = self.lstDrill.selectionModel()
         selection.select(newIdx, QItemSelectionModel.Select | QItemSelectionModel.Current)
@@ -706,19 +930,29 @@ class MainWindow(QMainWindow):
     def btnDelete_clicked(self):
         selectedIdx = self.lstDrill_getSelectedIdx()
         if selectedIdx and selectedIdx.isValid():
-            # try to find where to go after deletion
-            newIdx = self.cardModel.getNextIdx(selectedIdx)
-            if newIdx.row() == selectedIdx.row():
-                newIdx = self.cardModel.getPreviousIdx(selectedIdx)
-
+            # try to find currently selected row
+            # and go to the same row
+            # if rows are missing then go to last
+            selectedRow = selectedIdx.row()
             self.cardModel.deleteCard(selectedIdx)
             #
             self.cardModel.reset()
             # go to new index
-            selection = self.lstDrill.selectionModel()
-            selection.select(newIdx, QItemSelectionModel.Select | QItemSelectionModel.Current)
-            # informat about chaging of the current
-            selection.emit(SIGNAL('currentChanged(QModelIndex, QModelIndex)'), newIdx, QModelIndex())
+            if self.cardModel.rowCount() > 0:
+                newIdx = self.cardModel.index(min(selectedRow, self.cardModel.rowCount() - 1), 0)
+                selection = self.lstDrill.selectionModel()
+                selection.select(newIdx, QItemSelectionModel.Select | QItemSelectionModel.Current)
+                # informat about chaging of the current
+                selection.emit(SIGNAL('currentChanged(QModelIndex, QModelIndex)'), newIdx, QModelIndex())
+            else:
+                # TODO
+                # all these widgets should be connected with selection as well
+                # and react to it's selection changed
+                # if current selection is none then it should disable it's
+                # views
+                self.cardWidget.setCardModelIdx(None)
+                self.cardDetailWidget.setCardModelIdx(None)
+                self.cardSourceWidget.setCardModelIdx(None)
 
 
     def btnLoad_clicked(self):
@@ -771,7 +1005,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    app.setStyle('cde')
+    # app.setStyle('cde')
 
     w = MainWindow()
     w.resize(700, 600)
