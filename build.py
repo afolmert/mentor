@@ -39,7 +39,17 @@
 import subprocess
 import shutil
 import os
+import sys
 from src.utils import save_stamped_buildno, delete_stamped_buildno
+
+# generating mentor_rc if necessary
+if not os.path.isfile('src/mentor_rc.py'):
+    print "Generating resources file..."
+    os.chdir('src')
+    f = open("mentor_rc.py", "wt")
+    subprocess.call("pyrcc4.exe mentor.qrc", stdout=f)
+    f.close()
+    os.chdir('..')
 
 
 print "Generating new version number..."
