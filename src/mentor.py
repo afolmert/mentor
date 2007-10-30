@@ -47,16 +47,17 @@ __author__  = '%s <%s>' % \
 __license__ = release.license
 __version__ = release.version
 
+import sys
+import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from utils_qt import lazyshow, tr, show_info
 from utils import log
+from config import config
 from cards import Card, CardDb
-import sys
 import mentor_rc
 
 
-DB_LOCATION = 'd:/Temp/items.sqlite'
 
 
 # FIXME: multi-column in the list
@@ -73,9 +74,10 @@ DB_LOCATION = 'd:/Temp/items.sqlite'
 # configurable number of columns in the list view
 #
 # FIXME:
-# Menu: Make Open / Close working
-# Buttons add to menu ??
-#
+# After new or close database, the other widgets (detail,  source) are not
+# updated - must somehow connect them to the model in the same way as List view
+# is connect --> make them inheritable from AbstractItemView ??
+
 
 class ECardModel(Exception): pass
 
@@ -84,24 +86,34 @@ class CardModel(QAbstractListModel):
 
     def __init__(self, parent=None):
         QAbstractListModel.__init__(self, parent)
-        self.cardDb = None
-
-    def open(self, dbname):
-        if self.cardDb:
-            self.cardDb.close()
         self.cardDb = CardDb()
-        self.cardDb.open(dbname)
+
+    def open(self, dbpath):
+        self.cardDb.open(str(dbpath))
 
     def close(self):
         self.cardDb.close()
-        self.cardDb = None
+
+    def filepath(self):
+        """Returns path to currently open database"""
+        if self.cardDb.is_open():
+            return self.cardDb.db_path
+        else:
+            return None
+
+    def isActive(self):
+        return self.cardDb.is_open()
+
 
     def rowCount(self, parent=QModelIndex()):
         # return cards
         if parent.isValid():
             return 0
         else:
-            return self.cardDb.get_cards_count()
+            if self.cardDb.is_open():
+                return self.cardDb.get_cards_count()
+            else:
+                return 0
 
 
     def columnCount(self, parent=QModelIndex()):
@@ -514,7 +526,12 @@ class MainWindow(QMainWindow):
         # set up controls
         # items panel
         self.cardModel = CardModel()
-        self.cardModel.open(DB_LOCATION)
+        if config.get_most_recent_file():
+            try:
+                self.cardModel.open(config.get_most_recent_file())
+            except:
+                pass
+
 
         self.setWindowTitle("Mentor")
         self.move(50, 50)
@@ -524,6 +541,9 @@ class MainWindow(QMainWindow):
         self.createToolbars()
         self.createStatusBar()
 
+        self.connect(qApp, SIGNAL('aboutToQuit()'), self.qApp_aboutToQuit)
+
+        self._refreshAppState()
 
     def createCentralWidget(self):
 
@@ -631,13 +651,78 @@ class MainWindow(QMainWindow):
 
     def createActions(self):
         # File actions
-        self.actNew = QAction(QIcon(":/images/world.png"), tr("&Open..."), self)
-        self.actNew.setShortcut(QKeySequence(tr("Ctrl+O")))
-        self.actNew.setStatusTip(tr("Create a new file..."))
-        self.connect(self.actNew, SIGNAL("tiggered()"), self.on_actNew_triggered)
+        self.actNew = QAction(QIcon(":/images/world.png"), tr("&New pack..."), self)
+        self.actNew.setStatusTip(tr("Create a new pack..."))
+        self.connect(self.actNew, SIGNAL("triggered()"), self.on_actNew_triggered)
+
+        self.actOpen = QAction(QIcon(":/images/world.png"), tr("&Open pack..."), self)
+        self.actOpen.setShortcut(QKeySequence(tr("Ctrl+O")))
+        self.actOpen.setStatusTip(tr("Open an existing pack..."))
+        self.connect(self.actOpen, SIGNAL("triggered()"), self.on_actOpen_triggered)
+
+        self.actCopy = QAction(tr("&Copy pack..."), self)
+        self.actCopy.setStatusTip(tr("Copy an existing pack..."))
+        self.connect(self.actCopy, SIGNAL("triggered()"), self.on_actCopy_triggered)
+
+        self.actDelete = QAction(tr("&Delete pack..."), self)
+        self.actDelete.setStatusTip(tr("Delete an existing pack..."))
+        self.connect(self.actDelete, SIGNAL("triggered()"), self.on_actDelete_triggered)
+
+        self.actRepair = QAction(tr("&Repair pack..."), self)
+        self.actRepair.setStatusTip(tr("Repair an existing pack..."))
+        self.connect(self.actRepair, SIGNAL("triggered()"), self.on_actRepair_triggered)
+
+        self.actMerge = QAction(tr("&Merge pack..."), self)
+        self.actMerge.setStatusTip(tr("Merge an existing pack..."))
+        self.connect(self.actMerge, SIGNAL("triggered()"), self.on_actMerge_triggered)
+
+        self.actImportQA = QAction(tr("&Import from QA file..."), self)
+        self.actImportQA.setStatusTip(tr("Import from QA file..."))
+        self.connect(self.actImportQA, SIGNAL("triggered()"), self.on_actImportQA_triggered)
+
+        self.actImportXML = QAction(tr("&Import from XML file..."), self)
+        self.actImportXML.setStatusTip(tr("Import from XML file..."))
+        self.connect(self.actImportXML, SIGNAL("triggered()"), self.on_actImportXML_triggered)
+
+        self.actImportProbe = QAction(tr("&Import from PRB file..."), self)
+        self.actImportProbe.setStatusTip(tr("Import from a PRB file..."))
+        self.connect(self.actImportProbe, SIGNAL("triggered()"), self.on_actImportProbe_triggered)
+
+        self.actImportSuperMemo = QAction(tr("&Import from SuperMemo..."), self)
+        self.actImportProbe.setStatusTip(tr("Import from a SuperMemo..."))
+        self.connect(self.actImportProbe, SIGNAL("triggered()"), self.on_actImportProbe_triggered)
+
+        self.actExportQA = QAction(tr("&Export to QA file..."), self)
+        self.actExportQA.setStatusTip(tr("Export to QA file..."))
+        self.connect(self.actExportQA, SIGNAL("triggered()"), self.on_actExportQA_triggered)
+
+        self.actExportXML = QAction(tr("&Export to XML file..."), self)
+        self.actExportXML.setStatusTip(tr("Export to XML file..."))
+        self.connect(self.actExportXML, SIGNAL("triggered()"), self.on_actExportXML_triggered)
+
+        self.actExportProbe = QAction(tr("&Export to PRB file..."), self)
+        self.actExportProbe.setStatusTip(tr("Export to PRB file..."))
+        self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
+
+        self.actExportSuperMemo = QAction(tr("&Export to SuperMemo..."), self)
+        self.actExportProbe.setStatusTip(tr("Export to SuperMemo..."))
+        self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
+
+        self.actProperties = QAction(tr("&Properties..."), self)
+        self.actExportProbe.setStatusTip(tr("Display pack properties..."))
+        self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
+
+        # Recent file actions
+        self.actRecentFiles = []
+        for i in range(config.GUI_RECENTFILES_MAX):
+            self.actRecentFiles.append(QAction(self))
+            self.actRecentFiles[i].setVisible(False)
+            self.connect(self.actRecentFiles[i], SIGNAL("triggered()"), self.on_actRecentFiles_triggered)
+
         self.actExit = QAction(QIcon(":/images/clock_play.png"), tr("E&xit"), self)
         self.actExit.setShortcut(QKeySequence(tr("Ctrl+Q")))
         self.actExit.setStatusTip(tr("Exits the application."))
+        self.connect(self.actExit, SIGNAL("triggered()"), qApp, SLOT("quit()"))
 
         # Edit actions
         self.actNewItem = QAction(QIcon(":/images/world.png"), tr("Add a new i&tem"), self)
@@ -719,8 +804,37 @@ class MainWindow(QMainWindow):
         # File menu
         mnuFile = self.menuBar().addMenu(tr("&File"))
         mnuFile.addAction(self.actNew)
-        mnuFile.addAction(self.actExit)
+        mnuFile.addAction(self.actOpen)
+        mnuFile.addSeparator()
 
+        mnuFile.addAction(self.actCopy)
+        mnuFile.addAction(self.actDelete)
+        mnuFile.addAction(self.actRepair)
+        mnuFile.addAction(self.actMerge)
+
+        mnuFile.addSeparator()
+
+        mnuImport = mnuFile.addMenu(tr("Import"))
+        mnuImport.addAction(self.actImportQA)
+        mnuImport.addAction(self.actImportXML)
+        mnuImport.addAction(self.actImportProbe)
+        mnuImport.addAction(self.actImportSuperMemo)
+        mnuExport = mnuFile.addMenu(tr("Export"))
+        mnuExport.addAction(self.actExportQA)
+        mnuExport.addAction(self.actExportXML)
+        mnuExport.addAction(self.actExportProbe)
+        mnuExport.addAction(self.actExportSuperMemo)
+
+        mnuFile.addSeparator()
+
+        mnuFile.addAction(self.actProperties)
+
+        mnuFile.addSeparator()
+        for act in self.actRecentFiles:
+            mnuFile.addAction(act)
+
+        mnuFile.addSeparator()
+        mnuFile.addAction(self.actExit)
 
         # Edit menu
         mnuEdit = self.menuBar().addMenu(tr("&Edit"))
@@ -880,16 +994,103 @@ class MainWindow(QMainWindow):
     def on_clicked(self):
         show_info("Hello world!")
 
+    def _refreshAppState(self):
+        """Sets control active or inactive depending on the database state."""
+        # active/inactive actions
+        self.btnAdd.setEnabled(self.cardModel.isActive())
+        self.btnDelete.setEnabled(self.cardModel.isActive())
+        self.btnMoveUp.setEnabled(self.cardModel.isActive())
+        self.btnMoveDown.setEnabled(self.cardModel.isActive())
+        self.btnShowSelection.setEnabled(self.cardModel.isActive())
+        # window title
+        if self.cardModel.isActive():
+            basename = os.path.basename(self.cardModel.filepath())
+            self.setWindowTitle('Mentor - ' + os.path.splitext(basename)[0])
+        else:
+            self.setWindowTitle('Mentor')
+        # recent files list
+        for i in range(len(config.GUI_RECENTFILES)):
+            self.actRecentFiles[i].setVisible(True)
+            self.actRecentFiles[i].setText(config.GUI_RECENTFILES[i])
+            self.actRecentFiles[i].setData(QVariant(config.GUI_RECENTFILES[i]))
+
+        for i in range(len(config.GUI_RECENTFILES), config.GUI_RECENTFILES_MAX):
+            self.actRecentFiles[i].setVisible(False)
+
+
+
+
+    def qApp_aboutToQuit(self):
+        config.save()
 
     def on_actNew_triggered(self):
-        show_info("actNew was pressed!", self)
-        pass
+        fileName = QFileDialog.getSaveFileName(self, \
+            tr("New pack"), ".", tr("Mentor pack files (*.mpk)"))
+        if fileName:
+            fileName = str(fileName)
+            self.cardModel.close()
+            # we want to overwrite
+            if os.path.isfile(fileName):
+                os.remove(fileName)
+            self.cardModel.open(fileName)
 
+            self.cardModel.reset()
+            config.add_most_recent_file(fileName)
+            self._refreshAppState()
+
+    def openPackFile(self, fname):
+        fname = str(fname)
+        self.cardModel.close()
+        try:
+            self.cardModel.open(fname)
+            config.add_most_recent_file(fname)
+        except:
+            config.remove_recent_file(fname)
+            show_info('Problem opening pack file.')
+        finally:
+            self.cardModel.reset()
+            self._refreshAppState()
+
+
+    def on_actOpen_triggered(self):
+        fname = QFileDialog.getOpenFileName(self, \
+            tr("Open pack"), ".", tr("Mentor pack files (*.mpk)"))
+        if fname:
+            self.openPackFile(fname)
 
     def on_actAbout_triggered(self):
         show_info(tr("MENTOR version %s\nA learning tool\n\nDistributed under license: %s.\n\nAuthors: \n%s" \
             % (__version__, __license__, str(__author__))), self)
 
+    def on_actCopy_triggered(self):
+        pass
+    def on_actDelete_triggered(self):
+        pass
+    def on_actRepair_triggered(self):
+        pass
+    def on_actMerge_triggered(self):
+        pass
+    def on_actImportQA_triggered(self):
+        pass
+    def on_actImportXML_triggered(self):
+        pass
+    def on_actImportProbe_triggered(self):
+        pass
+    def on_actImportProbe_triggered(self):
+        pass
+    def on_actExportQA_triggered(self):
+        pass
+    def on_actExportXML_triggered(self):
+        pass
+    def on_actExportProbe_triggered(self):
+        pass
+    def on_actExportProbe_triggered(self):
+        pass
+    def on_actExportProbe_triggered(self):
+        pass
+
+    def on_actRecentFiles_triggered(self):
+        self.openPackFile(self.sender().text())
 
     def lstDrill_currentChanged(self, current, previous):
         if current.row() <> previous.row():
