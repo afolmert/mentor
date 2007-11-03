@@ -37,6 +37,91 @@ import string
 __version__ = release.version
 
 
+#----------------------------------------------------------
+# Types routines
+
+
+def isdict(obj):
+    """Returns True if object is a Dict."""
+    t = type(obj)
+    return t is types.DictType or \
+           (t is types.InstanceType and isinstance(obj, UserDict))
+
+def islist(obj):
+    """Returns True if object is a List."""
+    t = type(obj)
+    return t is types.ListType \
+        or (t is types.InstanceType and isinstance(obj, UserList))
+
+def issequence(obj):
+    """Returns True if object is a Sequence."""
+    t = type(obj)
+    return t is types.ListType \
+        or t is types.TupleType \
+        or (t is types.InstanceType and isinstance(obj, UserList))
+
+def issequence2(x):
+    "Is x a sequence? We say it is if it has a __getitem__ method."
+    return hasattr(x, '__getitem__')
+
+
+def istuple(obj):
+    """Returns True if object is a Tuple."""
+    t = type(obj)
+    return t is types.TupleType
+
+if hasattr(types, 'UnicodeType'):
+    def isstring(obj):
+        """Returns True if obj is a String."""
+        t = type(obj)
+        return t is types.StringType \
+            or t is types.UnicodeType \
+            or (t is types.InstanceType and isinstance(obj, types.UserString))
+else:
+    def isstring(obj):
+        """Returns True if obj is a String."""
+        t = type(obj)
+        return t is types.StringType \
+            or (t is types.InstanceType and isinstance(obj, types.UserString))
+
+
+def isscalar(obj):
+    """Returns True if object is a scalar type."""
+    return isstring(obj) or (not islist(obj) and not istuple(obj))
+
+
+def isnumber(obj):
+    "Is obj a number? We say it is if it has a __int__ method."
+    return hasattr(obj, '__int__')
+
+
+def extend(seq1, seq2):
+    """Returns a copy of sequence extended with second sequence."""
+    result = list(seq1)[:]
+    result.extend(list(seq2))
+    if isstring(seq1):
+        return "".join([str(r) for r in result])
+    elif istuple(seq1):
+        return tuple(result)
+    else:
+        return result
+
+
+def reverse(obj):
+    """Reverse a copy of object reversed."""
+    if isstring(obj) or istuple(obj) or islist(obj):
+        result = list(obj)[:]
+        result.reverse()
+
+        if isstring(obj):
+            return "".join(result)
+        elif istuple(obj):
+            return tuple(result)
+        else:
+            return result
+    else:
+        return obj
+
 
 #----------------------------------------------------------
 # Misc routines and classes
