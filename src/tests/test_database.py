@@ -23,7 +23,7 @@ This is a test file for cards module.
 """
 
 import unittest
-from cards import CardDb, Card
+from database import CardDb, Card
 from utils import log
 
 

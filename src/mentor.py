@@ -54,7 +54,7 @@ from PyQt4.QtGui import *
 from utils_qt import lazyshow, tr, show_info
 from utils import log
 from config import config
-from cards import Card, CardDb
+from database import Card, CardDb
 import mentor_rc
 
 
