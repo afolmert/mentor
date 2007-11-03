@@ -58,29 +58,6 @@ from cards import Card, CardDb
 import mentor_rc
 
 
-
-
-# FIXME: multi-column in the list
-# FIXME: database open/close with title changing, recent menu entries and last
-# database saved in configuration
-#
-# FIXME:
-# add as much gui elements as possible to have a final design ready
-# and I can think of all possibilities:
-# .e.g in the list add filtering and sorting and category setting
-# add tree with parents (categories)
-# the docking view should have possibility to place as tabs or as separate
-# windows
-# configurable number of columns in the list view
-#
-# FIXME:
-# After new or close database, the other widgets (detail,  source) are not
-# updated - must somehow connect them to the model in the same way as List view
-# is connect --> make them inheritable from AbstractItemView ??
-
-
-class ECardModel(Exception): pass
-
 class CardModel(QAbstractListModel):
     """Model to be used for list and tree view."""
 
@@ -90,9 +67,13 @@ class CardModel(QAbstractListModel):
 
     def open(self, dbpath):
         self.cardDb.open(str(dbpath))
+        # FIXME why these do not work??
+        self.reset()
+        # ^ self.emit(SIGNAL('modelReset()'))
 
     def close(self):
         self.cardDb.close()
+        self.reset()
 
     def filepath(self):
         """Returns path to currently open database"""
@@ -124,7 +105,7 @@ class CardModel(QAbstractListModel):
 
 
     def index(self, row, column, parent=QModelIndex()):
-        if row < 0 or column < 0:
+        if row < 0 or column < 0 or not self.cardDb.is_open():
             return QModelIndex()
         else:
             # returns index with given card id
@@ -160,9 +141,10 @@ class CardModel(QAbstractListModel):
         else:
             return QVariant()
 
-    def getPreviousIdx(self, index):
+
+    def getPreviousIndex(self, index):
         """Returns previous index before given or given if it's first."""
-        assert index is not None and index.isValid(), "getPreviousIdx: Invalid index given!"
+        assert index is not None and index.isValid(), "getPreviousIndex: Invalid index given!"
         if index.row() == 0:
             return index
         else:
@@ -170,9 +152,9 @@ class CardModel(QAbstractListModel):
         # pointer , get row before
 
 
-    def getNextIdx(self, index):
+    def getNextIndex(self, index):
         """Returns next index after given or given if it's last."""
-        assert index is not None and index.isValid(), "getNextIdx: Invalid index given!"
+        assert index is not None and index.isValid(), "getNextIndex: Invalid index given!"
         if index.row() == self.rowCount() - 1:
             return index
         else:
@@ -188,11 +170,6 @@ class CardModel(QAbstractListModel):
     # add special handlers like rowsAboutToBeInserted etc .
     # right now only model to be reset
 
-    # TODO
-    # why signals do not work?
-    # when I call them in model ?
-    #
-
 
     def addNewCard(self):
         """Adds a new empty card."""
@@ -206,7 +183,7 @@ class CardModel(QAbstractListModel):
         # TODO
         # why these do not work ?
         self.reset()
-        self.emit(SIGNAL('modelReset()'))
+        # self.emit(SIGNAL('modelReset()'))
         #
         return result
 
@@ -219,7 +196,7 @@ class CardModel(QAbstractListModel):
 
         # why these do not work??
         self.reset()
-        self.emit(SIGNAL('modelReset()'))
+        # self.emit(SIGNAL('modelReset()'))
         # cards - delete_card  card_id
 
     # TODO question
@@ -244,7 +221,8 @@ class CardModel(QAbstractListModel):
 # or is it like more like listwidget
 
 # helper widget classes
-class CardTextEdit(QTextEdit):
+# TODO move this to views module
+class MyTextEdit(QTextEdit):
     """Overriden to emit focusLost signals."""
     # TODO maybe better is to subclass the event procedure?
 
@@ -256,59 +234,77 @@ class CardTextEdit(QTextEdit):
         self.emit(SIGNAL('focusLost()'))
 
 
-class AbstractCardWidget(QWidget):
+class AbstractCardView(QAbstractItemView):
     """Base abstract class for card widgets."""
 
+    # current index is stored in selection model
+    # it is updated by connecting changing of current index in other views with
+    # currentChanged slots in here
+
     def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+        QAbstractItemView.__init__(self, parent)
+        # self.setSelectionModel(QAbstractItemView.SingleSelection)
         # these control what it looks for
-        self.cardModel = None
-        self.cardModelIdx = None
+
+    def currentChanged(self, current, previous):
+        # TODO how to check if two indexes are equal/inequal?
+        if current != self.getCurrentIndex():
+            self.setCurrentIndex(current)
+            self.updateView(self.model(), current)
 
 
-    def updateWidget(self):
-        # this is virtual method to be subclassed
-        pass
-
-    def setCardModel(self, cardModel):
-        self.cardModel = cardModel
-        # invalidate cardModelIdx
-        self.cardModelIdx = None
-        self.updateWidget()
-
-    def cardModel(self):
-        return self.cardModel
+    def dataChanged(self, index):
+        # TODO do this only if index is the one as currently used
+        # TODO how to check whether this is the model
+        if index == self.getCurrentIndex():
+            self.updateView(self.model(), index)
 
 
-    def setCardModelIdx(self, index):
-        #assert self.cardModel is not None, "Invalid card model"
-        #assert index is not None and index.isValid(), "Invalid card model index"
-        # setting only if different
-        self.cardModelIdx = index
-        self.updateWidget()
+    def getCurrentIndex(self):
+        """Returns currently selected item"""
+        selection = self.selectionModel()
+        # get current selection
+        selectedIndex = selection.selectedIndexes()
+        if len(selectedIndex) > 0:
+            return selectedIndex[0]
+        else:
+            return None
+
+    def setCurrentIndex(self, index):
+        """Returns currenly selected item from the model"""
+        selection = self.selectionModel()
+        selection.select(index, QItemSelectionModel.Select | QItemSelectionModel.Current)
+
+    # must override pure virtual functions
+    # perhaps I should abandon the idea of having this as abstractitemview?
+    def verticalOffset(self):
+        return 1
+
+    def horizontalOffset(self):
+        return 1
+
+    def visualRegionForSelection(self, selection):
+        return QRegion(0, 0, 1, 1)
+
+    def visualRect(self):
+        return QRect(0, 0, 1, 1)
 
 
-    def cardModelIdx(self):
-        return self.cardModelIdx
 
-
-class CardWidget(AbstractCardWidget):
+class CardMainView(AbstractCardView):
     """Widget for displaying current card.
     May be later subclassed to display all kinds of cards:
      RTF , graphical, simple etc.
     """
-    # TODO add splitter between question and answer
-    # answer by default a little lower
-    #
     def __init__(self, parent=None):
-        AbstractCardWidget.__init__(self, parent)
+        AbstractCardView.__init__(self, parent)
         self._dirty = False
-        self._updatingWidget = False
-        self._updatingCard = False
+        self._updatingView = False
+        self._updatingModel = False
 
 
         self.lblQuestion = QLabel("&Question:")
-        self.txtQuestion = CardTextEdit()
+        self.txtQuestion = MyTextEdit()
         self.txtQuestion.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txtQuestion.setFont(QFont("Courier New", 13, QFont.Bold))
         self.txtQuestion.setText("question text..")
@@ -320,7 +316,7 @@ class CardWidget(AbstractCardWidget):
         self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.lblAnswer = QLabel("&Answer:")
-        self.txtAnswer = CardTextEdit()
+        self.txtAnswer = MyTextEdit()
         self.txtAnswer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txtAnswer.setFont(QFont("Courier New", 13, QFont.Bold))
         self.txtAnswer.setText("answer text..")
@@ -332,11 +328,9 @@ class CardWidget(AbstractCardWidget):
         self.connect(self.txtAnswer, SIGNAL('focusLost()'), self.txtAnswer_focusLost)
         self.connect(self.txtQuestion, SIGNAL('focusLost()'), self.txtQuestion_focusLost)
 
-        #self.Splitter.addWidget(self.lblAnswer)
         self.splitter.addWidget(self.txtQuestion)
         self.splitter.addWidget(self.txtAnswer)
         self.splitter.setSizes([200, 100])
-        #self.Splitter.addWidget(self.lblQuestion)
 
 
         # FIXME how to block splitter from hiding one window completely ??
@@ -347,20 +341,18 @@ class CardWidget(AbstractCardWidget):
 
         self.setLayout(layout)
 
-    def updateCard(self):
-        self._updatingCard = True
-        if self.cardModelIdx:
-            self.cardModel.updateCard(self.cardModelIdx, \
+    def updateModel(self, model, index):
+        self._updatingModel = True
+        if index:
+            model.updateCard(index, \
                 self.txtQuestion.toPlainText(), self.txtAnswer.toPlainText())
-        self._updatingCard = False
+        self._updatingModel = False
 
-    def updateWidget(self):
-        self._updatingWidget = True
+    def updateView(self, model, index):
+        self._updatingView = True
         try:
-            assert self.cardModelIdx and self.cardModelIdx.isValid(), "Invalid card model"
-
-            card = self.cardModel.data(self.cardModelIdx, Qt.UserRole)
-
+            assert index and index.isValid(), "Invalid card model"
+            card = model.data(index, Qt.UserRole)
             self.txtQuestion.setText(card.question)
             self.txtAnswer.setText(card.answer)
             self.txtQuestion.setEnabled(True)
@@ -371,33 +363,32 @@ class CardWidget(AbstractCardWidget):
             self.txtQuestion.setEnabled(False)
             self.txtAnswer.setText("")
             self.txtAnswer.setEnabled(False)
-        self._updatingWidget = False
+        self._updatingView = False
 
 
     def txtAnswer_focusLost(self):
         if self._dirty:
-            self.updateCard()
+            self.updateModel(self.model(), self.getCurrentIndex())
 
     def txtQuestion_focusLost(self):
         if self._dirty:
-            self.updateCard()
+            self.updateModel(self.model(), self.getCurrentIndex())
 
     def txtAnswer_textChanged(self):
-        if not self._updatingWidget:
+        if not self._updatingView:
             self._dirty = True
 
     def txtQuestion_textChanged(self):
-        if not self._updatingWidget:
+        if not self._updatingView:
             self._dirty = True
 
 
-class CardDetailWidget(AbstractCardWidget):
+class CardDetailView(AbstractCardView):
     """Widget for displaying card details (score, hints, review dates etc.)"""
     def __init__(self, parent=None):
-        AbstractCardWidget.__init__(self, parent)
+        AbstractCardView.__init__(self, parent)
 
-        self._updatingWidget = False
-
+        self._updatingView = False
         self.setFont(QFont("vt100", 8))
 
         self.lblId             = QLabel("Id:")
@@ -418,8 +409,8 @@ class CardDetailWidget(AbstractCardWidget):
         self.edAFactor         = QLabel("edA-Factor")
         self.lblUFactor        = QLabel("U-Factor:")
         self.edUFactor         = QLabel("edU-Factor")
-        self.lblForgettingIdx  = QLabel("Forgetting index:")
-        self.edForgettingIdx   = QLabel("edForgetting index")
+        self.lblForgettingIndex  = QLabel("Forgetting index:")
+        self.edForgettingIndex   = QLabel("edForgetting index")
         self.lblFutureRep      = QLabel("Future reptition:")
         self.edFutureRep       = QLabel("edFuture reptition")
         self.lblOrdinal        = QLabel("Ordinal:")
@@ -450,8 +441,8 @@ class CardDetailWidget(AbstractCardWidget):
         layout.addWidget(self.edAFactor        , 7, 1)
         layout.addWidget(self.lblUFactor       , 8, 0)
         layout.addWidget(self.edUFactor        , 8, 1)
-        layout.addWidget(self.lblForgettingIdx , 9, 0)
-        layout.addWidget(self.edForgettingIdx  , 9, 1)
+        layout.addWidget(self.lblForgettingIndex , 9, 0)
+        layout.addWidget(self.edForgettingIndex  , 9, 1)
         layout.addWidget(self.lblFutureRep     , 10, 0)
         layout.addWidget(self.edFutureRep      , 10, 1)
         layout.addWidget(self.lblOrdinal       , 11, 0)
@@ -468,29 +459,29 @@ class CardDetailWidget(AbstractCardWidget):
         self.setLayout(layout)
 
 
-    def updateWidget(self):
-        # display information from the current cardModel and cardModelIdx
-        self._updatingWidget = True
+    def updateView(self, model, index):
+        # display information from the current cardModel and cardModelIndex
+        self._updatingView = True
         try:
-            assert self.cardModelIdx and self.cardModelIdx.isValid(), "Invalid cardModel index!"
-            self.edId.setText(self.cardModel.data(self.cardModelIdx).toString()[:10])
-            self.edScore.setText(self.cardModel.data(self.cardModelIdx).toString()[:10])
-            self.edDesc.setText(self.cardModel.data(self.cardModelIdx).toString()[:10])
+            assert index and index.isValid(), "Invalid cardModel index!"
+            self.edId.setText(model.data(index).toString()[:10])
+            self.edScore.setText(model.data(index).toString()[:10])
+            self.edDesc.setText(model.data(index).toString()[:10])
         except:
             self.edId.setText("")
             self.edScore.setText("")
             self.edDesc.setText("")
-        self._updatingWidget = False
+        self._updatingView = False
 
 
-class CardSourceWidget(AbstractCardWidget):
+class CardSourceView(AbstractCardView):
     """Widget for displaying XML source for card"""
     def __init__(self, parent=None):
-        AbstractCardWidget.__init__(self, parent)
-        self._updatingWidget = False
+        AbstractCardView.__init__(self, parent)
+        self._updatingView = False
 
         #self.lblSource = QLabel("&Source:")
-        self.txtSource = CardTextEdit()
+        self.txtSource = MyTextEdit()
         self.setFont(QFont("vt100", 8))
         #self.lblSource.setBuddy(self.txtSource)
 
@@ -502,36 +493,29 @@ class CardSourceWidget(AbstractCardWidget):
 
         self.setLayout(layout)
 
-
-    def updateWidget(self):
-        self._updatingWidget = True
+    def updateView(self, model, index):
+        self._updatingView = True
         try:
-            assert self.cardModelIdx and self.cardModelIdx.isValid(), "Invalid card model index!"
-            self.txtSource.setText(self.cardModel.data(self.cardModelIdx).toString())
+            assert index and index.isValid(), "Invalid card model index!"
+            self.txtSource.setText(model.data(index).toString())
             self.txtSource.setEnabled(True)
         except:
             self.txtSource.setText("")
             self.txtSource.setEnabled(False)
 
-        self._updatingWidget = False
+        self._updatingView = False
 
 
 class MainWindow(QMainWindow):
-    """My widget subclass."""
+    """Central window for the Mentor app"""
 
     def __init__(self, parent = None):
         QMainWindow.__init__(self, parent)
 
-
         # set up controls
         # items panel
-        self.cardModel = CardModel()
-        if config.get_most_recent_file():
-            try:
-                self.cardModel.open(config.get_most_recent_file())
-            except:
-                pass
-
+        self._cardModel = CardModel()
+        self._cardModelIndex = QModelIndex()  # current index for card model
 
         self.setWindowTitle("Mentor")
         self.move(50, 50)
@@ -543,7 +527,8 @@ class MainWindow(QMainWindow):
 
         self.connect(qApp, SIGNAL('aboutToQuit()'), self.qApp_aboutToQuit)
 
-        self._refreshAppState()
+        self._windowEntered = False
+
 
     def createCentralWidget(self):
 
@@ -551,16 +536,17 @@ class MainWindow(QMainWindow):
         # setup central widget
 
         # question and answer panel
-        self.cardWidget = CardWidget(self)
-        self.cardWidget.setCardModel(self.cardModel)
+        self.cardMainView = CardMainView(self)
+        self.cardMainView.setModel(self._cardModel)
 
-        self.setCentralWidget(self.cardWidget)
+        self.setCentralWidget(self.cardMainView)
 
 
         ##########################
         # items view
         self.lstDrill = QListView(self)
-        self.lstDrill.setModel(self.cardModel)
+        self.lstDrill.setModel(self._cardModel)
+        # self.lstDrill.setSelectionModel(Qt.SingleSelection)
 
         dock1 = QDockWidget('List', self)
         dock1.setWidget(self.lstDrill)
@@ -568,43 +554,25 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, dock1)
 
 
-        # FIXME connecting these 4 times cause sometimes I don't get proper
-        # messages
-        # when I edit something and press Down
-        # and then click on what I edited then selection changed does not catch
-        # it
-        self.connect(self.lstDrill.selectionModel(), \
-                        SIGNAL('currentChanged(QModelIndex, QModelIndex)'), \
-                        self.lstDrill_currentChanged)
-        self.connect(self.lstDrill.selectionModel(), \
-                        SIGNAL('currentRowChanged(QModelIndex, QModelIndex)'), \
-                        self.lstDrill_currentChanged)
-        self.connect(self.lstDrill, \
-                        SIGNAL('activated(QModelIndex)'), \
-                        self.lstDrill_activated)
-        self.connect(self.lstDrill, \
-                        SIGNAL('clicked(QModelIndex)'), \
-                        self.lstDrill_activated)
-
 
         ##########################
         # details widget
-        self.cardDetailWidget = CardDetailWidget(self)
-        self.cardDetailWidget.setCardModel(self.cardModel)
+        self.cardDetailView = CardDetailView(self)
+        self.cardDetailView.setModel(self._cardModel)
 
         dock2 = QDockWidget('Details', self)
-        dock2.setWidget(self.cardDetailWidget)
+        dock2.setWidget(self.cardDetailView)
 
         self.addDockWidget(Qt.BottomDockWidgetArea , dock2)
 
 
         ##########################
         # card source widget
-        self.cardSourceWidget = CardSourceWidget(self)
-        self.cardSourceWidget.setCardModel(self.cardModel)
+        self.cardSourceView = CardSourceView(self)
+        self.cardSourceView.setModel(self._cardModel)
 
         dock3 = QDockWidget('Source', self)
-        dock3.setWidget(self.cardSourceWidget)
+        dock3.setWidget(self.cardSourceView)
 
         self.addDockWidget(Qt.BottomDockWidgetArea, dock3)
 
@@ -646,7 +614,44 @@ class MainWindow(QMainWindow):
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
 
+        ##########################
+        # connecting
+        # FIXME connecting these 4 times cause sometimes I don't get proper
+        # messages
+        # when I edit something and press Down
+        # and then click on what I edited then selection changed does not catch
+        # it
 
+        self.connect(self.lstDrill.selectionModel(), \
+                        SIGNAL('currentChanged(QModelIndex, QModelIndex)'), \
+                        self.lstDrill_currentChanged)
+        self.connect(self.lstDrill,
+                        SIGNAL('activated(QModelIndex)'), \
+                        self.lstDrill_activated)
+        self.connect(self.lstDrill,
+                        SIGNAL('clicked(QModelIndex)'), \
+                        self.lstDrill_activated)
+
+        self.connect(self, SIGNAL('cardModelIndexChanged'), self.lstDrill_cardModelIndexChanged)
+        self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardMainView.currentChanged)
+        self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardSourceView.currentChanged)
+        self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardDetailView.currentChanged)
+
+
+    def cardModel(self):
+        return self._cardModel
+
+    def setCardModel(self, model):
+        self._cardModel = model
+
+    def cardModelIndex(self):
+        return self._cardModelIndex
+
+    def setCardModelIndex(self, index):
+        old = self._cardModelIndex
+        # if old != index:
+        self._cardModelIndex = index
+        self.emit(SIGNAL('cardModelIndexChanged'), index, old)
 
 
     def createActions(self):
@@ -659,6 +664,10 @@ class MainWindow(QMainWindow):
         self.actOpen.setShortcut(QKeySequence(tr("Ctrl+O")))
         self.actOpen.setStatusTip(tr("Open an existing pack..."))
         self.connect(self.actOpen, SIGNAL("triggered()"), self.on_actOpen_triggered)
+
+        self.actClose = QAction(QIcon(":/images/world.png"), tr("&Close pack"), self)
+        self.actClose.setStatusTip(tr("Close currently active pack"))
+        self.connect(self.actClose, SIGNAL("triggered()"), self.on_actClose_triggered)
 
         self.actCopy = QAction(tr("&Copy pack..."), self)
         self.actCopy.setStatusTip(tr("Copy an existing pack..."))
@@ -805,6 +814,7 @@ class MainWindow(QMainWindow):
         mnuFile = self.menuBar().addMenu(tr("&File"))
         mnuFile.addAction(self.actNew)
         mnuFile.addAction(self.actOpen)
+        mnuFile.addAction(self.actClose)
         mnuFile.addSeparator()
 
         mnuFile.addAction(self.actCopy)
@@ -991,20 +1001,27 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(tr("Ready."))
 
 
-    def on_clicked(self):
-        show_info("Hello world!")
+    def enterEvent(self, event):
+        # on first show, open file from config files
+        if not self._windowEntered:
+            if config.get_most_recent_file():
+                self._openPackFile(config.get_most_recent_file())
+
+        self._windowEntered = True
+
+
 
     def _refreshAppState(self):
         """Sets control active or inactive depending on the database state."""
         # active/inactive actions
-        self.btnAdd.setEnabled(self.cardModel.isActive())
-        self.btnDelete.setEnabled(self.cardModel.isActive())
-        self.btnMoveUp.setEnabled(self.cardModel.isActive())
-        self.btnMoveDown.setEnabled(self.cardModel.isActive())
-        self.btnShowSelection.setEnabled(self.cardModel.isActive())
+        self.btnAdd.setEnabled(self._cardModel.isActive())
+        self.btnDelete.setEnabled(self._cardModel.isActive())
+        self.btnMoveUp.setEnabled(self._cardModel.isActive())
+        self.btnMoveDown.setEnabled(self._cardModel.isActive())
+        self.btnShowSelection.setEnabled(self._cardModel.isActive())
         # window title
-        if self.cardModel.isActive():
-            basename = os.path.basename(self.cardModel.filepath())
+        if self._cardModel.isActive():
+            basename = os.path.basename(self._cardModel.filepath())
             self.setWindowTitle('Mentor - ' + os.path.splitext(basename)[0])
         else:
             self.setWindowTitle('Mentor')
@@ -1018,6 +1035,53 @@ class MainWindow(QMainWindow):
             self.actRecentFiles[i].setVisible(False)
 
 
+    def _openPackFile(self, fname):
+        """Open pack with givem file name."""
+        fname = str(fname)
+        problem = False
+        # FIXME running setCardModelIndex to empty
+        # to clean all other views
+        # I must redesign the model/view thing
+        self.setCardModelIndex(QModelIndex())
+        self.cardModel().close()
+        try:
+            self.cardModel().open(fname)
+            self.setCardModelIndex(self.cardModel().index(0, 0))
+            config.add_most_recent_file(fname)
+        except:
+            config.remove_recent_file(fname)
+            self.setCardModelIndex(QModelIndex())
+            problem = True
+        finally:
+            self._refreshAppState()
+            if problem:
+                show_info('Problem opening pack file %s.' % fname)
+
+
+    def _newPackFile(self, fname):
+        """Creates a new pack with given file name."""
+        fname = str(fname)
+        problem = False
+        # FIXME running setCardModelIndex with QModelIndex is  HACK to clean
+        # all other views - it must be run before closing cardModel
+        # I must redesign the model/view thing
+        self.setCardModelIndex(QModelIndex())
+        self.cardModel().close()
+        try:
+            # we want to overwrite
+            if os.path.isfile(fname):
+                os.remove(fname)
+            self.cardModel().open(fname)
+            self.setCardModelIndex(self.cardModel().index(0, 0))
+            config.add_most_recent_file(fname)
+        except:
+            config.remove_most_recent_file(fname)
+            self.setCardModelIndex(QModelIndex())
+            problem = True
+        finally:
+            self._refreshAppState()
+            if problem:
+                show_info('Problem creating a new pack file %s.' % fname)
 
 
     def qApp_aboutToQuit(self):
@@ -1027,36 +1091,21 @@ class MainWindow(QMainWindow):
         fileName = QFileDialog.getSaveFileName(self, \
             tr("New pack"), ".", tr("Mentor pack files (*.mpk)"))
         if fileName:
-            fileName = str(fileName)
-            self.cardModel.close()
-            # we want to overwrite
-            if os.path.isfile(fileName):
-                os.remove(fileName)
-            self.cardModel.open(fileName)
+            self._newPackFile(fileName)
 
-            self.cardModel.reset()
-            config.add_most_recent_file(fileName)
-            self._refreshAppState()
-
-    def openPackFile(self, fname):
-        fname = str(fname)
-        self.cardModel.close()
-        try:
-            self.cardModel.open(fname)
-            config.add_most_recent_file(fname)
-        except:
-            config.remove_recent_file(fname)
-            show_info('Problem opening pack file.')
-        finally:
-            self.cardModel.reset()
-            self._refreshAppState()
 
 
     def on_actOpen_triggered(self):
         fname = QFileDialog.getOpenFileName(self, \
             tr("Open pack"), ".", tr("Mentor pack files (*.mpk)"))
         if fname:
-            self.openPackFile(fname)
+            self._openPackFile(fname)
+
+    def on_actClose_triggered(self):
+        self.setCardModelIndex(QModelIndex())
+        self.cardModel().close()
+        self._refreshAppState()
+
 
     def on_actAbout_triggered(self):
         show_info(tr("MENTOR version %s\nA learning tool\n\nDistributed under license: %s.\n\nAuthors: \n%s" \
@@ -1064,101 +1113,85 @@ class MainWindow(QMainWindow):
 
     def on_actCopy_triggered(self):
         pass
+
     def on_actDelete_triggered(self):
         pass
+
     def on_actRepair_triggered(self):
         pass
+
     def on_actMerge_triggered(self):
         pass
+
     def on_actImportQA_triggered(self):
         pass
+
     def on_actImportXML_triggered(self):
         pass
+
     def on_actImportProbe_triggered(self):
         pass
+
     def on_actImportProbe_triggered(self):
         pass
+
     def on_actExportQA_triggered(self):
         pass
+
     def on_actExportXML_triggered(self):
         pass
+
     def on_actExportProbe_triggered(self):
         pass
+
     def on_actExportProbe_triggered(self):
         pass
+
     def on_actExportProbe_triggered(self):
         pass
 
     def on_actRecentFiles_triggered(self):
-        self.openPackFile(self.sender().text())
+        self._openPackFile(self.sender().text())
+
 
     def lstDrill_currentChanged(self, current, previous):
-        if current.row() <> previous.row():
-            # TODO should not this be in the connect ?
-            self.cardWidget.setCardModelIdx(current)
-            self.cardDetailWidget.setCardModelIdx(current)
-            self.cardSourceWidget.setCardModelIdx(current)
+        self.setCardModelIndex(current)
 
-    def lstDrill_activated(self, index):
-        self.cardWidget.setCardModelIdx(index)
-        self.cardDetailWidget.setCardModelIdx(index)
-        self.cardSourceWidget.setCardModelIdx(index)
+    def lstDrill_activated(self, current):
+        self.setCardModelIndex(current)
 
 
-    def lstDrill_getSelectedIdx(self):
-        """Returns currently selected index of the lstDrill."""
+    def lstDrill_cardModelIndexChanged(self, current, previous):
         selection = self.lstDrill.selectionModel()
-        # get current selection
-        selectedIdx = selection.selectedIndexes()
-        if len(selectedIdx) == 0:
-            selectedIdx = self.cardModel.index(self.cardModel.rowCount() - 1, 0)
+        selectedIndex = selection.selectedIndexes()
+        if len(selectedIndex) > 0:
+            selectedIndex = selectedIndex[0]
         else:
-            selectedIdx = selectedIdx[0]
-        return selectedIdx
+            selectedIndex = QModelIndex()
+        # if is changed then update list view and card model
+        if current != selectedIndex:
+            selection.setCurrentIndex(current, QItemSelectionModel.SelectCurrent)
 
 
     def btnAdd_clicked(self):
-        oldIdx = self.lstDrill_getSelectedIdx()
-        self.cardModel.addNewCard()
-        self.cardModel.reset()
-
-        # go to last index
+        self.cardModel().addNewCard()
         # TODO what if it's not added at the end?
-        newIdx = self.cardModel.index(self.cardModel.rowCount() - 1, 0)
+        newIndex = self.cardModel().index(self.cardModel().rowCount() - 1, 0)
         # go to newly added record
-        selection = self.lstDrill.selectionModel()
-        selection.select(newIdx, QItemSelectionModel.Select | QItemSelectionModel.Current)
-        # inform about changed selection
-        selection.emit(SIGNAL('currentChanged(QModelIndex, QModelIndex)'), newIdx, oldIdx)
-
+        self.setCardModelIndex(newIndex)
 
 
     def btnDelete_clicked(self):
-        selectedIdx = self.lstDrill_getSelectedIdx()
-        if selectedIdx and selectedIdx.isValid():
+        currentIndex = self.cardModelIndex()
+        if currentIndex.isValid():
             # try to find currently selected row
             # and go to the same row
             # if rows are missing then go to last
-            selectedRow = selectedIdx.row()
-            self.cardModel.deleteCard(selectedIdx)
-            #
-            self.cardModel.reset()
+            currentRow = currentIndex.row()
+            self.cardModel().deleteCard(currentIndex)
             # go to new index
-            if self.cardModel.rowCount() > 0:
-                newIdx = self.cardModel.index(min(selectedRow, self.cardModel.rowCount() - 1), 0)
-                selection = self.lstDrill.selectionModel()
-                selection.select(newIdx, QItemSelectionModel.Select | QItemSelectionModel.Current)
-                # informat about chaging of the current
-                selection.emit(SIGNAL('currentChanged(QModelIndex, QModelIndex)'), newIdx, QModelIndex())
-            else:
-                # TODO
-                # all these widgets should be connected with selection as well
-                # and react to it's selection changed
-                # if current selection is none then it should disable it's
-                # views
-                self.cardWidget.setCardModelIdx(None)
-                self.cardDetailWidget.setCardModelIdx(None)
-                self.cardSourceWidget.setCardModelIdx(None)
+            newIndex = self.cardModel().index(min(currentRow, self.cardModel().rowCount() - 1), 0)
+            self.setCardModelIndex(newIndex)
 
 
     def btnLoad_clicked(self):
@@ -1168,43 +1201,25 @@ class MainWindow(QMainWindow):
     def btnMoveUp_clicked(self):
         """Moves current selection up by 1 row. If no selection is made then
         selects last item."""
-        selection = self.lstDrill.selectionModel()
-        # get current selection
-        selectedIdx = selection.selectedIndexes()
-        if len(selectedIdx) == 0:
-            selectedIdx = self.cardModel.index(self.cardModel.rowCount() - 1, 0)
-        else:
-            selectedIdx = selectedIdx[0]
         # move row up
-        prev = self.cardModel.getPreviousIdx(selectedIdx)
-        selection.select(prev, QItemSelectionModel.Select | QItemSelectionModel.Current)
-        selection.emit(SIGNAL('currentChanged(QModelIndex, QModelIndex)'), prev, selectedIdx)
+        currentIndex = self.cardModelIndex()
+        prevIndex = self._cardModel.getPreviousIndex(currentIndex)
+        self.setCardModelIndex(prevIndex)
 
 
     def btnMoveDown_clicked(self):
         """Moves current selection down by 1 row. If no selection is made then
         selects first item."""
-        selection = self.lstDrill.selectionModel()
-        # get current selection
-        selectedIdx = selection.selectedIndexes()
-        if len(selectedIdx) == 0:
-            selectedIdx = self.cardModel.index(0, 0)
-        else:
-            selectedIdx = selectedIdx[0]
-        # move row down
-        next = self.cardModel.getNextIdx(selectedIdx)
-        selection.select(next, QItemSelectionModel.Select | QItemSelectionModel.Current)
-        selection.emit(SIGNAL('currentChanged(QModelIndex, QModelIndex)'), next, selectedIdx)
+        currentIndex = self.cardModelIndex()
+        nextIndex = self.cardModel().getNextIndex(currentIndex)
+        self.setCardModelIndex(nextIndex)
 
 
 
     def btnShowSelection_clicked(self):
         """Displays currenly selected indexes from drill list."""
-        selected = ''
-        model = self.lstDrill.selectionModel()
-        for index in model.selectedIndexes():
-            selected = selected + self.cardModel.data(index).toString()
-        show_info(selected)
+        current = self.cardModelIndex()
+        show_info(self.cardModel().data(current).toString())
 
 
 
