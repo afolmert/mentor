@@ -1,9 +1,6 @@
 This is a TODO file for Mentor project.  Currently it includes just draft
 random ideas about future Mentor development.
 
-As a first TODO item for this file is make it more managable and readable.
-Also convert it to some markup format.
-
 
 
 --------------------------------------
@@ -54,6 +51,10 @@ automatic knowledge retrieval
 DOC {{{
 --------------------------------------
 
+- Make TODO file more readable
+As a first TODO item for this file is make it more managable and readable.
+Also convert it to some markup format.
+
 - design the mentor documentation after supermemo and other flash-card program
 documentations.
 
@@ -92,6 +93,10 @@ described framework
 - excel table for class comparison in probe
 make excel table with all the class and features they have - how they compare,
 how can I generalize them ??!
+
+- code style:
+make all Qt upperCaseStyle so that I do not get confused
+(all except for the general utils module)
 
 }}}
 
@@ -141,23 +146,7 @@ how it will be possible ?
 GUI {{{
 --------------------------------------
 
-- BUG : proper handling of empty items
-  maybe don't allow for empty but just block at the last ??
-    or when editing then just add new card ??
- when deleting all items, the last content stays displayed
-  and when keeping on pressing delete then exception is thrown
-
-- TODO
- make it run with debug version of Qt library
- and give it full debug log so that I see what is actually going on !
- see all signals coming out and caught by slots
-
-
--  TODO switch to these later when I have function for automatic inserting in
- from clause
- from PyQt4.QtCore import SIGNAL, SLOT
- from PyQt4.QtGui import QWidget, QPushButton, QApplication, QMainWindow, \
-      QKeySequence, QAction, QIcon, qApp
+- drill window  - asking for selected items
 
 
 - different views in a docking interface:
@@ -172,14 +161,59 @@ GUI {{{
 format  in KDE words format ??
 
 
-- advanced grid view for managing : with sql interface for querying database
+- advanced grid view for managing : this should be instead of the tree that is
+used in SuperMemo
+the grid should be killer feature allowing for very easy access to items
+ with the power of excel but easiness of gmail / web interface
+ maybe button with select all and action to perform on them
+ but on
+
+it should combine the best features on known grids:
+excel, plsql dev, sqlnav, tytan, devexpress, lookupedit , koffice spreadsheet,
+thunderbird mails view
+program :
+ in place editing
+ sql query on demand
+ search text
+ filtering by drop down menus
+ filtering by advanced queries (not and like)
+ sorting on different columns
+ in-place editing
+ inserting items on specific position (display order)
+ multiselection of items
+ filtering by specific tag
+ ability to show/hide some columns and move columns
+ adjustable cell height with auto-wrapping of contents
+ right-click menu to run operation on set of elements (e.g. switch to pending ,
+ or assign tag/edit tags for the items)
+ different color of fields, depending on their status
+ selecting the whole row but editing separate cells possibility
+
+
+- see the spreadsheet, charts etc examples. and model-views examples and code them in python first
+to see how a grid example could be implemented
+tip: maybe send spreadsheet demo to pyqt-dev to see if they are interested in
+the example
+
+- grid columns:
+  id question answer qhint ahint example score
+   all columns possible in the view
+
+: with sql interface for querying database
  list like excel+plsqldev table for viewing words  with filtering by tag category sorting on different
   filtering like in lookup panel
   ability to hide some columns if necessary
 
-- New pack
-  Close pack
-  Open pack..
+- make it run with debug version of Qt library
+ and give it full debug log so that I see what is actually going on !
+ see all signals coming out and caught by slots
+
+
+-  switch to these later when I have function for automatic inserting in
+ from clause
+ from PyQt4.QtCore import SIGNAL, SLOT
+ from PyQt4.QtGui import QWidget, QPushButton, QApplication, QMainWindow, \
+      QKeySequence, QAction, QIcon, qApp
 
 
 - maximally open for extensions:
@@ -189,9 +223,8 @@ format  in KDE words format ??
 
 - add labels to views : tree view , list view etc.
 
-- tags ? and categories
+- tags instead of ategories
 
--
 - automatically upgrading databases if found from older versions
 
 - checking databases , fixing them as well
@@ -203,6 +236,8 @@ parameters on the learning process
         <answer>  <hint>yes!</hint></answer>
     or <text>  <cloze> </cloze>  </text>
     should the xml format know about the cloze ?
+perhaps it's better to store them in my custom database format and translate it
+to xml on demand? or allow the user to edit the xml ?
 
 
 - what about encoding issues ??
@@ -229,6 +264,21 @@ word-wrap w testing?
  what I do in vim should be possible to be done in gui as well - for people who
  don't have access to vim
  something like incremental reading in supermemo but done in my way
+
+- card view: switching between source (xml view) and render view in tabs
+editing xml / rtf but via styles
+word editing but with focus on styles so that I can do it also automatically
+using xml transformations
+but don't forget about novice users: have to somehow combine the
+power/extensibility of html with easy editing of the units
+
+- xml template:
+<question> </question> <answer> </answer>
+ <prefix> </peg> <example>
+ <bold> <color 12> <emphasis>
+
+- lazyshow on dialogs exec as well - right now only works for windows
+
 }}}
 
 
@@ -253,6 +303,55 @@ all the test suite should be run
 by default action build will not touch files like mentor.pdf or mentor_rc.pyc
 if they have not been touched after the last build
    but also add option to do a full rebuild
+
+- additional build information:
+build info should include version numbers (detailed) of
+operation system
+Python Qt PyQt libraries
+free memory
+database used ?
+and what other info?? check this out
+
+Building/crash
+how to send this info?
+Have parameter --systeminfo or button system info in about box
+User should paste this information which sho
+
+source sha1 GIT full key this from git
+operating system how this one ?? ?
+qt version  qt location
+pyqt version    ??
+python version
+
+In [2]: QLibraryInfo.buildKey()
+In [6]: str(QLibraryInfo.buildKey())
+In [7]: str(QLibraryInfo.location(QLibraryInfo.PrefixPath))
+Out[7]: 'C:\\Programs\\Qt'
+In [8]: str(QSysInfo.WinVersion)
+Out[9]: "<class 'PyQt4.QtCore.WinVersion'>"
+In [10]: print QSysInfo.WinVersion == QSysInfo.WV_2000
+False
+
+- problem: build date is not always the same ase git commit date
+maybe I should extract the date from the source as well? git show last commit
+date and build key from that ?
+or maybe embed 7 digits SHA1 instead?
+
+
+- different building and testing automation
+ light testing
+  have a test repo and a script which will pull from draft/devel  ,
+  rename misc and   other directories and libraries
+  build the solution
+  run exe tests for both mentor and probe
+  and run mentor gui
+
+ more thorough testing :
+  have ubuntu  and windowsxp  clean vmware images
+   but with needed libraries installed
+
+ they will also pull from my draft repo and build it and test it on clean
+   system
 
 }}}
 
@@ -594,6 +693,11 @@ is really a hack
   If in strict mode all needs to be correct?
 
 
+- Probe Bug:
+\code1 class break probe
+but not \abrakadabra
+I think that's because it begins with \code ??
+
 
 }}}
 
@@ -642,6 +746,13 @@ qt communities and learning communities
 also have databases of different items and advertise them .e.g tell people
 there is vim knowledge database for SuperMemo and Mentor
 BTW Mentor should be able to import from SuperMemo
+
+- Educational projects promotion:
+Kdeedu Edubuntu Eduforge
+get in touch with educational project and promote mentor there
+
+- Take part in KDE project (triage bugs, make some easy fixes: to get to know
+people and have placed my mentor software) -- KDE 4.0!!
 
 }}}
 
@@ -745,6 +856,31 @@ Learn LaTeX/TeX well before I begin (using old Mentor first maybe??)
 PyParsing, ANTLR and others
 try to write my own (HTML, XML, Lisp, Python etc.)
 
+- repetition scheduling algorithm
+this will be based on:
+Leitner method of repetitions
+Artificial intelligence: Neural net, genetic algorithms?  - see mnemosyne ,
+SuperMemo published method and Piotr Wozniak notes
+common sense and my experience - repeating in increasing periods of time
+
+
+- repetition parameters/factors
+  next repetition period length * factor
+  randomness spread * factor
+  database difficulty factor
+  user skills factor
+  how much increase the initial jump:
+    +5*1.2   +7*.12
+
+next repetition period lenght factor will be increased or decreased depending
+on the notes given , history of learning etc.
+
+perhaps have different algorithms to select next repetition and possibility to
+switch between them
+
+- write a simulation package which will show how the item behave in future with
+different parameters
+
 }}}
 
 
@@ -809,266 +945,6 @@ commits every now and then
 
 
 }}}
-
-
-
-
---------------------------------------
-BUGS {{{
---------------------------------------
-
-- Probe Bug:
-\code1 class break probe
-but not \abrakadabra
-I think that's because it begins with \code ??
-
-
-}}}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{{{ Sample of old mentor language
-
-.mainprefix MenGraphics
-
-
-.swap off
-
-#################################
-
-.simple
-
-
-TExtImage extends
-TPanel
-
-
-
-##################################
-
-.prefix TExtImage: fields
-
-.set
-
-images
-FImage, FBuffer
-
-
-events
-FImageMouseDown, FImageMouseUp, FImageMouseMove
-
-
-.pascal
-
-
-FImage : TImage;
-
-FBuffer : TImage;
-
-FImageMouseDown : TMouseEvent;
-
-FImageMouseUp : TMouseEvent;
-
-FImageMouseMove : TMouseMoveEvent;
-
-
-
-###################################
-
-.prefix TExtImage: private
-
-.set
-
-events
-ImageMouseDown, ImageMouseMove, ImageMouseUp
-
-
-image
-ClearImage
-
-
-.pascal
-
-
-procedure ImageMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-
-procedure ImageMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-
-procedure ImageMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-
-procedure ClearImage(AImage : TImage);
-
-
-
-##################################
-
-.prefix TExtImage: public
-
-.set
-
-draw
-Clear, ClearRect, DrawRect
-
-create
-Create, Load
-
-coord
-SetBounds
-
-properties
-OnMouseDown, OnMouseUp, OnMouseMove
-
-
-
-.pascal
-
-procedure Clear;
-
-procedure ClearRect(ARect : TRect);
-
-procedure DrawRect(ARect : TRect; ANumber : Integer);
-
-constructor Create(AOwner : TComponent);
-
-procedure SetBounds(ALeft, ATop, AWidth, AHeight: Integer); override;
-
-procedure Load(AFileName : string);
-
-property OnMouseDown : TMouseEvent read FImageMouseDown write FImageMouseDown;
-
-property OnMouseUp : TMouseEvent read FImageMouseUp write FImageMouseUp;
-
-property OnMouseMove : TMouseMoveEvent read FImageMouseMove write FImageMouseMove;
-
-.prefix MenGraphics
-
-
-############################################
-
-.set
-
-TSpotArea
-saNone, saCenter, saN, saNE, saE, saSE, saS, saSW, saW, saNW
-
-
-
-############################################
-.prefix TSpot: fields
-
-?
-FRect
-
-
-.pascal
-
-FRect : TRect;
-
-
-############################################
-.prefix TSpot: private
-
-
-string
-GetAsString, SetAsString
-
-rect
-GetAsRect, SetAsRect
-
-
-.pascal
-
-function GetAsString : string;
-
-procedure SetAsString(AValue : string);
-
-function GetAsRect : TRect;
-
-procedure SetAsRect(AValue : TRect);
-
-
-
-############################################
-.prefix TSpot: methods
-
-.pascal
-
-
-procedure Normalize;
-
-function GetArea(APoint : TPoint) : TSpotArea;
-
-procedure Offset(ALeft, ATop, ARight, ABottom : Integer);
-
-class function GetMargin : Integer;
-
-
-
-
-############################################
-.prefix TSpot: properties
-
-.pascal
-
-
-property AsString : string read GetAsString write SetAsString;
-
-property AsRect : TRect read GetAsRect write SetAsRect;
-
-
-
-
-
-############################################
-.prefix TPicture: fields
-
-.pascal
-
-FSpots : TList;
-
-FFileName : string;
-
-
-
-############################################
-.prefix TPicture: private
-
-index
-GetSpot, GetSpotCount
-
-.pascal
-
-function GetSpot(AIndex : Integer) : TSpot;
-
-function GetSpotCount : Integer;
-
-}}}
-
-
-
-
-
-
-
-
-
-
 
 
 
