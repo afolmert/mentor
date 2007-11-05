@@ -1093,9 +1093,13 @@ def main():
     if config.TEST:
         # import path from tests
         # sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests"))
-        from tests import test_utils, test_probe, test_database
+        from tests import test_utils, test_probe, test_database, test_models
         import unittest
-        suite = unittest.TestSuite([test_utils.suite(), test_probe.suite(), test_database.suite()])
+        # do I need it?
+        suite = unittest.TestSuite([test_utils.suite(),
+                                    test_probe.suite(),
+                                    test_database.suite(),
+                                    test_models.suite()])
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)
         sys.exit()

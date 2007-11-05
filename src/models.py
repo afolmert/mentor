@@ -39,9 +39,17 @@ from database import Card, CardDb
 class CardModel(QAbstractListModel):
     """Model to be used for list and tree view."""
 
+    class InvalidIndexError(Exception): pass
+
     def __init__(self, parent=None):
         QAbstractListModel.__init__(self, parent)
         self.cardDb = CardDb()
+
+
+    def _checkIndex(self, index):
+        if index is None or not index.isValid() or index == QModelIndex():
+            raise CardModel.InvalidIndexError, "Invalid index given"
+
 
     def open(self, dbpath):
         self.cardDb.open(str(dbpath))
@@ -79,7 +87,10 @@ class CardModel(QAbstractListModel):
         if parent.isValid():
             return 0
         else:
-            return 1
+            if self.cardDb.is_open():
+                return 1
+            else:
+                return 0
 
 
     def index(self, row, column, parent=QModelIndex()):
@@ -97,6 +108,7 @@ class CardModel(QAbstractListModel):
     # for specific data , in the following columns
 
     def data(self, index, role=Qt.DisplayRole):
+        self._checkIndex(index)
         if role not in (Qt.DisplayRole, Qt.UserRole):
             return QVariant()
 
@@ -105,6 +117,7 @@ class CardModel(QAbstractListModel):
             return card
         else:
             return QVariant('#%d %s' % (card.id, str(card.question)))
+
 
     def flags(self, index):
         return QAbstractListModel.flags(self, index) | Qt.ItemIsEnabled | Qt.ItemIsSelectable
@@ -122,7 +135,7 @@ class CardModel(QAbstractListModel):
 
     def getPreviousIndex(self, index):
         """Returns previous index before given or given if it's first."""
-        assert index is not None and index.isValid(), "getPreviousIndex: Invalid index given!"
+        self._checkIndex(index)
         if index.row() == 0:
             return index
         else:
@@ -132,7 +145,7 @@ class CardModel(QAbstractListModel):
 
     def getNextIndex(self, index):
         """Returns next index after given or given if it's last."""
-        assert index is not None and index.isValid(), "getNextIndex: Invalid index given!"
+        self._checkIndex(index)
         if index.row() == self.rowCount() - 1:
             return index
         else:
@@ -167,7 +180,7 @@ class CardModel(QAbstractListModel):
 
 
     def deleteCard(self, index):
-        assert index is not None and index.isValid(), "deleteCard: Invalid index given!"
+        self._checkIndex(index)
         self.emit(SIGNAL('modelAboutToBeReset()'))
 
         self.cardDb.delete_card(index.internalId())
@@ -182,13 +195,14 @@ class CardModel(QAbstractListModel):
     # maybe keep blob as well ?
     # the items are then splitted
     def updateCard(self, index, question, answer):
-        assert index is not None and index.isValid(), "updateCard: Invalid index given!"
+        self._checkIndex(index)
 
         card = Card(index.internalId(), question, answer)
         self.cardDb.update_card(card)
 
         # update data in the model
         self.emit(SIGNAL('dataChanged(QModelIndex)'), index)
+
 
 
 
