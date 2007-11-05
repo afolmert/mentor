@@ -120,6 +120,10 @@ class Config(object):
             pass
         # put it in front of all
         self.GUI_RECENTFILES.insert(0, fname)
+        # trim to maximum number
+        while len(self.GUI_RECENTFILES) > self.GUI_RECENTFILES_MAX:
+            self.GUI_RECENTFILES = self.GUI_RECENTFILES[:-1]
+
 
 
 config = Config()
