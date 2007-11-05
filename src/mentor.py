@@ -678,7 +678,14 @@ class MainWindow(QMainWindow):
         pass
 
     def on_actImportQA_triggered(self):
-        pass
+        # TODO must this have disabled if not database is open
+        # TODO Option if want to clear existing or append
+        fname = QFileDialog.getOpenFileName(self, \
+            tr("Import Q&A file"), ".", tr("Q&A files (*.*)"))
+        if fname:
+            self.cardModel().importQAFile(str(fname))
+            self.setCardModelIndex(self.cardModel().index(0, 0))
+            self._refreshAppState()
 
     def on_actImportXML_triggered(self):
         pass

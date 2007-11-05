@@ -33,6 +33,7 @@ __version__ = release.version
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from database import Card, CardDb
+from utils import isstring, log
 
 
 
@@ -40,6 +41,7 @@ class CardModel(QAbstractListModel):
     """Model to be used for list and tree view."""
 
     class InvalidIndexError(Exception): pass
+    class ModelNotActiveError(Exception): pass
 
     def __init__(self, parent=None):
         QAbstractListModel.__init__(self, parent)
@@ -49,6 +51,10 @@ class CardModel(QAbstractListModel):
     def _checkIndex(self, index):
         if index is None or not index.isValid() or index == QModelIndex():
             raise CardModel.InvalidIndexError, "Invalid index given"
+
+    def _checkActive(self):
+        if not self.isActive():
+            raise CardModel.ModelNotActiveError, "Model is not active. Use open first."
 
 
     def open(self, dbpath):
@@ -116,7 +122,7 @@ class CardModel(QAbstractListModel):
         if role == Qt.UserRole:
             return card
         else:
-            return QVariant('#%d %s' % (card.id, str(card.question)))
+            return QVariant('#%d %s' % (card.id, str(card.question).strip()))
 
 
     def flags(self, index):
@@ -205,5 +211,53 @@ class CardModel(QAbstractListModel):
 
 
 
+    # TODO model should not have any algorithms - it should be just as a proxy
+    # between database and any more advanced algorithm
+    # e.g. database importer
+    # btw. they should use the same classes with the probe program
+    # TODO progress bar for importing and possibility to cancel if is a long
+    # operatoin
+    def importQAFile(self, file, clean=True):
+        """Import cards from given question&answer file.
+        @param file can be file name or file like object
+        """
+        self._checkActive()
+        if isstring(file):
+            file = open(file, 'rt')
+        if clean:
+            self.cardDb.delete_all_cards()
+        prefix = ''
+        last_prefix = ''
+        card = Card()
+        for line in file.readlines():
+            if line.upper().startswith('Q:') or line.upper().startswith('A:'):
+                last_prefix = prefix
+                prefix = line[:2].upper()
+                line = line[3:]
+                # if new card then recreate
+                if prefix == 'Q:' and prefix != last_prefix:
+                    if not card.is_empty():
+                        self.cardDb.add_card(card, False)
+                    card = Card()
+                if line.strip() != '':
+                    if prefix == 'Q:':
+                        card.question += line
+                    else: # prefix == a
+                        card.answer += line
+        # add last card
+        if not card.is_empty():
+            self.cardDb.add_card(card)
 
+        # TODO do it in a real transaction way
+        # in case of error do a rollback
+        self.cardDb.commit()
+        self.reset()
+
+
+
+def main():
+    pass
+
+if __name__ == '__main__':
+    main()
 

@@ -26,6 +26,7 @@ from PyQt4.QtCore import *
 import unittest
 from models import CardModel
 from utils import log
+from StringIO import StringIO
 
 class DummyView(QObject):
 
@@ -75,6 +76,13 @@ class TestCardModel(unittest.TestCase):
         # test on closed model
         self.model.close()
         self.assertEqual(self.model.isActive(), False)
+
+    def testCheckActive(self):
+        # open model should not raise any exception
+        self.model._checkActive()
+        # test if raises correct exception
+        self.model.close()
+        self.assertRaises(CardModel.ModelNotActiveError, self.model._checkActive)
 
 
     def testColumnCount(self):
@@ -196,6 +204,37 @@ class TestCardModel(unittest.TestCase):
 
         self.assertEqual(data.question, 'test_question')
         self.assertEqual(data.answer, 'test_answer')
+
+
+    def testImportQAFile(self):
+        #
+        # test if clean actually cleans the file
+        self.model.addNewCard()
+        self.model.addNewCard()
+
+        qa = StringIO(r"""
+q: question1
+a: answer1
+
+q: question2
+a: answer2""")
+
+        self.model.importQAFile(qa, True)
+        self.assertEqual(self.model.rowCount(), 2)
+        idx = self.model.index(0, 0)
+        card1 = self.model.data(self.model.index(0, 0), Qt.UserRole)
+        self.assertEqual(card1.question, 'question1\n')
+        self.assertEqual(card1.answer, 'answer1\n')
+
+        card2 = self.model.data(self.model.index(1, 0), Qt.UserRole)
+        self.assertEqual(card2.question, 'question2\n')
+        self.assertEqual(card2.answer, 'answer2')
+
+
+        # test import on closed model
+        self.model.close()
+        self.assertRaises(CardModel.ModelNotActiveError, self.model.importQAFile, 'sample')
+
 
 
 

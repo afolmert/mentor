@@ -95,6 +95,9 @@ class Card(object):
         self.answer_hint   = ''
         self.score         = None
 
+    def is_empty(self):
+        return self.question == '' and self.answer == ''
+
 
 
 # Cards will be stored in sqlite database
@@ -170,9 +173,12 @@ class CardDb(object):
             cur.close()
 
 
+    def commit(self):
+        self.check_db_open()
+        self.db.commit()
 
 
-    def add_card(self, card):
+    def add_card(self, card, commit=True):
         """Adds a card object to database and returns it's id object."""
         self.check_db_open()
         cur = self.db.cursor()
@@ -193,7 +199,8 @@ class CardDb(object):
         result = cur.execute('SELECT MAX(ID) FROM TCARDS').fetchone()[0]
         assert lastrowid == result, "Internal error: Lastrowid does not return MaxID!"
         cur.close()
-        self.db.commit()
+        if commit:
+            self.db.commit()
         return result
 
 
@@ -274,6 +281,17 @@ class CardDb(object):
         assert cur.rowcount == 1, "Problem when updating card = %s" % card_id
         cur.close()
         self.db.commit()
+
+
+    def delete_all_cards(self):
+        """Deletes all cards from database"""
+        self.check_db_open()
+        cur = self.db.cursor()
+
+        cur.execute(r'''DELETE FROM TCARDS''')
+        cur.close()
+        self.db.commit()
+
 
 
     def update_card(self, card):
