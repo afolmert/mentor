@@ -79,6 +79,10 @@ class AbstractCardView(QAbstractItemView):
             self.updateView(self.model(), index)
 
 
+    def reset(self):
+        self.updateView(self.model(), self.getCurrentIndex())
+
+
     def getCurrentIndex(self):
         """Returns currently selected item"""
         selection = self.selectionModel()
@@ -126,7 +130,7 @@ class CardMainView(AbstractCardView):
         self.txtQuestion = MyTextEdit()
         self.txtQuestion.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txtQuestion.setFont(QFont("Courier New", 13, QFont.Bold))
-        self.txtQuestion.setText("question text..")
+        self.txtQuestion.setText("")
         self.txtQuestion.setMinimumHeight(100)
         self.lblQuestion.setBuddy(self.txtQuestion)
 
@@ -138,7 +142,7 @@ class CardMainView(AbstractCardView):
         self.txtAnswer = MyTextEdit()
         self.txtAnswer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.txtAnswer.setFont(QFont("Courier New", 13, QFont.Bold))
-        self.txtAnswer.setText("answer text..")
+        self.txtAnswer.setText("")
         self.txtAnswer.setMinimumHeight(100)
         self.lblAnswer.setBuddy(self.txtAnswer)
 

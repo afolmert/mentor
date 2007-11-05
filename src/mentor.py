@@ -556,8 +556,10 @@ class MainWindow(QMainWindow):
     def enterEvent(self, event):
         # on first show, open file from config files
         if not self._windowEntered:
+            self._refreshAppState()
             if config.get_most_recent_file():
                 self._openPackFile(config.get_most_recent_file())
+            self._refreshAppState()
 
         self._windowEntered = True
 
