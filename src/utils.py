@@ -70,19 +70,13 @@ def istuple(obj):
     t = type(obj)
     return t is types.TupleType
 
-if hasattr(types, 'UnicodeType'):
-    def isstring(obj):
-        """Returns True if obj is a String."""
-        t = type(obj)
-        return t is types.StringType \
-            or t is types.UnicodeType \
-            or (t is types.InstanceType and isinstance(obj, types.UserString))
-else:
-    def isstring(obj):
-        """Returns True if obj is a String."""
-        t = type(obj)
-        return t is types.StringType \
-            or (t is types.InstanceType and isinstance(obj, types.UserString))
+
+def isstring(obj):
+    """Returns True if obj is a String."""
+    from UserString import UserString
+    t = type(obj)
+    return t in types.StringTypes \
+      or (t is types.InstanceType and isinstance(obj, UserString))
 
 
 def isscalar(obj):
