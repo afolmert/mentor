@@ -30,6 +30,7 @@ __license__ = release.license
 __version__ = release.version
 
 
+import sys
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from database import Card, CardDb
@@ -252,6 +253,73 @@ class CardModel(QAbstractListModel):
         # in case of error do a rollback
         self.cardDb.commit()
         self.reset()
+
+
+
+# FIXME
+# How should I design it ?
+# Right now it is just a container (stack) for a bunch of cards which get
+# randomized
+
+class DrillModel(QObject):
+    """Model for drilling cards"""
+
+    # scores
+    Good, Bad = range(2)
+
+    def __init__(self, parent=None):
+        QObject.__init__(self, parent)
+        self.cards = []
+
+    def addCard(self, card):
+        self.cards.append(card)
+
+    def clear(self):
+        self.cards.clear()
+
+
+    def selectNextCard(self):
+        # take from the stack and put it on top
+        if len(self.cards) > 0:
+            result = self.cards[0]
+            self.cards = self.cards[1:]
+            self.cards.append(result)
+            return result
+        else:
+            return Card()
+
+    def removeCard(self, card):
+        try:
+            self.cards.remove(card)
+        except:
+            pass
+
+
+    def scoreCard(self, card, score):
+        if score == DrillModel.Good:
+            log("Card: $card will be removed from drill.")
+            self.cards.remove(card)
+
+
+    def shuffleCards(self):
+        from random import shuffle
+        shuffle(self.cards)
+        log('Cards were shuffled.')
+
+
+    def printCards(self):
+        print "Printing cards..."
+        sys.stdout.flush()
+        i = 0
+        for card in self.cards:
+            print "%d %s\n" % (i, str(card))
+            sys.stdout.flush()
+            i += 1
+        print "Done."
+        sys.stdout.flush()
+
+
+
 
 
 

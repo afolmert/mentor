@@ -40,6 +40,7 @@ which is useful if one wants to make repetitions over longer time period.
 """
 
 
+
 import release
 __author__  = '%s <%s>' % \
               ( release.authors['afolmert'][0], release.authors['afolmert'][1])
@@ -54,9 +55,103 @@ from PyQt4.QtGui import *
 from utils_qt import lazyshow, tr, show_info
 from utils import log
 from config import config
-from models import CardModel
+from models import CardModel, DrillModel
+from database import Card
 from views import CardMainView, CardSourceView, CardDetailView
 import mentor_rc
+
+
+
+
+class DrillWindow(QDialog):
+    def __init__(self, parent=None):
+        QDialog.__init__(self, parent)
+
+        self.setWindowTitle('Mentor Drill')
+
+        self.model = DrillModel()
+        self.currentCard = Card()
+
+
+        # card view
+        self.cardView = CardMainView()
+
+        # buttons bar
+        self.buttons = QWidget(self)
+
+        self.btnNext = QPushButton("&1. Next card")
+        self.btnShowAnswer = QPushButton("&2. Show answer")
+        self.btnGoodScore = QPushButton("&3. Good score")
+        self.btnBadScore = QPushButton("&4. Bad score")
+        self.btnShuffleCards = QPushButton("&5. Shuffle cards")
+        self.btnPrintCards = QPushButton("&6. Print cards")
+        self.btnClose = QPushButton("&7. Close")
+
+        # todo move this to actions
+        self.connect(self.btnNext, SIGNAL('clicked()'), self.on_btnNext_clicked)
+        self.connect(self.btnShowAnswer, SIGNAL('clicked()'), self.on_btnShowAnswer_clicked)
+        self.connect(self.btnGoodScore, SIGNAL('clicked()'), self.on_btnGoodScore_clicked)
+        self.connect(self.btnBadScore, SIGNAL('clicked()'), self.on_btnBadScore_clicked)
+        self.connect(self.btnShuffleCards, SIGNAL('clicked()'), self.on_btnShuffleCards_clicked)
+        self.connect(self.btnPrintCards, SIGNAL('clicked()'), self.on_btnPrintCards_clicked)
+        self.connect(self.btnClose, SIGNAL('clicked()'), self.on_btnClose_clicked)
+
+        buttonsLayout = QHBoxLayout()
+
+        buttonsLayout.addWidget(self.btnNext)
+        buttonsLayout.addWidget(self.btnShowAnswer)
+        buttonsLayout.addWidget(self.btnGoodScore)
+        buttonsLayout.addWidget(self.btnBadScore)
+        buttonsLayout.addWidget(self.btnShuffleCards)
+        buttonsLayout.addWidget(self.btnPrintCards)
+        buttonsLayout.addWidget(self.btnClose)
+
+        self.buttons.setLayout(buttonsLayout)
+
+        layout = QVBoxLayout()
+        layout.setSpacing(1)
+        layout.setMargin(1)
+        layout.addWidget(self.cardView)
+        layout.addWidget(self.buttons)
+        self.setLayout(layout)
+
+        self.setGeometry(100, 100, 500, 500)
+
+        self.cardView.displayCard(self.currentCard)
+
+
+    def loadCards(self, cards):
+        """Loads a list of cards to model."""
+        for card in cards:
+            self.model.addCard(card)
+        self.currentCard = self.model.selectNextCard()
+        self.cardView.displayCard(self.currentCard, True, False)
+
+    def on_btnNext_clicked(self):
+        self.currentCard = self.model.selectNextCard()
+        self.cardView.displayCard(self.currentCard, True, False)
+
+    def on_btnShowAnswer_clicked(self):
+        self.cardView.displayCard(self.currentCard, True, True)
+
+    def on_btnGoodScore_clicked(self):
+        self.model.scoreCard(self.currentCard, DrillModel.Good)
+
+    def on_btnBadScore_clicked(self):
+        self.model.scoreCard(self.currentCard, DrillModel.Bad)
+
+    def on_btnShuffleCards_clicked(self):
+        self.model.shuffleCards()
+        self.currentCard = self.model.selectNextCard()
+        self.cardView.displayCard(self.currentCard, True, False)
+
+    def on_btnPrintCards_clicked(self):
+        self.model.printCards()
+
+    def on_btnClose_clicked(self):
+        self.close()
+
+
 
 class MainWindow(QMainWindow):
     """Central window for the Mentor app"""
@@ -314,6 +409,32 @@ class MainWindow(QMainWindow):
         self.actGotoElement = QAction(QIcon(":/images/style_edit.png"), tr("&Go to element"), self)
         self.actGotoElement.setShortcut(QKeySequence(tr("Ctrl+G")))
 
+        # Learn actiosn
+        self.actLearnAllStages = QAction(tr("&All stages"), self)
+        self.actLearnAllStages.setShortcut(QKeySequence(tr("Ctrl+L")))
+
+        self.actLearnOutstanding = QAction(tr("1. &Outstanding material"), self)
+        self.actLearnNew = QAction(tr("2. &New material"), self)
+        self.actLearnNew.setShortcut(QKeySequence(tr("Ctrl-F2")))
+
+        self.actLearnFinalDrill = QAction(tr("3. &Final drill"), self)
+        self.actLearnFinalDrill.setShortcut(QKeySequence(tr("Ctrl+F2")))
+        self.connect(self.actLearnFinalDrill, SIGNAL("triggered()"), self.on_actFinalDrill_triggered)
+
+        self.actReadingList = QAction(tr("&Reading list"), self)
+        self.actReadingList.setShortcut(QKeySequence(tr("Shift+Ctrl+F4")))
+
+        self.actPostponeTopics = QAction(tr("&Topics"), self)
+        self.actPostponeItems = QAction(tr("&Items"), self)
+        self.actPostponeAll = QAction(tr("&All"), self)
+
+        self.actRandomizeRepetitions = QAction(tr("Randomi&ze repetitions"), self)
+        self.actRandomizeRepetitions.setShortcut(QKeySequence("Shift+Ctrl+F11"))
+
+        self.actRandomLearning = QAction(tr("Ran&dom learning"), self)
+        self.actRandomLearning.setShortcut(QKeySequence("Ctrl+F11"))
+
+        self.actCutDrills = QAction("&Cut drills", self)
 
         # View actions
         self.actAll = QAction(QIcon(":/images/style_edit.png"), tr("&All"), self)
@@ -436,6 +557,23 @@ class MainWindow(QMainWindow):
         # Learn menu
         mnuLearn = self.menuBar().addMenu(tr("&Learn"))
 
+        mnuLearn.addAction(self.actLearnAllStages)
+        mnuLearnSelected = mnuLearn.addMenu(tr("&Selected stages"))
+        mnuLearnSelected.addAction(self.actLearnOutstanding)
+        mnuLearnSelected.addAction(self.actLearnNew)
+        mnuLearnSelected.addAction(self.actLearnFinalDrill)
+        mnuLearnSelected.addSeparator()
+        mnuLearnSelected.addAction(self.actReadingList)
+        mnuPostpone = mnuLearn.addMenu(tr("&Postpone"))
+        mnuPostpone.addAction(self.actPostponeTopics)
+        mnuPostpone.addAction(self.actPostponeItems)
+        mnuPostpone.addAction(self.actPostponeAll)
+        mnuLearn.addSeparator()
+        mnuRandom = mnuLearn.addMenu(tr("&Random"))
+        mnuRandom.addAction(self.actRandomizeRepetitions)
+        mnuRandom.addAction(self.actRandomLearning)
+        mnuLearn.addAction(self.actCutDrills)
+
         # View menu
         mnuView = self.menuBar().addMenu(tr("&View"))
 
@@ -462,7 +600,6 @@ class MainWindow(QMainWindow):
         mnuOtherBrowsers.addAction(self.actRange)
         mnuOtherBrowsers.addAction(self.actHistory)
         mnuOtherBrowsers.addAction(self.actBranch)
-
 
 
         # Tools mehu
@@ -714,6 +851,25 @@ class MainWindow(QMainWindow):
     def on_actRecentFiles_triggered(self):
         self._openPackFile(self.sender().text())
 
+    def on_actFinalDrill_triggered(self):
+        dialog = DrillWindow(self)
+
+        # FIXME
+        # load cards from model
+        # should it work that way?
+        # should model be more general (and have other operations?) or be
+        # dedicated to browsing list only ?
+        # maybe all operations should be done on the database level
+        # and models only for browsing lists
+        cards = []
+        for row in range(self.cardModel().rowCount()):
+            idx = self.cardModel().index(row, 0)
+            card = self.cardModel().data(idx, Qt.UserRole)
+            cards.append(card)
+
+        dialog.loadCards(cards)
+
+        dialog.exec_()
 
     def lstDrill_currentChanged(self, current, previous):
         self.setCardModelIndex(current)
@@ -781,6 +937,7 @@ class MainWindow(QMainWindow):
         """Displays currenly selected indexes from drill list."""
         current = self.cardModelIndex()
         show_info(self.cardModel().data(current).toString())
+
 
 
 

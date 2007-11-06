@@ -205,6 +205,21 @@ class CardMainView(AbstractCardView):
         if not self._updatingView:
             self._dirty = True
 
+    # FIXME
+    # these functions are not really connected with the model/view thing
+    # the question is : should this be connected with a model and be descended
+    # from QAbstractItemView or just be a standalone control for displaying
+    # cards?
+    def displayCard(self, card, readonly=True, showAnswer=True):
+        self.txtQuestion.setEnabled(not readonly)
+        self.txtAnswer.setEnabled(not readonly)
+        self.txtQuestion.setText(card.question)
+        if showAnswer:
+            self.txtAnswer.setText(card.answer)
+        else:
+            self.txtAnswer.setText("")
+
+
 
 class CardDetailView(AbstractCardView):
     """Widget for displaying card details (score, hints, review dates etc.)"""
