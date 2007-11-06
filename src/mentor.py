@@ -57,7 +57,7 @@ from utils import log
 from config import config
 from models import CardModel, DrillModel
 from database import Card
-from views import CardMainView, CardSourceView, CardDetailView
+from views import CardMainView, CardSourceView, CardDetailView, CardGridView
 import mentor_rc
 
 
@@ -191,9 +191,8 @@ class MainWindow(QMainWindow):
 
         ##########################
         # items view
-        self.lstDrill = QListView(self)
+        self.lstDrill = CardGridView(self)
         self.lstDrill.setModel(self._cardModel)
-        # self.lstDrill.setSelectionModel(Qt.SingleSelection)
 
         dock1 = QDockWidget('List', self)
         dock1.setWidget(self.lstDrill)
@@ -887,7 +886,7 @@ class MainWindow(QMainWindow):
             selectedIndex = QModelIndex()
         # if is changed then update list view and card model
         if current != selectedIndex:
-            selection.setCurrentIndex(current, QItemSelectionModel.SelectCurrent)
+            selection.setCurrentIndex(current, QItemSelectionModel.Current)
 
 
     def btnAdd_clicked(self):

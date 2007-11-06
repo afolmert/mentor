@@ -32,6 +32,7 @@ __version__ = release.version
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from utils_qt import tr
 
 
 # main gui parts
@@ -342,5 +343,20 @@ class CardSourceView(AbstractCardView):
             self.txtSource.setEnabled(False)
 
         self._updatingView = False
+
+
+
+class CardGridView(QTableView):
+
+    def __init__(self, parent=None):
+        QTableView.__init__(self, parent)
+        self.setSortingEnabled(False)
+        self.setShowGrid(False)
+        self.setSelectionMode(QAbstractItemView.NoSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setAlternatingRowColors(True)
+
+
+        self.setFont(QFont("vt100", 8))
 
 

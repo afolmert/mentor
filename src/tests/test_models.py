@@ -87,7 +87,7 @@ class TestCardModel(unittest.TestCase):
 
     def testColumnCount(self):
         # test on empty model
-        self.assertEqual(self.model.columnCount(), 1)
+        self.assertEqual(self.model.columnCount(), 5)
         # test on closed model
         self.model.close()
         self.assertEqual(self.model.columnCount(), 0)

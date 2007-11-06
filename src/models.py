@@ -35,10 +35,10 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from database import Card, CardDb
 from utils import isstring, log
+from utils_qt import tr
 
 
-
-class CardModel(QAbstractListModel):
+class CardModel(QAbstractItemModel):
     """Model to be used for list and tree view."""
 
     class InvalidIndexError(Exception): pass
@@ -68,6 +68,7 @@ class CardModel(QAbstractListModel):
         self.cardDb.close()
         self.reset()
 
+
     def filepath(self):
         """Returns path to currently open database"""
         if self.cardDb.is_open():
@@ -79,8 +80,11 @@ class CardModel(QAbstractListModel):
         return self.cardDb.is_open()
 
 
+    def parent(self, index):
+        return QModelIndex()
+
+
     def rowCount(self, parent=QModelIndex()):
-        # return cards
         if parent.isValid():
             return 0
         else:
@@ -95,7 +99,7 @@ class CardModel(QAbstractListModel):
             return 0
         else:
             if self.cardDb.is_open():
-                return 1
+                return 5
             else:
                 return 0
 
@@ -104,10 +108,10 @@ class CardModel(QAbstractListModel):
         if row < 0 or column < 0 or not self.cardDb.is_open():
             return QModelIndex()
         else:
-            # returns index with given card id
+            #  returns index with given card id
             header = self.cardDb.get_card_headers('', row, row + 1)
             if len(header) == 1:
-                return self.createIndex(row, 0, int(header[0][0]))
+                return self.createIndex(row, column, int(header[0][0]))
             else:
                 return QModelIndex()
 
@@ -123,7 +127,18 @@ class CardModel(QAbstractListModel):
         if role == Qt.UserRole:
             return card
         else:
-            return QVariant('#%d %s' % (card.id, str(card.question).strip()))
+            if index.column() == 0:
+                return QVariant('#%d %s' % (card.id, str(card.question).strip()))
+            elif index.column() == 1:
+                return QVariant('%s' % str(card.answer).strip())
+            elif index.column() == 2:
+                return QVariant('%s' % str(card.question_hint).strip())
+            elif index.column() == 3:
+                return QVariant('%s' % str(card.answer_hint).strip())
+            elif index.column() == 4:
+                return QVariant('%s' % str(card.score))
+            else:
+                return QVariant()
 
 
     def flags(self, index):
@@ -132,12 +147,23 @@ class CardModel(QAbstractListModel):
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role == Qt.DisplayRole:
-            if section in range(0, 5):
-                return QVariant(tr("Section %d" % section))
+            if orientation == Qt.Horizontal:
+                if section == 0:
+                    return QVariant("Question")
+                elif section == 1:
+                    return QVariant("Answer")
+                elif section == 2:
+                    return QVariant(tr("Question hint"))
+                elif section == 3:
+                    return QVariant(tr("Answer hint"))
+                elif section == 4:
+                    return QVariant(tr("Score"))
+                else:
+                    return QVariant()
             else:
-                return QVariant()
-        else:
-            return QVariant()
+                return QVariant(str(section))
+        return QVariant()
+
 
 
     def getPreviousIndex(self, index):
