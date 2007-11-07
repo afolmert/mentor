@@ -17,5 +17,20 @@
    <file>images/chart_pie.png</file>
    <file>images/script_palette.png</file>
    <file>images/telephone_link.png</file>
+   <file>images/mentor.png</file>
+   <file>images/star.png</file>
+   <file>images/addtab.png</file>
+   <file>images/book.png</file>
+   <file>images/closetab.png</file>
+   <file>images/editcopy.png</file>
+   <file>images/find.png</file>
+   <file>images/home.png</file>
+   <file>images/next.png</file>
+   <file>images/previous.png</file>
+   <file>images/print.png</file>
+   <file>images/synctoc.png</file>
+   <file>images/whatsthis.png</file>
+   <file>images/zoomin.png</file>
+   <file>images/zoomout.png</file>
 </qresource>
 </RCC>

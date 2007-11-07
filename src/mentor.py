@@ -165,6 +165,8 @@ class MainWindow(QMainWindow):
         self._cardModelIndex = QModelIndex()  # current index for card model
 
         self.setWindowTitle("Mentor")
+        self.setWindowIcon(QIcon(QPixmap(":/images/mentor.png")))
+
         self.move(50, 50)
         self.createCentralWidget()
         self.createActions()
@@ -302,178 +304,229 @@ class MainWindow(QMainWindow):
 
     def createActions(self):
         # File actions
-        self.actNew = QAction(QIcon(":/images/world.png"), tr("&New pack..."), self)
+        self.actNew = QAction(tr("&New pack..."), self)
         self.actNew.setStatusTip(tr("Create a new pack..."))
         self.connect(self.actNew, SIGNAL("triggered()"), self.on_actNew_triggered)
 
-        self.actOpen = QAction(QIcon(":/images/world.png"), tr("&Open pack..."), self)
+        self.actOpen = QAction(tr("&Open pack..."), self)
         self.actOpen.setShortcut(QKeySequence(tr("Ctrl+O")))
         self.actOpen.setStatusTip(tr("Open an existing pack..."))
         self.connect(self.actOpen, SIGNAL("triggered()"), self.on_actOpen_triggered)
-
-        self.actClose = QAction(QIcon(":/images/world.png"), tr("&Close pack"), self)
+        self.actClose = QAction(tr("&Close pack"), self)
         self.actClose.setStatusTip(tr("Close currently active pack"))
         self.connect(self.actClose, SIGNAL("triggered()"), self.on_actClose_triggered)
-
         self.actCopy = QAction(tr("&Copy pack..."), self)
         self.actCopy.setStatusTip(tr("Copy an existing pack..."))
         self.connect(self.actCopy, SIGNAL("triggered()"), self.on_actCopy_triggered)
-
         self.actDelete = QAction(tr("&Delete pack..."), self)
         self.actDelete.setStatusTip(tr("Delete an existing pack..."))
         self.connect(self.actDelete, SIGNAL("triggered()"), self.on_actDelete_triggered)
-
         self.actRepair = QAction(tr("&Repair pack..."), self)
         self.actRepair.setStatusTip(tr("Repair an existing pack..."))
         self.connect(self.actRepair, SIGNAL("triggered()"), self.on_actRepair_triggered)
-
         self.actMerge = QAction(tr("&Merge pack..."), self)
         self.actMerge.setStatusTip(tr("Merge an existing pack..."))
         self.connect(self.actMerge, SIGNAL("triggered()"), self.on_actMerge_triggered)
-
         self.actImportQA = QAction(tr("&Import from QA file..."), self)
         self.actImportQA.setStatusTip(tr("Import from QA file..."))
         self.connect(self.actImportQA, SIGNAL("triggered()"), self.on_actImportQA_triggered)
-
         self.actImportXML = QAction(tr("&Import from XML file..."), self)
         self.actImportXML.setStatusTip(tr("Import from XML file..."))
         self.connect(self.actImportXML, SIGNAL("triggered()"), self.on_actImportXML_triggered)
-
         self.actImportProbe = QAction(tr("&Import from PRB file..."), self)
         self.actImportProbe.setStatusTip(tr("Import from a PRB file..."))
         self.connect(self.actImportProbe, SIGNAL("triggered()"), self.on_actImportProbe_triggered)
-
         self.actImportSuperMemo = QAction(tr("&Import from SuperMemo..."), self)
         self.actImportProbe.setStatusTip(tr("Import from a SuperMemo..."))
         self.connect(self.actImportProbe, SIGNAL("triggered()"), self.on_actImportProbe_triggered)
-
         self.actExportQA = QAction(tr("&Export to QA file..."), self)
         self.actExportQA.setStatusTip(tr("Export to QA file..."))
         self.connect(self.actExportQA, SIGNAL("triggered()"), self.on_actExportQA_triggered)
-
         self.actExportXML = QAction(tr("&Export to XML file..."), self)
         self.actExportXML.setStatusTip(tr("Export to XML file..."))
         self.connect(self.actExportXML, SIGNAL("triggered()"), self.on_actExportXML_triggered)
-
         self.actExportProbe = QAction(tr("&Export to PRB file..."), self)
         self.actExportProbe.setStatusTip(tr("Export to PRB file..."))
         self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
-
         self.actExportSuperMemo = QAction(tr("&Export to SuperMemo..."), self)
         self.actExportProbe.setStatusTip(tr("Export to SuperMemo..."))
         self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
-
         self.actProperties = QAction(tr("&Properties..."), self)
         self.actExportProbe.setStatusTip(tr("Display pack properties..."))
         self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
-
         # Recent file actions
         self.actRecentFiles = []
         for i in range(config.GUI_RECENTFILES_MAX):
             self.actRecentFiles.append(QAction(self))
             self.actRecentFiles[i].setVisible(False)
             self.connect(self.actRecentFiles[i], SIGNAL("triggered()"), self.on_actRecentFiles_triggered)
-
-        self.actExit = QAction(QIcon(":/images/clock_play.png"), tr("E&xit"), self)
+        #
+        self.actExit = QAction(tr("E&xit"), self)
         self.actExit.setShortcut(QKeySequence(tr("Ctrl+Q")))
         self.actExit.setStatusTip(tr("Exits the application."))
         self.connect(self.actExit, SIGNAL("triggered()"), qApp, SLOT("quit()"))
 
         # Edit actions
-        self.actNewItem = QAction(QIcon(":/images/world.png"), tr("Add a new i&tem"), self)
+        self.actNewItem = QAction(tr("Add a new i&tem"), self)
         self.actNewItem.setShortcut(QKeySequence(tr("Alt+A")))
-        self.actNewArticle = QAction(QIcon(":/images/clock_pause.png"), tr("Add a new &article"), self)
+        self.actNewArticle = QAction(tr("Add a new &article"), self)
         self.actNewArticle.setShortcut(QKeySequence(tr("Ctrl+Alt+N")))
-        self.actNewTask = QAction(QIcon(":/images/style_edit.png"), tr("Add a &new task"), self)
+        self.actNewTask = QAction(tr("Add a &new task"), self)
         self.actNewTask.setShortcut(QKeySequence("Ctrl+Alt+A"))
 
         # Search actions
-        self.actFindElements = QAction(QIcon(":/images/style_edit.png"), tr("&Find elements"), self)
+        self.actFindElements = QAction(tr("&Find elements"), self)
         self.actFindElements.setShortcut(QKeySequence(tr("Ctrl+F")))
-        self.actFindTexts = QAction(QIcon(":/images/style_edit.png"), tr("Fi&nd texts"), self)
+        self.actFindTexts = QAction(tr("Fi&nd texts"), self)
         self.actFindTexts.setShortcut(QKeySequence(tr("Ctrl+S")))
-        self.actFindWord = QAction(QIcon(":/images/style_edit.png"), tr("Fin&d word"), self)
-        self.actFindString = QAction(QIcon(":/images/style_edit.png"), tr("Find st&ring"), self)
+        self.actFindWord = QAction(tr("Fin&d word"), self)
+        self.actFindString = QAction(tr("Find st&ring"), self)
         self.actFindString.setShortcut(QKeySequence(tr("F3")))
-        self.actTextRegistry = QAction(QIcon(":/images/style_edit.png"), tr("Te&xt registry"), self)
+        self.actTextRegistry = QAction(tr("Te&xt registry"), self)
         self.actTextRegistry.setShortcut(QKeySequence(tr("Ctrl+Alt+X")))
-        self.actImages =  QAction(QIcon(":/images/style_edit.png"), tr("&Images"), self)
-        self.actSounds =  QAction(QIcon(":/images/style_edit.png"), tr("&Sounds"), self)
-        self.actTemplates = QAction(QIcon(":/images/style_edit.png"), tr("&Templates"), self)
-        self.actCategories = QAction(QIcon(":/images/style_edit.png"), tr("&Categories"), self)
-        self.actTasklists = QAction(QIcon(":/images/style_edit.png"), tr("Tas&klists"), self)
-        self.actOtherRegistries = QAction(QIcon(":/images/style_edit.png"), tr("&Other registries"), self)
-        self.actGotoAncestor = QAction(QIcon(":/images/style_edit.png"), tr("Go to &ancestor"), self)
-        self.actGotoAncestor.setShortcut(QKeySequence(tr("Alt+P")))
-        self.actGotoElement = QAction(QIcon(":/images/style_edit.png"), tr("&Go to element"), self)
+        self.actImages =  QAction(tr("&Images"), self)
+        self.actSounds =  QAction(tr("&Sounds"), self)
+        self.actTemplates = QAction(tr("&Templates"), self)
+        self.actCategories = QAction(tr("&Categories"), self)
+        self.actTasklists = QAction(tr("Tas&klists"), self)
+        self.actOtherRegistries = QAction(tr("&Other registries"), self)
+        self.actFont = QAction(tr("&Font"), self)
+        self.actTranslation = QAction(tr("&Translation"), self)
+        self.actPronunciationByWord = QAction(tr("&Pronunciation by word"), self)
+        self.actPronunciationBySound = QAction(tr("Pronunciation by soun&d"), self)
+        self.actComment = QAction(tr("&Comment"), self)
+        self.actVideo = QAction(tr("&Video"), self)
+        self.actScript = QAction(tr("&Script"), self)
+        self.actProgram = QAction(tr("&OLE Object"), self)
+        self.actGotoAncestor = QAction(tr("Go to &ancestor"), self)
+        self.actGotoElement = QAction(tr("Go to &element"), self)
         self.actGotoElement.setShortcut(QKeySequence(tr("Ctrl+G")))
 
-        # Learn actiosn
+        # Learn actions
         self.actLearnAllStages = QAction(tr("&All stages"), self)
         self.actLearnAllStages.setShortcut(QKeySequence(tr("Ctrl+L")))
-
         self.actLearnOutstanding = QAction(tr("1. &Outstanding material"), self)
         self.actLearnNew = QAction(tr("2. &New material"), self)
         self.actLearnNew.setShortcut(QKeySequence(tr("Ctrl-F2")))
-
         self.actLearnFinalDrill = QAction(tr("3. &Final drill"), self)
         self.actLearnFinalDrill.setShortcut(QKeySequence(tr("Ctrl+F2")))
         self.connect(self.actLearnFinalDrill, SIGNAL("triggered()"), self.on_actFinalDrill_triggered)
-
         self.actReadingList = QAction(tr("&Reading list"), self)
         self.actReadingList.setShortcut(QKeySequence(tr("Shift+Ctrl+F4")))
-
         self.actPostponeTopics = QAction(tr("&Topics"), self)
         self.actPostponeItems = QAction(tr("&Items"), self)
         self.actPostponeAll = QAction(tr("&All"), self)
-
         self.actRandomizeRepetitions = QAction(tr("Randomi&ze repetitions"), self)
         self.actRandomizeRepetitions.setShortcut(QKeySequence("Shift+Ctrl+F11"))
-
         self.actRandomLearning = QAction(tr("Ran&dom learning"), self)
         self.actRandomLearning.setShortcut(QKeySequence("Ctrl+F11"))
-
         self.actCutDrills = QAction("&Cut drills", self)
 
         # View actions
-        self.actAll = QAction(QIcon(":/images/style_edit.png"), tr("&All"), self)
-        self.actOutstanding = QAction(QIcon(":/images/style_edit.png"), tr("&Outstanding"), self)
-        self.actMemorized = QAction(QIcon(":/images/package_link.png"), tr("&Memorized"), self)
-        self.actPending = QAction(QIcon(":/images/world_add.png"), tr("&Pending"), self)
-        self.actDismissed = QAction(QIcon(":/images/style_edit.png"), tr("&Dismissed"), self)
-        self.actTopic = QAction(QIcon(":/images/style_edit.png"), tr("&Topic"), self)
-        self.actItems = QAction(QIcon(":/images/clock_stop.png"), tr("&Items"), self)
-        self.actTasks = QAction(QIcon(":/images/style_edit.png"), tr("Ta&ks"), self)
-        self.actLastBrowser = QAction(QIcon(":/images/style_edit.png"), tr("&Last browser"), self)
-        self.actSearchResults = QAction(QIcon(":/images/style_edit.png"), tr("&Search results"), self)
-        self.actSubset = QAction(QIcon(":/images/clock_pause.png"), tr("S&ubset"), self)
-        self.actFilter = QAction(QIcon(":/images/style_edit.png"), tr("&Filter"), self)
-        self.actLeeches  = QAction(QIcon(":/images/chart_pie.png"), tr("&Leeches"), self)
+        self.actAll = QAction(tr("&All"), self)
+        self.actOutstanding = QAction(tr("&Outstanding"), self)
+        self.actMemorized = QAction(tr("&Memorized"), self)
+        self.actPending = QAction(tr("&Pending"), self)
+        self.actDismissed = QAction(tr("&Dismissed"), self)
+        self.actTopic = QAction(tr("&Topic"), self)
+        self.actItems = QAction(tr("&Items"), self)
+        self.actTasks = QAction(tr("Ta&ks"), self)
+        self.actLastBrowser = QAction(tr("&Last browser"), self)
+        self.actSearchResults = QAction(tr("&Search results"), self)
+        self.actSubset = QAction(tr("S&ubset"), self)
+        self.actFilter = QAction(tr("&Filter"), self)
+        self.actLeeches  = QAction(tr("&Leeches"), self)
         self.actLeeches.setShortcut(QKeySequence("Shift+F3"))
-        self.actSemiLeeches = QAction(QIcon(":/images/style_edit.png"), tr("&Semi-leeches"), self)
-        self.actDrill = QAction(QIcon(":/images/style_edit.png"), tr("&Drill"), self)
-        self.actRange = QAction(QIcon(":/images/script_palette.png"), tr("&Range"), self)
-        self.actHistory = QAction(QIcon(":/images/style_edit.png"), tr("&History"), self)
-        self.actBranch = QAction(QIcon(":/images/telephone_link.png"), tr("&Branch"), self)
+        self.actSemiLeeches = QAction(tr("&Semi-leeches"), self)
+        self.actDrill = QAction(tr("&Drill"), self)
+        self.actRange = QAction(tr("&Range"), self)
+        self.actHistory = QAction(tr("&History"), self)
+        self.actBranch = QAction(tr("&Branch"), self)
+        # Tools actions
+        self.actWorkload = QAction(tr("&Workload"), self)
+        self.actWorkload.setShortcut(QKeySequence("Ctrl+W"))
+        self.actPlan = QAction(tr("&Plan"), self)
+        self.actWorkload.setShortcut(QKeySequence("Ctrl+P"))
+        self.actMercy = QAction(tr("&Mercy"), self)
+        self.actMercy.setShortcut(QKeySequence("Ctrl+Y"))
+        self.actTasklist = QAction(tr("&Tasklist"), self)
+        self.actTasklist.setShortcut(QKeySequence("F4"))
+        self.actReadingList = QAction(tr("&Reading list"), self)
+        self.actReadingList.setShortcut(QKeySequence(tr("Ctrl+F4")))
+        self.actStatistics = QAction(tr("S&tatistics"), self)
+        self.actElementData = QAction(tr("&Element data"), self)
+        self.actAnalysis = QAction(tr("&Analysis"), self)
+        self.actAnalysis.setShortcut(QKeySequence(tr("Ctrl+Alt+I")))
+        self.actSimulation = QAction(tr("&Simulation"), self)
+        self.actReport = QAction(tr("&Report"), self)
+        self.actRandomizeDrill = QAction(tr("&Drill"), self)
+        self.actRandomizePending = QAction(tr("&Pending"), self)
+        self.actRandomTest = QAction(tr("&Resume test"), self)
+        self.actRandomAll = QAction(tr("&All"), self)
+        self.actRandomAll.setShortcut(QKeySequence(tr("Alt+F11")))
+        self.actRandomPending = QAction(tr("&Pending"), self)
+        self.actRandomMemorized = QAction(tr("&Memorized"), self)
+        self.actRandomDismissed = QAction(tr("&Dismissed"), self)
+        self.actRandomTopics = QAction(tr("&Topics"), self)
+        self.actRandomItems = QAction(tr("&Items"), self)
+        self.actRandomFilter = QAction(tr("&Filter"), self)
+        self.actRandomLeeches = QAction(tr("&Leeches"), self)
+        self.actRandomSubset = QAction(tr("&Subset"), self)
+        self.actRandomBranch = QAction(tr("&Branch"), self)
+        self.actOptions = QAction(tr("&Options"), self)
+        self.actOptions.setShortcut(tr("Ctrl+Alt+O"))
+        self.connect(self.actOptions, SIGNAL("triggered()"), self.on_actOptions_triggered)
+
+
+        # Window actions
+        self.actDock = QAction(tr("&Dock"), self)
+        self.actToolbarRead = QAction(tr("&Read"), self)
+        self.actToolbarCompose = QAction("&Compose", self)
+        self.actToolbarFormat = QAction("&Format", self)
+        self.actToolbarTime = QAction("&Time", self)
+        self.actToolbarActions = QAction("&Actions", self)
+        self.actDockToolbars = QAction("&Dock toolbars", self)
+        self.actStatusBar = QAction(tr("&Status bar"), self)
+        self.actBackground = QAction(tr("&Background"), self)
+        self.actBackground.setShortcut(QKeySequence(tr("Ctrl+Alt+F10")))
+        self.actHints = QAction(tr("H&ints"), self)
+        self.actSelectCategory = QAction(tr("&Category"), self)
+        self.actSelectCategory.setShortcut(QKeySequence(tr("Ctrl+Alt+C")))
+        self.actSelectTasklist = QAction(tr("&Tasklist"), self)
+        self.actSelectTasklist.setShortcut(QKeySequence(tr("Ctrl+Alt+T")))
+        self.actSelectNextWindow = QAction(tr("&Next window"), self)
+        self.actSelectNextWindow.setShortcut(QKeySequence(tr("Ctrl+F6")))
+        self.actLayoutManager = QAction(tr("&Layout Manager"), self)
+        self.actApplyDefaultLayout = QAction(tr("&Apply default layout"), self)
+        self.actClassLayout = QAction(tr("&Class layout"), self)
+        self.actClassLayout.setShortcut(QKeySequence(tr("F5")))
+        self.actSaveCustomLayout = QAction(tr("&Save custom layout"), self)
+        self.actSaveAsDefault = QAction(tr("Sa&ve as default"), self)
+        self.actSaveAsDefault.setShortcut(QKeySequence(tr("Shift+Ctrl+F5")))
+        self.actBackgroundColor = QAction(tr("&Background color"), self)
+        self.actLayoutLastUsed = QAction(tr("Last used"), self)
+        self.actLayoutContents = QAction(tr("Contents"), self)
+        self.actLayoutClassic = QAction(tr("Classic"), self)
+        self.actLayoutBrowser = QAction(tr("Browser"), self)
 
         # Help actions
-        self.actWelcome = QAction(QIcon(":/images/script_palette.png"), tr("&Welcome - ABC"), self)
-        self.actGuide = QAction(QIcon(":/images/script_palette.png"), tr("&Guide"), self)
-        self.actTroubleshooter = QAction(QIcon(":/images/script_palette.png"), tr("&Troubleshooter"), self)
-        self.actFaq = QAction(QIcon(":/images/script_palette.png"), tr("&FAQ"), self)
-        self.actHintsAndTips = QAction(QIcon(":/images/script_palette.png"), tr("&Hints and tips"), self)
-        self.actContext = QAction(QIcon(":/images/script_palette.png"), tr("C&ontext F1"), self)
+        self.actWelcome = QAction(tr("&Welcome - ABC"), self)
+        self.actGuide = QAction(tr("&Guide"), self)
+        self.actTroubleshooter = QAction(tr("&Troubleshooter"), self)
+        self.actFaq = QAction(tr("&FAQ"), self)
+        self.actHintsAndTips = QAction(tr("&Hints and tips"), self)
+        self.actContext = QAction(tr("C&ontext F1"), self)
         self.actContext.setShortcut(QKeySequence("F1"))
-        self.actOnlineHelp = QAction(QIcon(":/images/script_palette.png"), tr("&On-line help"), self)
-        self.actNews = QAction(QIcon(":/images/script_palette.png"), tr("&News"), self)
-        self.actWebFaq = QAction(QIcon(":/images/script_palette.png"), tr("&FAQ"), self)
-        self.actLibrary = QAction(QIcon(":/images/script_palette.png"), tr("SuperMemo &Library"), self)
-        self.actSupport = QAction(QIcon(":/images/script_palette.png"), tr("&Support"), self)
-        self.actBugReport = QAction(QIcon(":/images/script_palette.png"), tr("&Bug report"), self)
-        self.actQuestionnaire = QAction(QIcon(":/images/script_palette.png"), tr("&Questionnaire"), self)
-        self.actRecommended = QAction(QIcon(":/images/script_palette.png"), tr("&Recommended SuperMemo"), self)
-        self.actQuestionOfDay = QAction(QIcon(":/images/script_palette.png"), tr("&Question of the Day"), self)
-        self.actAbout = QAction(QIcon(":/images/script_palette.png"), tr("&About"), self)
+        self.actOnlineHelp = QAction(tr("&On-line help"), self)
+        self.actNews = QAction(tr("&News"), self)
+        self.actWebFaq = QAction(tr("&FAQ"), self)
+        self.actLibrary = QAction(tr("SuperMemo &Library"), self)
+        self.actSupport = QAction(tr("&Support"), self)
+        self.actBugReport = QAction(tr("&Bug report"), self)
+        self.actQuestionnaire = QAction(tr("&Questionnaire"), self)
+        self.actRecommended = QAction(tr("&Recommended SuperMemo"), self)
+        self.actQuestionOfDay = QAction(tr("&Question of the Day"), self)
+        self.actAbout = QAction(tr("&About"), self)
         self.actAbout.setStatusTip(tr("Show the program and author information"))
 
         self.connect(self.actAbout, SIGNAL("triggered()"), self.on_actAbout_triggered)
@@ -488,14 +541,11 @@ class MainWindow(QMainWindow):
         mnuFile.addAction(self.actOpen)
         mnuFile.addAction(self.actClose)
         mnuFile.addSeparator()
-
         mnuFile.addAction(self.actCopy)
         mnuFile.addAction(self.actDelete)
         mnuFile.addAction(self.actRepair)
         mnuFile.addAction(self.actMerge)
-
         mnuFile.addSeparator()
-
         mnuImport = mnuFile.addMenu(tr("Import"))
         mnuImport.addAction(self.actImportQA)
         mnuImport.addAction(self.actImportXML)
@@ -506,15 +556,11 @@ class MainWindow(QMainWindow):
         mnuExport.addAction(self.actExportXML)
         mnuExport.addAction(self.actExportProbe)
         mnuExport.addAction(self.actExportSuperMemo)
-
         mnuFile.addSeparator()
-
         mnuFile.addAction(self.actProperties)
-
         mnuFile.addSeparator()
         for act in self.actRecentFiles:
             mnuFile.addAction(act)
-
         mnuFile.addSeparator()
         mnuFile.addAction(self.actExit)
 
@@ -549,13 +595,23 @@ class MainWindow(QMainWindow):
         mnuSearch.addAction(self.actCategories)
         mnuSearch.addAction(self.actTasklists)
         mnuSearchOtherReg = mnuSearch.addMenu(tr("&Other registries"))
+        mnuSearchOtherReg.addAction(self.actFont)
+        mnuSearchOtherReg.addSeparator()
+        mnuSearchOtherReg.addAction(self.actTranslation)
+        mnuSearchOtherReg.addAction(self.actPronunciationByWord)
+        mnuSearchOtherReg.addAction(self.actPronunciationBySound)
+        mnuSearchOtherReg.addAction(self.actComment)
+        mnuSearchOtherReg.addSeparator()
+        mnuSearchOtherReg.addAction(self.actVideo)
+        mnuSearchOtherReg.addAction(self.actScript)
+        mnuSearchOtherReg.addAction(self.actProgram)
         mnuSearch.addSeparator()
         mnuSearch.addAction(self.actGotoAncestor)
         mnuSearch.addAction(self.actGotoElement)
 
+
         # Learn menu
         mnuLearn = self.menuBar().addMenu(tr("&Learn"))
-
         mnuLearn.addAction(self.actLearnAllStages)
         mnuLearnSelected = mnuLearn.addMenu(tr("&Selected stages"))
         mnuLearnSelected.addAction(self.actLearnOutstanding)
@@ -575,7 +631,6 @@ class MainWindow(QMainWindow):
 
         # View menu
         mnuView = self.menuBar().addMenu(tr("&View"))
-
         mnuView.addAction(self.actAll)
         mnuView.addAction(self.actOutstanding)
         mnuView.addSeparator()
@@ -603,27 +658,73 @@ class MainWindow(QMainWindow):
 
         # Tools mehu
         mnuTools = self.menuBar().addMenu(tr("T&ools"))
-        actWorkload = mnuTools.addAction(tr("&Workload"))
-        actWorkload.setShortcut(QKeySequence(tr("Ctrl+W")))
-        actPlan = mnuTools.addAction(tr("&Plan"))
-        actPlan.setShortcut(QKeySequence(tr("Ctrl+P")))
-        actMercy = mnuTools.addAction(tr("&Mercy"))
-        actMercy.setShortcut(QKeySequence(tr("Ctrl+Y")))
-        actTasklist = mnuTools.addAction(tr("&Tasklist"))
-        actTasklist.setShortcut(QKeySequence(tr("F4")))
-        actReadingList = mnuTools.addAction(tr("&Reading list"))
-        actReadingList.setShortcut(QKeySequence(tr("Ctrl+F4")))
-        actStatistics = mnuTools.addAction(tr("&Statistics"))
+        mnuTools.addAction(self.actWorkload)
+        mnuTools.addAction(self.actPlan)
+        mnuTools.addAction(self.actMercy)
+        mnuTools.addAction(self.actTasklist)
+        mnuTools.addAction(self.actReadingList)
+        mnuStatistics = mnuTools.addMenu(tr("&Statistics"))
+        mnuStatistics.addAction(self.actStatistics)
+        mnuStatistics.addAction(self.actElementData)
+        mnuStatistics.addAction(self.actAnalysis)
+        mnuStatistics.addAction(self.actSimulation)
+        mnuStatistics.addAction(self.actReport)
+        mnuRandomize = mnuTools.addMenu(tr("&Randomize"))
+        mnuRandomize.addAction(self.actRandomizeDrill)
+        mnuRandomize.addAction(self.actRandomizePending)
+        mnuRandom = mnuTools.addMenu(tr("R&andom test"))
+        mnuRandom.addAction(self.actRandomTest)
+        mnuRandom.addSeparator()
+        mnuRandom.addAction(self.actRandomAll)
+        mnuRandom.addAction(self.actRandomPending)
+        mnuRandom.addAction(self.actRandomMemorized)
+        mnuRandom.addAction(self.actRandomDismissed)
+        mnuRandom.addSeparator()
+        mnuRandom.addAction(self.actRandomTopics)
+        mnuRandom.addAction(self.actRandomItems)
+        mnuRandom.addSeparator()
+        mnuRandom.addAction(self.actRandomFilter)
+        mnuRandom.addAction(self.actRandomLeeches)
+        mnuRandom.addSeparator()
+        mnuRandom.addAction(self.actRandomSubset)
+        mnuRandom.addSeparator()
+        mnuRandom.addAction(self.actRandomBranch)
         mnuTools.addSeparator()
-        actRandomize = mnuTools.addAction(tr("Randomi&ze"))
-        actRandomTest = mnuTools.addAction(tr("R&andom test"))
-        actRandomReview = mnuTools.addAction(tr("Ra&ndom review"))
-        mnuTools.addSeparator()
-        actOptions = mnuTools.addAction(tr("&Options..."))
-        actOptions.setShortcut(QKeySequence("Ctrl+Alt+O"))
+        mnuTools.addAction(self.actOptions)
 
         # Window menu
         mnuWindow = self.menuBar().addMenu(tr("&Window"))
+        mnuWindow.addAction(self.actDock)
+        mnuToolbars = mnuWindow.addMenu(tr("&Toolbars"))
+        mnuToolbars.addAction(self.actToolbarRead)
+        mnuToolbars.addAction(self.actToolbarCompose)
+        mnuToolbars.addAction(self.actToolbarFormat)
+        mnuToolbars.addAction(self.actToolbarTime)
+        mnuToolbars.addAction(self.actToolbarActions)
+        mnuToolbars.addSeparator()
+        mnuToolbars.addAction(self.actDockToolbars)
+        mnuWindow.addAction(self.actStatusBar)
+        mnuWindow.addAction(self.actBackground)
+        mnuWindow.addAction(self.actHints)
+        mnuSelect = mnuWindow.addMenu(tr("S&elect"))
+        mnuSelect.addAction(self.actSelectCategory)
+        mnuSelect.addAction(self.actSelectTasklist)
+        mnuSelect.addAction(self.actSelectNextWindow)
+        mnuLayout = mnuWindow.addMenu(tr("&Layout"))
+        mnuLayout.addAction(self.actLayoutManager)
+        mnuLayout.addSeparator()
+        mnuLayout.addAction(self.actApplyDefaultLayout)
+        mnuLayout.addAction(self.actClassLayout)
+        mnuLayout.addSeparator()
+        mnuLayout.addAction(self.actSaveCustomLayout)
+        mnuLayout.addAction(self.actSaveAsDefault)
+        mnuLayout.addSeparator()
+        mnuLayout.addAction(self.actBackgroundColor)
+        mnuWindow.addSeparator()
+        mnuWindow.addAction(self.actLayoutLastUsed)
+        mnuWindow.addAction(self.actLayoutContents)
+        mnuWindow.addAction(self.actLayoutClassic)
+        mnuWindow.addAction(self.actLayoutBrowser)
 
 
         # Help menu
@@ -655,16 +756,12 @@ class MainWindow(QMainWindow):
     def createToolbars(self):
         # File toolbar
         tbFile = self.addToolBar(tr("File"))
-
         tbFile.addAction(self.actAbout)
         tbFile.addAction(self.actNew)
         tbFile.addAction(self.actExit)
-
         tbFile.addAction(self.actNewItem)
         tbFile.addAction(self.actNewArticle)
         tbFile.addAction(self.actNewTask)
-
-
         tbFile.addAction(self.actMemorized)
         tbFile.addAction(self.actPending)
         tbFile.addAction(self.actDismissed)
@@ -672,7 +769,7 @@ class MainWindow(QMainWindow):
         tbFile.addAction(self.actLastBrowser)
         tbFile.addAction(self.actSubset)
         tbFile.addAction(self.actLeeches)
-
+        tbFile.setVisible(False)
 
         # Other toolbar
         tbView = self.addToolBar(tr("View"))
@@ -682,6 +779,7 @@ class MainWindow(QMainWindow):
         tbView.addAction(self.actRange)
         tbView.addAction(self.actHistory)
         tbView.addAction(self.actBranch)
+        tbView.setVisible(False)
 
 
 
@@ -847,6 +945,10 @@ class MainWindow(QMainWindow):
     def on_actExportProbe_triggered(self):
         pass
 
+
+    def on_actOptions_triggered(self):
+        pass
+
     def on_actRecentFiles_triggered(self):
         self._openPackFile(self.sender().text())
 
@@ -886,7 +988,7 @@ class MainWindow(QMainWindow):
             selectedIndex = QModelIndex()
         # if is changed then update list view and card model
         if current != selectedIndex:
-            selection.setCurrentIndex(current, QItemSelectionModel.Current)
+            selection.setCurrentIndex(current, QItemSelectionModel.SelectCurrent)
 
 
     def btnAdd_clicked(self):
