@@ -33,6 +33,7 @@ __version__ = release.version
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from utils_qt import tr
+from utils import log
 
 
 # main gui parts
@@ -48,6 +49,13 @@ class MyTextEdit(QTextEdit):
 
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Tab:
+            self.emit(SIGNAL('tabPressed()'))
+            event.accept()
+        else:
+            QTextEdit.keyPressEvent(self, event)
 
     def focusOutEvent(self, event):
         QTextEdit.focusOutEvent(self, event)
@@ -171,6 +179,9 @@ class CardMainView(AbstractCardView):
         self.txtAnswer.setMinimumHeight(100)
         self.lblAnswer.setBuddy(self.txtAnswer)
 
+        self.connect(self.txtAnswer, SIGNAL('tabPressed()'), self.on_txtAnswer_tabPressed)
+        self.connect(self.txtQuestion, SIGNAL('tabPressed()'), self.on_txtQuestion_tabPressed)
+
         self.connect(self.txtAnswer, SIGNAL('textChanged()'), self.txtAnswer_textChanged)
         self.connect(self.txtQuestion, SIGNAL('textChanged()'), self.txtQuestion_textChanged)
         self.connect(self.txtAnswer, SIGNAL('focusLost()'), self.saveChanges)
@@ -213,6 +224,11 @@ class CardMainView(AbstractCardView):
             self.txtAnswer.setEnabled(False)
         self._updatingView = False
 
+    def on_txtAnswer_tabPressed(self):
+        self.txtQuestion.setFocus(Qt.TabFocusReason)
+
+    def on_txtQuestion_tabPressed(self):
+        self.txtAnswer.setFocus(Qt.TabFocusReason)
 
     def txtAnswer_focusLost(self):
         if self._dirty:
