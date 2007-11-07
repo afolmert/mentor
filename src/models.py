@@ -65,6 +65,7 @@ class CardModel(QAbstractItemModel):
         # ^ self.emit(SIGNAL('modelReset()'))
 
     def close(self):
+        self.emit(SIGNAL('modelAboutToBeReset()'))
         self.cardDb.close()
         self.reset()
 
@@ -248,6 +249,7 @@ class CardModel(QAbstractItemModel):
         """Import cards from given question&answer file.
         @param file can be file name or file like object
         """
+        self.emit(SIGNAL('modelAboutToBeReset()'))
         self._checkActive()
         if isstring(file):
             file = open(file, 'rt')

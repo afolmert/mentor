@@ -84,6 +84,11 @@ class AbstractCardView(QAbstractItemView):
             self._updateView(self.model(), current)
 
 
+    def setModel(self, model):
+        QAbstractItemView.setModel(self, model)
+        self.connect(model, SIGNAL('modelAboutToBeReset()'), self.saveChanges)
+
+
     def dataChanged(self, index):
         # TODO do this only if index is the one as currently used
         # TODO how to check whether this is the model
