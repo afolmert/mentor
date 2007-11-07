@@ -176,7 +176,8 @@ class MainWindow(QMainWindow):
 
         self.connect(qApp, SIGNAL('aboutToQuit()'), self.qApp_aboutToQuit)
 
-        self._windowEntered = False
+        QTimer.singleShot(0, self._openRecentFile)
+
 
 
     def createCentralWidget(self):
@@ -247,6 +248,8 @@ class MainWindow(QMainWindow):
         self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardMainView.currentChanged)
         self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardSourceView.currentChanged)
         self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardDetailView.currentChanged)
+
+
 
 
     def cardModel(self):
@@ -842,16 +845,6 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(tr("Ready."))
 
 
-    def enterEvent(self, event):
-        # on first show, open file from config files
-        if not self._windowEntered:
-            self._refreshAppState()
-            if config.get_most_recent_file():
-                self._openPackFile(config.get_most_recent_file())
-            self._refreshAppState()
-
-        self._windowEntered = True
-
 
 
     def _refreshAppState(self):
@@ -925,6 +918,12 @@ class MainWindow(QMainWindow):
             self._refreshAppState()
             if problem:
                 show_info('Problem creating a new pack file %s.' % fname)
+
+
+    def _openRecentFile(self):
+        if config.get_most_recent_file():
+            self._openPackFile(config.get_most_recent_file())
+        self._refreshAppState()
 
 
     def qApp_aboutToQuit(self):
