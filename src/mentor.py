@@ -226,43 +226,6 @@ class MainWindow(QMainWindow):
 
 
         ##########################
-        # buttons widget
-        self.buttons = QWidget(self)
-
-        self.btnMoveUp = QPushButton("Up")
-        self.btnMoveDown = QPushButton("Down")
-        self.btnShowSelection = QPushButton("Show selection")
-        self.btnAdd = QPushButton("Add")
-        self.btnDelete = QPushButton("Delete")
-        self.btnLoad = QPushButton("Load...")
-
-        # todo move this to actions
-        self.connect(self.btnAdd, SIGNAL("clicked()"), self.btnAdd_clicked)
-        self.connect(self.btnDelete, SIGNAL("clicked()"), self.btnDelete_clicked)
-        self.connect(self.btnLoad, SIGNAL("clicked()"), self.btnLoad_clicked)
-        self.connect(self.btnMoveUp, SIGNAL("clicked()"), self.btnMoveUp_clicked)
-        self.connect(self.btnMoveDown, SIGNAL("clicked()"), self.btnMoveDown_clicked)
-        self.connect(self.btnShowSelection, SIGNAL("clicked()"), self.btnShowSelection_clicked)
-
-        buttonsLayout = QVBoxLayout()
-
-        buttonsLayout.addWidget(self.btnMoveUp)
-        buttonsLayout.addWidget(self.btnMoveDown)
-        buttonsLayout.addWidget(self.btnShowSelection)
-        buttonsLayout.addWidget(self.btnAdd)
-        buttonsLayout.addWidget(self.btnDelete)
-        buttonsLayout.addWidget(self.btnLoad)
-
-
-        self.buttons.setLayout(buttonsLayout)
-
-
-        dock = QDockWidget('Buttons', self)
-        dock.setWidget(self.buttons)
-
-        self.addDockWidget(Qt.RightDockWidgetArea, dock)
-
-        ##########################
         # connecting
         # FIXME connecting these 4 times cause sometimes I don't get proper
         # messages
@@ -367,6 +330,65 @@ class MainWindow(QMainWindow):
         self.connect(self.actExit, SIGNAL("triggered()"), qApp, SLOT("quit()"))
 
         # Edit actions
+        self.actUndo = QAction(tr("&Undo"), self)
+        self.actUndo.setShortcut(QKeySequence(tr("Ctrl+Z")))
+        self.actRedo = QAction(tr("Re&do"), self)
+        self.actRedo.setShortcut(QKeySequence(tr("Ctrl+Y")))
+        self.actCut = QAction(tr("Cu&t"), self)
+        self.actCut.setShortcut(QKeySequence(tr("Ctrl+X")))
+        self.actCopy = QAction(tr("&Copy"), self)
+        self.actUndo.setShortcut(QKeySequence(tr("Ctrl+C")))
+        self.actPaste = QAction(tr("&Paste"), self)
+        self.actPaste.setShortcut(QKeySequence(tr("Ctrl+V")))
+        self.actCutAppend = QAction(tr("Cut and append"), self)
+        self.actCutAppend.setShortcut(QKeySequence(tr("Ctrl+Shift+X")))
+        self.actCopyAppend = QAction(tr("Copy and append"), self)
+        self.actCopyAppend.setShortcut(QKeySequence(tr("Ctrl+Shift+C")))
+        self.actSelectAll = QAction(tr("Select &all"), self)
+        self.actSelectAll.setShortcut(QKeySequence(tr("Ctrl+A")))
+        self.actSelectLine = QAction(tr("Select &line"), self)
+        self.actSelectWord = QAction(tr("Select &word"), self)
+        self.actSelectWord.setShortcut(QKeySequence(tr("Ctrl+J")))
+        self.actDelete = QAction(tr("&Delete"), self)
+        self.actDelete.setShortcut(QKeySequence(tr("DEL")))
+        self.actDeleteLine = QAction(tr("&Delete &line"), self)
+        self.actDeleteLine.setShortcut(QKeySequence(tr("Ctrl+E")))
+        self.actDeleteToStartLine = QAction(tr("Delete to &start of line"), self)
+        self.actDeleteToStartLine.setShortcut(QKeySequence(tr("Ctrl+F11")))
+        self.actDeleteToEndLine = QAction(tr("Delete to &end of line"), self)
+        self.actDeleteToEndLine.setShortcut(QKeySequence(tr("Ctrl+F12")))
+
+
+
+        # Cards actions
+        self.actFirstCard = QAction(tr("&First"), self)
+        self.actFirstCard.setShortcut(QKeySequence("Shift+Ctrl+PgUp"))
+        self.connect(self.actFirstCard, SIGNAL("triggered()"), self.on_actFirstCard_triggered)
+        self.actPreviousCard = QAction(tr("&Previous"), self)
+        self.actPreviousCard.setShortcut(QKeySequence("Ctrl+PgUp"))
+        self.connect(self.actPreviousCard, SIGNAL("triggered()"), self.on_actPreviousCard_triggered)
+        self.actNextCard = QAction(tr("&Next"), self)
+        self.actNextCard.setShortcut(QKeySequence("Ctrl+PgDown"))
+        self.connect(self.actNextCard, SIGNAL("triggered()"), self.on_actNextCard_triggered)
+        self.actLastCard = QAction(tr("&Last"), self)
+        self.actLastCard.setShortcut(QKeySequence("Shift+Ctrl+PgDown"))
+        self.connect(self.actLastCard, SIGNAL("triggered()"), self.on_actLastCard_triggered)
+
+        self.actAddCard = QAction(tr("&Add"), self)
+        self.actAddCard.setShortcut(QKeySequence(tr("Ctrl+N")))
+        self.connect(self.actAddCard, SIGNAL("triggered()"), self.on_actAddCard_triggered)
+        self.actInsertCard = QAction(tr("&Insert"), self)
+        self.actInsertCard.setShortcut(QKeySequence(tr("Ctrl+Ins")))
+        self.connect(self.actInsertCard, SIGNAL("triggered()"), self.on_actInsertCard_triggered)
+        self.actDeleteCard = QAction(tr("&Delete"), self)
+        self.actDeleteCard.setShortcut(QKeySequence(tr("Ctrl+Del")))
+        self.connect(self.actDeleteCard, SIGNAL("triggered()"), self.on_actDeleteCard_triggered)
+
+        self.actSort = QAction(tr("&Sort..."), self)
+        self.actFilter = QAction(tr("&Filter..."), self)
+
+        #  Cards action -> from Edit/SuperMemo
+
         self.actNewItem = QAction(tr("Add a new i&tem"), self)
         self.actNewItem.setShortcut(QKeySequence(tr("Alt+A")))
         self.actNewArticle = QAction(tr("Add a new &article"), self)
@@ -434,7 +456,7 @@ class MainWindow(QMainWindow):
         self.actLastBrowser = QAction(tr("&Last browser"), self)
         self.actSearchResults = QAction(tr("&Search results"), self)
         self.actSubset = QAction(tr("S&ubset"), self)
-        self.actFilter = QAction(tr("&Filter"), self)
+        self.actFilter = QAction(tr("&Filter..."), self)
         self.actLeeches  = QAction(tr("&Leeches"), self)
         self.actLeeches.setShortcut(QKeySequence("Shift+F3"))
         self.actSemiLeeches = QAction(tr("&Semi-leeches"), self)
@@ -442,6 +464,7 @@ class MainWindow(QMainWindow):
         self.actRange = QAction(tr("&Range"), self)
         self.actHistory = QAction(tr("&History"), self)
         self.actBranch = QAction(tr("&Branch"), self)
+
         # Tools actions
         self.actWorkload = QAction(tr("&Workload"), self)
         self.actWorkload.setShortcut(QKeySequence("Ctrl+W"))
@@ -564,21 +587,53 @@ class MainWindow(QMainWindow):
         mnuFile.addSeparator()
         mnuFile.addAction(self.actExit)
 
-        # Edit menu
+        # Menu Edit
         mnuEdit = self.menuBar().addMenu(tr("&Edit"))
-        mnuEdit.addAction(self.actNewItem)
-        mnuEdit.addAction(self.actNewArticle)
-        mnuEdit.addAction(self.actNewTask)
+        mnuEdit.addAction(self.actUndo)
+        mnuEdit.addAction(self.actRedo)
         mnuEdit.addSeparator()
-        actImportWeb = mnuEdit.addAction(tr("Import &web pages"))
+        mnuEdit.addAction(self.actCut)
+        mnuEdit.addAction(self.actCopy)
+        mnuEdit.addAction(self.actPaste)
+        mnuEdit.addAction(self.actCutAppend)
+        mnuEdit.addAction(self.actCopyAppend)
+        mnuEdit.addSeparator()
+        mnuEdit.addAction(self.actSelectAll)
+        mnuEdit.addAction(self.actSelectLine)
+        mnuEdit.addAction(self.actSelectWord)
+        mnuEdit.addSeparator()
+        mnuEdit.addAction(self.actDelete)
+        mnuEdit.addAction(self.actDeleteLine)
+        mnuEdit.addAction(self.actDeleteToStartLine)
+        mnuEdit.addAction(self.actDeleteToEndLine)
+
+        # Cards menu
+        mnuCards = self.menuBar().addMenu(tr("&Cards"))
+        mnuCards.addAction(self.actFirstCard)
+        mnuCards.addAction(self.actPreviousCard)
+        mnuCards.addAction(self.actNextCard)
+        mnuCards.addAction(self.actLastCard)
+        mnuCards.addSeparator()
+        mnuCards.addAction(self.actAddCard)
+        mnuCards.addAction(self.actInsertCard)
+        mnuCards.addAction(self.actDeleteCard)
+        mnuCards.addSeparator()
+        mnuCards.addAction(self.actSort)
+        mnuCards.addAction(self.actFilter)
+        mnuCards.addSeparator()
+        mnuCards.addAction(self.actNewItem)
+        mnuCards.addAction(self.actNewArticle)
+        mnuCards.addAction(self.actNewTask)
+        mnuCards.addSeparator()
+        actImportWeb = mnuCards.addAction(tr("Import &web pages"))
         actImportWeb.setShortcut(QKeySequence("Shift+F8"))
-        mnuEdit.addSeparator()
-        actAddToCategory = mnuEdit.addAction(tr("Add &to category"))
-        actAddToReading = mnuEdit.addAction(tr("Add to &reading list"))
-        actAddToTasklist = mnuEdit.addAction(tr("Add to ta&sklist"))
-        mnuEdit.addSeparator()
-        actCreateCategory = mnuEdit.addAction(tr("Create &category"))
-        actCreateTasklist = mnuEdit.addAction(tr("Create &tasklist"))
+        mnuCards.addSeparator()
+        actAddToCategory = mnuCards.addAction(tr("Add &to category"))
+        actAddToReading = mnuCards.addAction(tr("Add to &reading list"))
+        actAddToTasklist = mnuCards.addAction(tr("Add to ta&sklist"))
+        mnuCards.addSeparator()
+        actCreateCategory = mnuCards.addAction(tr("Create &category"))
+        actCreateTasklist = mnuCards.addAction(tr("Create &tasklist"))
 
         # Search menu
         mnuSearch = self.menuBar().addMenu(tr("&Search"))
@@ -802,11 +857,11 @@ class MainWindow(QMainWindow):
     def _refreshAppState(self):
         """Sets control active or inactive depending on the database state."""
         # active/inactive actions
-        self.btnAdd.setEnabled(self._cardModel.isActive())
-        self.btnDelete.setEnabled(self._cardModel.isActive())
-        self.btnMoveUp.setEnabled(self._cardModel.isActive())
-        self.btnMoveDown.setEnabled(self._cardModel.isActive())
-        self.btnShowSelection.setEnabled(self._cardModel.isActive())
+        # FIXME why are they not disabled/enabled ?
+        self.actAddCard.setEnabled(self._cardModel.isActive())
+        self.actDeleteCard.setEnabled(self._cardModel.isActive())
+        self.actPreviousCard.setEnabled(self._cardModel.isActive())
+        self.actNextCard.setEnabled(self._cardModel.isActive())
         # window title
         if self._cardModel.isActive():
             basename = os.path.basename(self._cardModel.filepath())
@@ -893,6 +948,51 @@ class MainWindow(QMainWindow):
         self.setCardModelIndex(QModelIndex())
         self.cardModel().close()
         self._refreshAppState()
+
+
+    def on_actFirstCard_triggered(self):
+        pass
+
+    def on_actPreviousCard_triggered(self):
+        """Moves current selection up by 1 row. If no selection is made then
+        selects last item."""
+        # move row up
+        currentIndex = self.cardModelIndex()
+        prevIndex = self._cardModel.getPreviousIndex(currentIndex)
+        self.setCardModelIndex(prevIndex)
+
+    def on_actNextCard_triggered(self):
+        """Moves current selection down by 1 row. If no selection is made then
+        selects first item."""
+        currentIndex = self.cardModelIndex()
+        nextIndex = self.cardModel().getNextIndex(currentIndex)
+        self.setCardModelIndex(nextIndex)
+
+    def on_actLastCard_triggered(self):
+        pass
+
+    def on_actAddCard_triggered(self):
+        self.cardModel().addNewCard()
+        # TODO what if it's not added at the end?
+        newIndex = self.cardModel().index(self.cardModel().rowCount() - 1, 0)
+        # go to newly added record
+        self.setCardModelIndex(newIndex)
+
+
+    def on_actInsertCard_triggered(self):
+        pass
+
+    def on_actDeleteCard_triggered(self):
+        currentIndex = self.cardModelIndex()
+        if currentIndex.isValid():
+            # try to find currently selected row
+            # and go to the same row
+            # if rows are missing then go to last
+            currentRow = currentIndex.row()
+            self.cardModel().deleteCard(currentIndex)
+            # go to new index
+            newIndex = self.cardModel().index(min(currentRow, self.cardModel().rowCount() - 1), 0)
+            self.setCardModelIndex(newIndex)
 
 
     def on_actAbout_triggered(self):
@@ -989,55 +1089,6 @@ class MainWindow(QMainWindow):
         # if is changed then update list view and card model
         if current != selectedIndex:
             selection.setCurrentIndex(current, QItemSelectionModel.SelectCurrent)
-
-
-    def btnAdd_clicked(self):
-        self.cardModel().addNewCard()
-        # TODO what if it's not added at the end?
-        newIndex = self.cardModel().index(self.cardModel().rowCount() - 1, 0)
-        # go to newly added record
-        self.setCardModelIndex(newIndex)
-
-
-    def btnDelete_clicked(self):
-        currentIndex = self.cardModelIndex()
-        if currentIndex.isValid():
-            # try to find currently selected row
-            # and go to the same row
-            # if rows are missing then go to last
-            currentRow = currentIndex.row()
-            self.cardModel().deleteCard(currentIndex)
-            # go to new index
-            newIndex = self.cardModel().index(min(currentRow, self.cardModel().rowCount() - 1), 0)
-            self.setCardModelIndex(newIndex)
-
-
-    def btnLoad_clicked(self):
-        show_info('button load was clicked!')
-
-
-    def btnMoveUp_clicked(self):
-        """Moves current selection up by 1 row. If no selection is made then
-        selects last item."""
-        # move row up
-        currentIndex = self.cardModelIndex()
-        prevIndex = self._cardModel.getPreviousIndex(currentIndex)
-        self.setCardModelIndex(prevIndex)
-
-
-    def btnMoveDown_clicked(self):
-        """Moves current selection down by 1 row. If no selection is made then
-        selects first item."""
-        currentIndex = self.cardModelIndex()
-        nextIndex = self.cardModel().getNextIndex(currentIndex)
-        self.setCardModelIndex(nextIndex)
-
-
-
-    def btnShowSelection_clicked(self):
-        """Displays currenly selected indexes from drill list."""
-        current = self.cardModelIndex()
-        show_info(self.cardModel().data(current).toString())
 
 
 

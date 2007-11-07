@@ -63,26 +63,51 @@ class AbstractCardView(QAbstractItemView):
 
     def __init__(self, parent=None):
         QAbstractItemView.__init__(self, parent)
+        self._dirty = False
         # self.setSelectionModel(QAbstractItemView.SingleSelection)
         # these control what it looks for
 
     def currentChanged(self, current, previous):
         # TODO how to check if two indexes are equal/inequal?
         if current != self.getCurrentIndex():
+            # save pending changes
+            self.saveChanges()
             self.setCurrentIndex(current)
-            self.updateView(self.model(), current)
+            self._updateView(self.model(), current)
 
 
     def dataChanged(self, index):
         # TODO do this only if index is the one as currently used
         # TODO how to check whether this is the model
         if index == self.getCurrentIndex():
-            self.updateView(self.model(), index)
+            self._updateView(self.model(), index)
+
+    def dirty(self):
+        return self._dirty
+
+    def setDirty(self, dirty):
+        self._dirty = dirty
+
+
+    def saveChanges(self):
+        if self.dirty():
+            self._updateModel(self.model(), self.getCurrentIndex())
+        self.setDirty(False)
 
 
     def reset(self):
-        self.updateView(self.model(), self.getCurrentIndex())
+        # what in here ?
+        # the changes will not be saved
+        # external app must call save
+        self._updateView(self.model(), self.getCurrentIndex())
 
+    def _updateModel(self, model, index):
+        # to be overridden
+        pass
+
+    def _updateView(self, model, index):
+        # to be overridden
+        pass
 
     def getCurrentIndex(self):
         """Returns currently selected item"""
@@ -122,7 +147,6 @@ class CardMainView(AbstractCardView):
     """
     def __init__(self, parent=None):
         AbstractCardView.__init__(self, parent)
-        self._dirty = False
         self._updatingView = False
         self._updatingModel = False
 
@@ -149,8 +173,8 @@ class CardMainView(AbstractCardView):
 
         self.connect(self.txtAnswer, SIGNAL('textChanged()'), self.txtAnswer_textChanged)
         self.connect(self.txtQuestion, SIGNAL('textChanged()'), self.txtQuestion_textChanged)
-        self.connect(self.txtAnswer, SIGNAL('focusLost()'), self.txtAnswer_focusLost)
-        self.connect(self.txtQuestion, SIGNAL('focusLost()'), self.txtQuestion_focusLost)
+        self.connect(self.txtAnswer, SIGNAL('focusLost()'), self.saveChanges)
+        self.connect(self.txtQuestion, SIGNAL('focusLost()'), self.saveChanges)
 
         self.splitter.addWidget(self.txtQuestion)
         self.splitter.addWidget(self.txtAnswer)
@@ -165,14 +189,14 @@ class CardMainView(AbstractCardView):
 
         self.setLayout(layout)
 
-    def updateModel(self, model, index):
+    def _updateModel(self, model, index):
         self._updatingModel = True
         if index:
             model.updateCard(index, \
                 self.txtQuestion.toPlainText(), self.txtAnswer.toPlainText())
         self._updatingModel = False
 
-    def updateView(self, model, index):
+    def _updateView(self, model, index):
         self._updatingView = True
         try:
             assert index and index.isValid(), "Invalid card model"
@@ -192,19 +216,19 @@ class CardMainView(AbstractCardView):
 
     def txtAnswer_focusLost(self):
         if self._dirty:
-            self.updateModel(self.model(), self.getCurrentIndex())
+            self._updateModel(self.model(), self.getCurrentIndex())
 
     def txtQuestion_focusLost(self):
         if self._dirty:
-            self.updateModel(self.model(), self.getCurrentIndex())
+            self._updateModel(self.model(), self.getCurrentIndex())
 
     def txtAnswer_textChanged(self):
         if not self._updatingView:
-            self._dirty = True
+            self.setDirty(True)
 
     def txtQuestion_textChanged(self):
         if not self._updatingView:
-            self._dirty = True
+            self.setDirty(True)
 
     # FIXME
     # these functions are not really connected with the model/view thing
@@ -298,7 +322,7 @@ class CardDetailView(AbstractCardView):
         self.setLayout(layout)
 
 
-    def updateView(self, model, index):
+    def _updateView(self, model, index):
         # display information from the current cardModel and cardModelIndex
         self._updatingView = True
         try:
@@ -332,7 +356,7 @@ class CardSourceView(AbstractCardView):
 
         self.setLayout(layout)
 
-    def updateView(self, model, index):
+    def _updateView(self, model, index):
         self._updatingView = True
         try:
             assert index and index.isValid(), "Invalid card model index!"
