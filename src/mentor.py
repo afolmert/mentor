@@ -190,6 +190,8 @@ class MainWindow(QMainWindow):
     def __init__(self, parent = None):
         QMainWindow.__init__(self, parent)
 
+        config.load()
+
         # set up controls
         # items panel
         self._cardModel = CardModel()
@@ -197,8 +199,10 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Mentor")
         self.setWindowIcon(QIcon(QPixmap(":/images/mentor.png")))
+        self.setGeometry(config.GUI_GEOMETRY)
+        if config.GUI_MAXIMIZED:
+            self.setWindowState(Qt.WindowMaximized)
 
-        self.move(50, 50)
         self.createCentralWidget()
         self.createActions()
         self.createMenus()
@@ -848,8 +852,6 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(tr("Ready."))
 
 
-
-
     def _refreshAppState(self):
         """Sets control active or inactive depending on the database state."""
         # active/inactive actions
@@ -930,7 +932,13 @@ class MainWindow(QMainWindow):
 
 
     def qApp_aboutToQuit(self):
+        if self.isMaximized():
+            config.GUI_MAXIMIZED = True
+        else:
+            config.GUI_MAXIMIZED = False
+            config.GUI_GEOMETRY = self.geometry()
         config.save()
+
 
     def on_actNewDeck_triggered(self):
         fileName = QFileDialog.getSaveFileName(self, \
@@ -1101,7 +1109,6 @@ def main():
     # app.setStyle('cde')
 
     w = MainWindow()
-    w.resize(700, 600)
     lazyshow(w)
     app.exec_()
 

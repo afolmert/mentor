@@ -495,11 +495,16 @@ _lazyWidget = None
 def lazyshow(widget):
     """Convenience function for showing windows fully initialized."""
     # must initialize here, because QApplication must be constructed first
-    global _lazyWidget
-    if _lazyWidget is None:
-        _lazyWidget = LazyWidget()
-    _lazyWidget.setWidget(widget)
-    _lazyWidget.show()
+
+    # this works only for not maximized windows
+    if widget.isMaximized():
+        widget.show()
+    else:
+        global _lazyWidget
+        if _lazyWidget is None:
+            _lazyWidget = LazyWidget()
+        _lazyWidget.setWidget(widget)
+        _lazyWidget.show()
 
 
 

@@ -66,11 +66,15 @@ class Config(object):
         self.GUI_RECENTFILES_MAX    = 4
         self.GUI_RECENTFILES        = []
 
+        self.GUI_GEOMETRY           = QRect(100, 100, 400, 400)
+        self.GUI_MAXIMIZED          = False
+
         # override them with user settings
         self._settings = QSettings(QSettings.IniFormat, QSettings.UserScope, 'Mentor', 'mentor')
 
-        self._load_user_settings()
 
+    def load(self):
+        self._load_user_settings()
 
     def save(self):
         self._save_user_settings()
@@ -86,6 +90,10 @@ class Config(object):
         list = self._settings.value('Gui/recent', QVariant(self.GUI_RECENTFILES)).toStringList()
         self.GUI_RECENTFILES = [str(fname) for fname in list[:self.GUI_RECENTFILES_MAX]]
 
+        # geometry'
+        self.GUI_GEOMETRY = self._settings.value('Gui/geometry', QVariant(self.GUI_GEOMETRY)).toRect()
+        self.GUI_MAXIMIZED = self._settings.value('Gui/maximized', QVariant(self.GUI_MAXIMIZED)).toBool()
+
 
     def _save_user_settings(self):
         """Saves user settings to user settings file"""
@@ -93,6 +101,10 @@ class Config(object):
         # save recent files
         self._settings.setValue('Gui/recent_max', QVariant(self.GUI_RECENTFILES_MAX))
         self._settings.setValue('Gui/recent', QVariant(self.GUI_RECENTFILES))
+
+        # geometry
+        self._settings.setValue('Gui/geometry', QVariant(self.GUI_GEOMETRY))
+        self._settings.setValue('Gui/maximized', QVariant(self.GUI_MAXIMIZED))
 
 
     # recent file routines
