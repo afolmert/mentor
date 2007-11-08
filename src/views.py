@@ -265,6 +265,9 @@ class CardMainView(AbstractCardView):
         else:
             self.txtAnswer.setText("")
 
+    def switchAnswer(self):
+        self.txtAnswer.setVisible(not self.txtAnswer.isVisible())
+
 
 
 class CardDetailView(AbstractCardView):
@@ -405,29 +408,66 @@ class CardGridView(QTableView):
         self.setFont(QFont("vt100", 8))
 
 
+class CardSidesView(QListWidget):
+    """This is view for card sides """
+    def __init__(self, parent=None):
+        QListWidget.__init__(self, parent)
+        self.addItem('Side 1')
+        self.addItem('Side 2')
+        self.addItem('Side 3')
+
+        self.setMaximumWidth(50)
+        self.setMaximumHeight(50)
+
+
 
 class CardContentView(QWidget):
 
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 
+        # cardView
         self.cardView = QWidget(self)
-        self.cardMainView = CardMainView(self)
+        self.cardMainView2 = CardMainView(self)
+        self.cardMainView2.setEnabled(False)
         self.cardDetailView = CardDetailView(self)
+        self.cardSidesView = CardSidesView(self)
+
+        topLayout = QHBoxLayout()
+        topLayout.addWidget(self.cardSidesView)
+        topLayout.addWidget(QLabel(r"""This is a preview of the given side of the card.
+        Select specific side on the left in order to see it.
+        Click on the 'Show/hide' button to switch between answer and question view.""", self))
+        self.btnSwitch = QPushButton("Show/hide answer", self)
+        self.connect(self.btnSwitch, SIGNAL('clicked()'), self.cardMainView2.switchAnswer)
+        topLayout.addWidget(self.btnSwitch)
         layout = QVBoxLayout()
-        layout.addWidget(self.cardMainView)
+        layout.addLayout(topLayout)
+        layout.addWidget(self.cardMainView2)
         layout.addWidget(self.cardDetailView)
         self.cardView.setLayout(layout)
 
-        self.cardSourceView = CardSourceView(self)
 
+        # cardEditView
+        self.cardEditView = QWidget(self)
+
+        self.cardMainView = CardMainView(self)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.cardMainView)
+        self.cardEditView.setLayout(layout)
+
+
+        # cardSourceView
+        self.cardSourceView = CardSourceView(self)
 
 
         tab = QTabWidget(self)
         tab.addTab(self.cardView, "Card")
-        tab.addTab(self.cardSourceView, "Source")
-        tab.addTab(QLabel("Here will go template graphical editor (ala SuperMemo designing mode or color scheme editor)", self), "Template")
-        tab.addTab(QLabel("Here will go template source editor (XSL)", self), "Template Source")
+        tab.addTab(self.cardEditView, "Edit card")
+        tab.addTab(self.cardSourceView, "Edit card source")
+        tab.addTab(QLabel("Here will go template graphical editor (ala SuperMemo designing mode or color scheme editor)", self), "Edit template")
+        tab.addTab(QLabel("Here will go template source editor (XSL)", self), "Edit template source")
 
         layout = QVBoxLayout()
         layout.setMargin(0)
@@ -438,12 +478,14 @@ class CardContentView(QWidget):
 
     def setModel(self, model):
         self.cardMainView.setModel(model)
+        self.cardMainView2.setModel(model)
         self.cardSourceView.setModel(model)
         self.cardDetailView.setModel(model)
 
 
     def currentChanged(self, current, previous):
         self.cardMainView.currentChanged(current, previous)
+        self.cardMainView2.currentChanged(current, previous)
         self.cardSourceView.currentChanged(current, previous)
         self.cardDetailView.currentChanged(current, previous)
 
