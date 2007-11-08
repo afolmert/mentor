@@ -61,20 +61,35 @@ from views import CardMainView, CardSourceView, CardDetailView, CardGridView
 import mentor_rc
 
 
-
-
 class DrillWindow(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
 
         self.setWindowTitle('Mentor Drill')
 
-        self.model = DrillModel()
+        self.model = DrillModel(self)
+
         self.currentCard = Card()
 
 
         # card view
         self.cardView = CardMainView()
+
+
+        # card list view
+        self.cardListView = QListView(self)
+        self.cardListView.setModel(self.model)
+        self.cardListView.setMinimumWidth(200)
+        self.cardListView.setFont(QFont("vt100", 8))
+        self.cardListView.setVisible(False)
+
+
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.splitter.addWidget(self.cardView)
+        self.splitter.addWidget(self.cardListView)
+        self.splitter.setSizes([400, 200])
+
 
         # buttons bar
         self.buttons = QWidget(self)
@@ -111,7 +126,7 @@ class DrillWindow(QDialog):
         layout = QVBoxLayout()
         layout.setSpacing(1)
         layout.setMargin(1)
-        layout.addWidget(self.cardView)
+        layout.addWidget(self.splitter)
         layout.addWidget(self.buttons)
         self.setLayout(layout)
 
@@ -151,6 +166,22 @@ class DrillWindow(QDialog):
     def on_btnClose_clicked(self):
         self.close()
 
+    def keyPressEvent(self, event):
+        if event.key == Qt.Key_F8:
+            self.cardListView.setVisible(not self.cardListView.visible())
+            event.accept()
+        else:
+            event.ignore()
+
+    def event(self, event):
+        if isinstance(event, QKeyEvent):
+            if event.key() == Qt.Key_F8:
+                self.cardListView.setVisible(not self.cardListView.isVisible())
+                return True
+            else:
+                return QDialog.event(self, event)
+        else:
+            return QDialog.event(self, event)
 
 
 class MainWindow(QMainWindow):

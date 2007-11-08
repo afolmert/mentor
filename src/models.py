@@ -289,36 +289,89 @@ class CardModel(QAbstractItemModel):
 # Right now it is just a container (stack) for a bunch of cards which get
 # randomized
 
-class DrillModel(QObject):
+class DrillModel(QAbstractItemModel):
     """Model for drilling cards"""
 
     # scores
     Good, Bad = range(2)
 
     def __init__(self, parent=None):
-        QObject.__init__(self, parent)
+        QAbstractItemModel.__init__(self, parent)
         self.cards = []
 
+
+    def parent(self, index=QModelIndex()):
+        return QModelIndex()
+
+    def rowCount(self, parent=QModelIndex()):
+        if parent.isValid():
+            return 0
+        else:
+            return len(self.cards)
+
+    def columnCount(self, parent=QModelIndex()):
+        if parent.isValid():
+            return 0
+        else:
+            return 1
+
+    def index(self, row, column, parent=QModelIndex()):
+        if parent.isValid():
+            return QModelIndex()
+        else:
+            if row >= 0 and row < len(self.cards) and column == 0:
+                return self.createIndex(row, column, None)
+            else:
+                return QModelIndex()
+
+
+    def data(self, index, role=Qt.DisplayRole):
+        if role not in (Qt.DisplayRole,):
+            return QVariant()
+        else:
+            if index.row() < len(self.cards):
+                card = self.cards[index.row()]
+                return QVariant("%d %s" % (card.id, card.question))
+            else:
+                return QVariant()
+
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        return QVariant(str(section))
+        # return QAbstractItemModel.headerData(self, section, orientation, role)
+
+    def flags(self, index):
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+
     def addCard(self, card):
+        self.emit(SIGNAL('modelAboutToBeReset()'))
         self.cards.append(card)
+        self.reset()
 
     def clear(self):
+        self.emit(SIGNAL('modelAboutToBeReset()'))
         self.cards.clear()
+        self.reset()
 
 
     def selectNextCard(self):
         # take from the stack and put it on top
         if len(self.cards) > 0:
+            self.emit(SIGNAL('modelAboutToBeReset()'))
             result = self.cards[0]
             self.cards = self.cards[1:]
             self.cards.append(result)
+            self.reset()
             return result
         else:
             return Card()
 
     def removeCard(self, card):
         try:
+            self.emit(SIGNAL('modelAboutToBeReset()'))
             self.cards.remove(card)
+            self.reset()
         except:
             pass
 
@@ -326,13 +379,14 @@ class DrillModel(QObject):
     def scoreCard(self, card, score):
         if score == DrillModel.Good:
             log("Card: $card will be removed from drill.")
-            self.cards.remove(card)
+            self.removeCard(card)
 
 
     def shuffleCards(self):
         from random import shuffle
+        self.emit(SIGNAL('modelAboutToBeReset()'))
         shuffle(self.cards)
-        log('Cards were shuffled.')
+        self.reset()
 
 
     def printCards(self):
@@ -356,4 +410,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
