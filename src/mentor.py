@@ -301,28 +301,28 @@ class MainWindow(QMainWindow):
 
     def createActions(self):
         # File actions
-        self.actNew = QAction(tr("&New pack..."), self)
-        self.actNew.setStatusTip(tr("Create a new pack..."))
+        self.actNew = QAction(tr("&New deck..."), self)
+        self.actNew.setStatusTip(tr("Create a new deck..."))
         self.connect(self.actNew, SIGNAL("triggered()"), self.on_actNew_triggered)
 
-        self.actOpen = QAction(tr("&Open pack..."), self)
+        self.actOpen = QAction(tr("&Open deck..."), self)
         self.actOpen.setShortcut(QKeySequence(tr("Ctrl+O")))
-        self.actOpen.setStatusTip(tr("Open an existing pack..."))
+        self.actOpen.setStatusTip(tr("Open an existing deck..."))
         self.connect(self.actOpen, SIGNAL("triggered()"), self.on_actOpen_triggered)
-        self.actClose = QAction(tr("&Close pack"), self)
-        self.actClose.setStatusTip(tr("Close currently active pack"))
+        self.actClose = QAction(tr("&Close deck"), self)
+        self.actClose.setStatusTip(tr("Close currently active deck"))
         self.connect(self.actClose, SIGNAL("triggered()"), self.on_actClose_triggered)
-        self.actCopy = QAction(tr("&Copy pack..."), self)
-        self.actCopy.setStatusTip(tr("Copy an existing pack..."))
+        self.actCopy = QAction(tr("&Copy deck..."), self)
+        self.actCopy.setStatusTip(tr("Copy an existing deck..."))
         self.connect(self.actCopy, SIGNAL("triggered()"), self.on_actCopy_triggered)
-        self.actDelete = QAction(tr("&Delete pack..."), self)
-        self.actDelete.setStatusTip(tr("Delete an existing pack..."))
+        self.actDelete = QAction(tr("&Delete deck..."), self)
+        self.actDelete.setStatusTip(tr("Delete an existing deck..."))
         self.connect(self.actDelete, SIGNAL("triggered()"), self.on_actDelete_triggered)
-        self.actRepair = QAction(tr("&Repair pack..."), self)
-        self.actRepair.setStatusTip(tr("Repair an existing pack..."))
+        self.actRepair = QAction(tr("&Repair deck..."), self)
+        self.actRepair.setStatusTip(tr("Repair an existing deck..."))
         self.connect(self.actRepair, SIGNAL("triggered()"), self.on_actRepair_triggered)
-        self.actMerge = QAction(tr("&Merge pack..."), self)
-        self.actMerge.setStatusTip(tr("Merge an existing pack..."))
+        self.actMerge = QAction(tr("&Merge deck..."), self)
+        self.actMerge.setStatusTip(tr("Merge an existing deck..."))
         self.connect(self.actMerge, SIGNAL("triggered()"), self.on_actMerge_triggered)
         self.actImportQA = QAction(tr("&Import from QA file..."), self)
         self.actImportQA.setStatusTip(tr("Import from QA file..."))
@@ -349,7 +349,7 @@ class MainWindow(QMainWindow):
         self.actExportProbe.setStatusTip(tr("Export to SuperMemo..."))
         self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
         self.actProperties = QAction(tr("&Properties..."), self)
-        self.actExportProbe.setStatusTip(tr("Display pack properties..."))
+        self.actExportProbe.setStatusTip(tr("Display deck properties..."))
         self.connect(self.actExportProbe, SIGNAL("triggered()"), self.on_actExportProbe_triggered)
         # Recent file actions
         self.actRecentFiles = []
@@ -902,8 +902,8 @@ class MainWindow(QMainWindow):
             self.actRecentFiles[i].setVisible(False)
 
 
-    def _openPackFile(self, fname):
-        """Open pack with givem file name."""
+    def _openDeckFile(self, fname):
+        """Open deck with givem file name."""
         fname = str(fname)
         problem = False
         # FIXME running setCardModelIndex to empty
@@ -922,11 +922,11 @@ class MainWindow(QMainWindow):
         finally:
             self._refreshAppState()
             if problem:
-                show_info('Problem opening pack file %s.' % fname)
+                show_info('Problem opening deck file %s.' % fname)
 
 
-    def _newPackFile(self, fname):
-        """Creates a new pack with given file name."""
+    def _newDeckFile(self, fname):
+        """Creates a new deck with given file name."""
         fname = str(fname)
         problem = False
         # FIXME running setCardModelIndex with QModelIndex is  HACK to clean
@@ -948,12 +948,12 @@ class MainWindow(QMainWindow):
         finally:
             self._refreshAppState()
             if problem:
-                show_info('Problem creating a new pack file %s.' % fname)
+                show_info('Problem creating a new deck file %s.' % fname)
 
 
     def _openRecentFile(self):
         if config.get_most_recent_file():
-            self._openPackFile(config.get_most_recent_file())
+            self._openDeckFile(config.get_most_recent_file())
         self._refreshAppState()
 
 
@@ -962,17 +962,17 @@ class MainWindow(QMainWindow):
 
     def on_actNew_triggered(self):
         fileName = QFileDialog.getSaveFileName(self, \
-            tr("New pack"), ".", tr("Mentor pack files (*.mpk)"))
+            tr("New deck"), ".", tr("Mentor Card Deck files (*.mcd)"))
         if fileName:
-            self._newPackFile(fileName)
+            self._newDeckFile(fileName)
 
 
 
     def on_actOpen_triggered(self):
         fname = QFileDialog.getOpenFileName(self, \
-            tr("Open pack"), ".", tr("Mentor pack files (*.mpk)"))
+            tr("Open deck"), ".", tr("Mentor Card Deck files (*.mcd)"))
         if fname:
-            self._openPackFile(fname)
+            self._openDeckFile(fname)
 
     def on_actClose_triggered(self):
         self.setCardModelIndex(QModelIndex())
@@ -1080,7 +1080,7 @@ class MainWindow(QMainWindow):
         pass
 
     def on_actRecentFiles_triggered(self):
-        self._openPackFile(self.sender().text())
+        self._openDeckFile(self.sender().text())
 
     def on_actFinalDrill_triggered(self):
         dialog = DrillWindow(self)
