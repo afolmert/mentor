@@ -405,3 +405,47 @@ class CardGridView(QTableView):
         self.setFont(QFont("vt100", 8))
 
 
+
+class CardContentView(QWidget):
+
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+
+        self.cardView = QWidget(self)
+        self.cardMainView = CardMainView(self)
+        self.cardDetailView = CardDetailView(self)
+        layout = QVBoxLayout()
+        layout.addWidget(self.cardMainView)
+        layout.addWidget(self.cardDetailView)
+        self.cardView.setLayout(layout)
+
+        self.cardSourceView = CardSourceView(self)
+
+
+
+        tab = QTabWidget(self)
+        tab.addTab(self.cardView, "Card")
+        tab.addTab(self.cardSourceView, "Source")
+        tab.addTab(QLabel("Here will go template graphical editor (ala SuperMemo designing mode or color scheme editor)", self), "Template")
+        tab.addTab(QLabel("Here will go template source editor (XSL)", self), "Template Source")
+
+        layout = QVBoxLayout()
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        layout.addWidget(tab)
+        self.setLayout(layout)
+
+
+    def setModel(self, model):
+        self.cardMainView.setModel(model)
+        self.cardSourceView.setModel(model)
+        self.cardDetailView.setModel(model)
+
+
+    def currentChanged(self, current, previous):
+        self.cardMainView.currentChanged(current, previous)
+        self.cardSourceView.currentChanged(current, previous)
+        self.cardDetailView.currentChanged(current, previous)
+
+
+

@@ -57,7 +57,7 @@ from utils import log
 from config import config
 from models import CardModel, DrillModel
 from database import Card
-from views import CardMainView, CardSourceView, CardDetailView, CardGridView
+from views import CardContentView, CardMainView, CardGridView
 import mentor_rc
 
 
@@ -213,48 +213,22 @@ class MainWindow(QMainWindow):
 
     def createCentralWidget(self):
 
-        ##########################
-        # setup central widget
+        self.gridView = CardGridView(self)
+        self.gridView.setModel(self._cardModel)
 
-        # question and answer panel
-        self.cardMainView = CardMainView(self)
-        self.cardMainView.setModel(self._cardModel)
-
-        self.setCentralWidget(self.cardMainView)
+        self.contentView = CardContentView(self)
+        self.contentView.setModel(self._cardModel)
 
 
-        ##########################
-        # items view
-        self.lstDrill = CardGridView(self)
-        self.lstDrill.setModel(self._cardModel)
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.splitter.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        dock1 = QDockWidget('List', self)
-        dock1.setWidget(self.lstDrill)
+        self.splitter.addWidget(self.gridView)
+        self.splitter.addWidget(self.contentView)
+        self.splitter.setSizes([200, 500])
 
-        self.addDockWidget(Qt.LeftDockWidgetArea, dock1)
+        self.setCentralWidget(self.splitter)
 
-
-
-        ##########################
-        # details widget
-        self.cardDetailView = CardDetailView(self)
-        self.cardDetailView.setModel(self._cardModel)
-
-        dock2 = QDockWidget('Details', self)
-        dock2.setWidget(self.cardDetailView)
-
-        self.addDockWidget(Qt.BottomDockWidgetArea , dock2)
-
-
-        ##########################
-        # card source widget
-        self.cardSourceView = CardSourceView(self)
-        self.cardSourceView.setModel(self._cardModel)
-
-        dock3 = QDockWidget('Source', self)
-        dock3.setWidget(self.cardSourceView)
-
-        self.addDockWidget(Qt.BottomDockWidgetArea, dock3)
 
 
         ##########################
@@ -265,20 +239,18 @@ class MainWindow(QMainWindow):
         # and then click on what I edited then selection changed does not catch
         # it
 
-        self.connect(self.lstDrill.selectionModel(), \
+        self.connect(self.gridView.selectionModel(), \
                         SIGNAL('currentChanged(QModelIndex, QModelIndex)'), \
-                        self.lstDrill_currentChanged)
-        self.connect(self.lstDrill,
+                        self.gridView_currentChanged)
+        self.connect(self.gridView,
                         SIGNAL('activated(QModelIndex)'), \
-                        self.lstDrill_activated)
-        self.connect(self.lstDrill,
+                        self.gridView_activated)
+        self.connect(self.gridView,
                         SIGNAL('clicked(QModelIndex)'), \
-                        self.lstDrill_activated)
+                        self.gridView_activated)
 
-        self.connect(self, SIGNAL('cardModelIndexChanged'), self.lstDrill_cardModelIndexChanged)
-        self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardMainView.currentChanged)
-        self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardSourceView.currentChanged)
-        self.connect(self, SIGNAL('cardModelIndexChanged'), self.cardDetailView.currentChanged)
+        self.connect(self, SIGNAL('cardModelIndexChanged'), self.gridView_cardModelIndexChanged)
+        self.connect(self, SIGNAL('cardModelIndexChanged'), self.contentView.currentChanged)
 
 
 
@@ -1102,15 +1074,15 @@ class MainWindow(QMainWindow):
 
         dialog.exec_()
 
-    def lstDrill_currentChanged(self, current, previous):
+    def gridView_currentChanged(self, current, previous):
         self.setCardModelIndex(current)
 
-    def lstDrill_activated(self, current):
+    def gridView_activated(self, current):
         self.setCardModelIndex(current)
 
 
-    def lstDrill_cardModelIndexChanged(self, current, previous):
-        selection = self.lstDrill.selectionModel()
+    def gridView_cardModelIndexChanged(self, current, previous):
+        selection = self.gridView.selectionModel()
         selectedIndex = selection.selectedIndexes()
         if len(selectedIndex) > 0:
             selectedIndex = selectedIndex[0]
