@@ -174,14 +174,10 @@ class DrillWindow(QDialog):
             event.ignore()
 
     def event(self, event):
-        if isinstance(event, QKeyEvent):
-            if event.key() == Qt.Key_F8:
-                self.cardListView.setVisible(not self.cardListView.isVisible())
-                return True
-            else:
-                return QDialog.event(self, event)
-        else:
-            return QDialog.event(self, event)
+        if isinstance(event, QKeyEvent) and event.key() == Qt.Key_F8:
+            self.cardListView.setVisible(not self.cardListView.isVisible())
+            return True
+        return QDialog.event(self, event)
 
 
 class MainWindow(QMainWindow):
