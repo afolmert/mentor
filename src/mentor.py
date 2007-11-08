@@ -301,29 +301,29 @@ class MainWindow(QMainWindow):
 
     def createActions(self):
         # File actions
-        self.actNew = QAction(tr("&New deck..."), self)
-        self.actNew.setStatusTip(tr("Create a new deck..."))
-        self.connect(self.actNew, SIGNAL("triggered()"), self.on_actNew_triggered)
+        self.actNewDeck = QAction(tr("&New deck..."), self)
+        self.actNewDeck.setStatusTip(tr("Create a new deck..."))
+        self.connect(self.actNewDeck, SIGNAL("triggered()"), self.on_actNewDeck_triggered)
 
-        self.actOpen = QAction(tr("&Open deck..."), self)
-        self.actOpen.setShortcut(QKeySequence(tr("Ctrl+O")))
-        self.actOpen.setStatusTip(tr("Open an existing deck..."))
-        self.connect(self.actOpen, SIGNAL("triggered()"), self.on_actOpen_triggered)
-        self.actClose = QAction(tr("&Close deck"), self)
-        self.actClose.setStatusTip(tr("Close currently active deck"))
-        self.connect(self.actClose, SIGNAL("triggered()"), self.on_actClose_triggered)
-        self.actCopy = QAction(tr("&Copy deck..."), self)
-        self.actCopy.setStatusTip(tr("Copy an existing deck..."))
-        self.connect(self.actCopy, SIGNAL("triggered()"), self.on_actCopy_triggered)
-        self.actDelete = QAction(tr("&Delete deck..."), self)
-        self.actDelete.setStatusTip(tr("Delete an existing deck..."))
-        self.connect(self.actDelete, SIGNAL("triggered()"), self.on_actDelete_triggered)
-        self.actRepair = QAction(tr("&Repair deck..."), self)
-        self.actRepair.setStatusTip(tr("Repair an existing deck..."))
-        self.connect(self.actRepair, SIGNAL("triggered()"), self.on_actRepair_triggered)
-        self.actMerge = QAction(tr("&Merge deck..."), self)
-        self.actMerge.setStatusTip(tr("Merge an existing deck..."))
-        self.connect(self.actMerge, SIGNAL("triggered()"), self.on_actMerge_triggered)
+        self.actOpenDeck = QAction(tr("&Open deck..."), self)
+        self.actOpenDeck.setShortcut(QKeySequence(tr("Ctrl+O")))
+        self.actOpenDeck.setStatusTip(tr("Open an existing deck..."))
+        self.connect(self.actOpenDeck, SIGNAL("triggered()"), self.on_actOpenDeck_triggered)
+        self.actCloseDeck = QAction(tr("&Close deck"), self)
+        self.actCloseDeck.setStatusTip(tr("Close currently active deck"))
+        self.connect(self.actCloseDeck, SIGNAL("triggered()"), self.on_actCloseDeck_triggered)
+        self.actCopyDeck = QAction(tr("&Copy deck..."), self)
+        self.actCopyDeck.setStatusTip(tr("Copy an existing deck..."))
+        self.connect(self.actCopyDeck, SIGNAL("triggered()"), self.on_actCopyDeck_triggered)
+        self.actDeleteDeck = QAction(tr("&Delete deck..."), self)
+        self.actDeleteDeck.setStatusTip(tr("Delete an existing deck..."))
+        self.connect(self.actDeleteDeck, SIGNAL("triggered()"), self.on_actDeleteDeck_triggered)
+        self.actRepairDeck = QAction(tr("&Repair deck..."), self)
+        self.actRepairDeck.setStatusTip(tr("Repair an existing deck..."))
+        self.connect(self.actRepairDeck, SIGNAL("triggered()"), self.on_actRepairDeck_triggered)
+        self.actMergeDeck = QAction(tr("&Merge deck..."), self)
+        self.actMergeDeck.setStatusTip(tr("Merge an existing deck..."))
+        self.connect(self.actMergeDeck, SIGNAL("triggered()"), self.on_actMergeDeck_triggered)
         self.actImportQA = QAction(tr("&Import from QA file..."), self)
         self.actImportQA.setStatusTip(tr("Import from QA file..."))
         self.connect(self.actImportQA, SIGNAL("triggered()"), self.on_actImportQA_triggered)
@@ -594,14 +594,14 @@ class MainWindow(QMainWindow):
     def createMenus(self):
         # File menu
         mnuFile = self.menuBar().addMenu(tr("&File"))
-        mnuFile.addAction(self.actNew)
-        mnuFile.addAction(self.actOpen)
-        mnuFile.addAction(self.actClose)
+        mnuFile.addAction(self.actNewDeck)
+        mnuFile.addAction(self.actOpenDeck)
+        mnuFile.addAction(self.actCloseDeck)
         mnuFile.addSeparator()
-        mnuFile.addAction(self.actCopy)
-        mnuFile.addAction(self.actDelete)
-        mnuFile.addAction(self.actRepair)
-        mnuFile.addAction(self.actMerge)
+        mnuFile.addAction(self.actCopyDeck)
+        mnuFile.addAction(self.actDeleteDeck)
+        mnuFile.addAction(self.actRepairDeck)
+        mnuFile.addAction(self.actMergeDeck)
         mnuFile.addSeparator()
         mnuImport = mnuFile.addMenu(tr("Import"))
         mnuImport.addAction(self.actImportQA)
@@ -846,7 +846,7 @@ class MainWindow(QMainWindow):
         # File toolbar
         tbFile = self.addToolBar(tr("File"))
         tbFile.addAction(self.actAbout)
-        tbFile.addAction(self.actNew)
+        tbFile.addAction(self.actNewDeck)
         tbFile.addAction(self.actExit)
         tbFile.addAction(self.actNewItem)
         tbFile.addAction(self.actNewArticle)
@@ -960,7 +960,7 @@ class MainWindow(QMainWindow):
     def qApp_aboutToQuit(self):
         config.save()
 
-    def on_actNew_triggered(self):
+    def on_actNewDeck_triggered(self):
         fileName = QFileDialog.getSaveFileName(self, \
             tr("New deck"), ".", tr("Mentor Card Deck files (*.mcd)"))
         if fileName:
@@ -968,13 +968,13 @@ class MainWindow(QMainWindow):
 
 
 
-    def on_actOpen_triggered(self):
+    def on_actOpenDeck_triggered(self):
         fname = QFileDialog.getOpenFileName(self, \
             tr("Open deck"), ".", tr("Mentor Card Deck files (*.mcd)"))
         if fname:
             self._openDeckFile(fname)
 
-    def on_actClose_triggered(self):
+    def on_actCloseDeck_triggered(self):
         self.setCardModelIndex(QModelIndex())
         self.cardModel().close()
         self._refreshAppState()
@@ -1029,16 +1029,16 @@ class MainWindow(QMainWindow):
         show_info(tr("MENTOR version %s\nA learning tool\n\nDistributed under license: %s.\n\nAuthors: \n%s" \
             % (__version__, __license__, str(__author__))), self)
 
-    def on_actCopy_triggered(self):
+    def on_actCopyDeck_triggered(self):
         pass
 
-    def on_actDelete_triggered(self):
+    def on_actDeleteDeck_triggered(self):
         pass
 
-    def on_actRepair_triggered(self):
+    def on_actRepairDeck_triggered(self):
         pass
 
-    def on_actMerge_triggered(self):
+    def on_actMergeDeck_triggered(self):
         pass
 
     def on_actImportQA_triggered(self):
