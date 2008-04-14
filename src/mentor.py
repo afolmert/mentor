@@ -53,12 +53,24 @@ import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from utils_qt import lazyshow, tr, show_info
-from utils import log
+from utils import log, run_command
 from config import config
 from models import CardModel, DrillModel
 from database import Card
 from views import CardContentView, CardMainView, CardGridView
-import mentor_rc
+
+
+# generate mentor_rc if does not exist
+try:
+    import mentor_rc
+except:
+    run_command(["pyrcc4", "mentor.qrc"], "mentor_rc.py")
+    try:
+        import mentor_rc
+    except:
+        error("File mentor.qrc not found!")
+    
+
 
 
 class DrillWindow(QDialog):

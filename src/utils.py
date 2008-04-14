@@ -33,6 +33,7 @@ import sys
 import time
 import types
 import string
+import subprocess
 
 __version__ = release.version
 
@@ -640,11 +641,31 @@ def error(aMesg):
 log = debug
 
 
+#----------------------------------------------------------
+# System related functions
+#
 
+def run_command(command, outputfilename=None):
+    """Runs a command returning it's code and putting output to file"""
+
+    print "Running command: " + str(command)
+
+    outputfile = None
+    if outputfilename is not None:
+        outputfile = open(outputfilename, "wb")
+    p = subprocess.Popen(command, stdout=outputfile)
+
+    result = p.wait()
+
+    if outputfile is not None:
+        outputfile.close()
+
+    return result 
 
 #----------------------------------------------------------
 # Build and repo related functions
 #
+
 
 
 def get_git_root_dir(path):
