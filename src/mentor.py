@@ -92,7 +92,7 @@ class DrillWindow(QDialog):
         self.cardListView = QListView(self)
         self.cardListView.setModel(self.model)
         self.cardListView.setMinimumWidth(200)
-        self.cardListView.setFont(QFont("vt100", 8))
+        self.cardListView.setFont(QFont("Fixed", 8))
         self.cardListView.setVisible(False)
 
 
@@ -200,6 +200,8 @@ class MainWindow(QMainWindow):
 
         config.load()
 
+        self.setFont(QFont("Fixed", 8))
+
         # set up controls
         # items panel
         self._cardModel = CardModel()
@@ -217,9 +219,20 @@ class MainWindow(QMainWindow):
         self.createToolbars()
         self.createStatusBar()
 
+
+        self.propagateFonts(self, QFont("Fixed", 8))
+
         self.connect(qApp, SIGNAL('aboutToQuit()'), self.qApp_aboutToQuit)
 
         QTimer.singleShot(0, self._openRecentFile)
+
+
+    # FIXME there must be a way to configure another way!
+    def propagateFonts(self, widget, font):
+        for c in widget.children():
+            if isinstance(c, QWidget):
+                c.setFont(font)
+                self.propagateFonts(c, font)
 
 
 
@@ -576,8 +589,13 @@ class MainWindow(QMainWindow):
 
 
     def createMenus(self):
+        self.menuBar().setFont(QFont("Fixed", 8))
+
+
+
         # File menu
         mnuFile = self.menuBar().addMenu(tr("&File"))
+
         mnuFile.addAction(self.actNewDeck)
         mnuFile.addAction(self.actOpenDeck)
         mnuFile.addAction(self.actCloseDeck)
