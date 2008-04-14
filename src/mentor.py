@@ -1117,7 +1117,11 @@ def main():
     # app.setStyle('cde')
 
     w = MainWindow()
-    lazyshow(w)
+    if config.GUI_LAZY_SHOW:
+        lazyshow(w)
+    else:
+        w.show()
+
     app.exec_()
 
 if __name__ == "__main__":

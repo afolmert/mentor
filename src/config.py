@@ -69,6 +69,9 @@ class Config(object):
         self.GUI_GEOMETRY           = QRect(100, 100, 400, 400)
         self.GUI_MAXIMIZED          = False
 
+
+        self.GUI_LAZY_SHOW          = False
+
         # override them with user settings
         self._settings = QSettings(QSettings.IniFormat, QSettings.UserScope, 'Mentor', 'mentor')
 
