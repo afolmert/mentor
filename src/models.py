@@ -33,7 +33,7 @@ __version__ = release.version
 import sys
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from database import Card, CardDb
+from cards import Card, Cards
 from utils import isstring, log
 from utils_qt import tr
 
@@ -46,7 +46,7 @@ class CardModel(QAbstractItemModel):
 
     def __init__(self, parent=None):
         QAbstractListModel.__init__(self, parent)
-        self.cardDb = CardDb()
+        self.cards = Cards()
 
 
     def _checkIndex(self, index):
@@ -59,26 +59,26 @@ class CardModel(QAbstractItemModel):
 
 
     def open(self, dbpath):
-        self.cardDb.open(str(dbpath))
+        self.cards.open(str(dbpath))
         # FIXME why these do not work??
         self.reset()
         # ^ self.emit(SIGNAL('modelReset()'))
 
     def close(self):
         self.emit(SIGNAL('modelAboutToBeReset()'))
-        self.cardDb.close()
+        self.cards.close()
         self.reset()
 
 
     def filepath(self):
         """Returns path to currently open database"""
-        if self.cardDb.is_open():
-            return self.cardDb.db_path
+        if self.cards.is_open():
+            return self.cards.db_path
         else:
             return None
 
     def isActive(self):
-        return self.cardDb.is_open()
+        return self.cards.is_open()
 
 
     def parent(self, index):
@@ -89,8 +89,8 @@ class CardModel(QAbstractItemModel):
         if parent.isValid():
             return 0
         else:
-            if self.cardDb.is_open():
-                return self.cardDb.get_cards_count()
+            if self.cards.is_open():
+                return self.cards.get_cards_count()
             else:
                 return 0
 
@@ -99,18 +99,18 @@ class CardModel(QAbstractItemModel):
         if parent.isValid():
             return 0
         else:
-            if self.cardDb.is_open():
+            if self.cards.is_open():
                 return 5
             else:
                 return 0
 
 
     def index(self, row, column, parent=QModelIndex()):
-        if row < 0 or column < 0 or not self.cardDb.is_open():
+        if row < 0 or column < 0 or not self.cards.is_open():
             return QModelIndex()
         else:
             #  returns index with given card id
-            header = self.cardDb.get_card_headers('', row, row + 1)
+            header = self.cards.get_card_headers('', row, row + 1)
             if len(header) == 1:
                 return self.createIndex(row, column, int(header[0][0]))
             else:
@@ -124,7 +124,7 @@ class CardModel(QAbstractItemModel):
         if role not in (Qt.DisplayRole, Qt.UserRole):
             return QVariant()
 
-        card = self.cardDb.get_card(index.internalId())
+        card = self.cards.get_card(index.internalId())
         if role == Qt.UserRole:
             return card
         else:
@@ -200,9 +200,9 @@ class CardModel(QAbstractItemModel):
         """Adds a new empty card."""
         self.emit(SIGNAL('modelAboutToBeReset()'))
 
-        rowid = self.cardDb.add_card(Card())
+        rowid = self.cards.add_card(Card())
         # TODO is it ok to return it here?
-        result = self.createIndex(self.cardDb.get_cards_count(), 0, rowid)
+        result = self.createIndex(self.cards.get_cards_count(), 0, rowid)
 
         # cards.addCard(Card())
         # TODO
@@ -217,7 +217,7 @@ class CardModel(QAbstractItemModel):
         self._checkIndex(index)
         self.emit(SIGNAL('modelAboutToBeReset()'))
 
-        self.cardDb.delete_card(index.internalId())
+        self.cards.delete_card(index.internalId())
 
         # why these do not work??
         self.reset()
@@ -232,7 +232,7 @@ class CardModel(QAbstractItemModel):
         self._checkIndex(index)
 
         card = Card(index.internalId(), question, answer)
-        self.cardDb.update_card(card)
+        self.cards.update_card(card)
 
         # update data in the model
         self.emit(SIGNAL('dataChanged(QModelIndex)'), index)
@@ -254,7 +254,7 @@ class CardModel(QAbstractItemModel):
         if isstring(file):
             file = open(file, 'rt')
         if clean:
-            self.cardDb.delete_all_cards()
+            self.cards.delete_all_cards()
         prefix = ''
         last_prefix = ''
         card = Card()
@@ -266,7 +266,7 @@ class CardModel(QAbstractItemModel):
                 # if new card then recreate
                 if prefix == 'Q:' and prefix != last_prefix:
                     if not card.is_empty():
-                        self.cardDb.add_card(card, False)
+                        self.cards.add_card(card, False)
                     card = Card()
                 if line.strip() != '':
                     if prefix == 'Q:':
@@ -275,11 +275,11 @@ class CardModel(QAbstractItemModel):
                         card.answer += line
         # add last card
         if not card.is_empty():
-            self.cardDb.add_card(card)
+            self.cards.add_card(card)
 
         # TODO do it in a real transaction way
         # in case of error do a rollback
-        self.cardDb.commit()
+        self.cards.commit()
         self.reset()
 
 

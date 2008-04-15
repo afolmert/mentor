@@ -1093,12 +1093,12 @@ def main():
     if config.TEST:
         # import path from tests
         # sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests"))
-        from tests import test_utils, test_probe, test_database, test_models
+        from tests import test_utils, test_probe, test_cards, test_models
         import unittest
         # do I need it?
         suite = unittest.TestSuite([test_utils.suite(),
                                     test_probe.suite(),
-                                    test_database.suite(),
+                                    test_cards.suite(),
                                     test_models.suite()])
         runner = unittest.TextTestRunner(verbosity=2)
         runner.run(suite)

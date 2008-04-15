@@ -23,7 +23,7 @@ This is a test file for cards module.
 """
 
 import unittest
-from database import CardDb, Card
+from cards import Cards, Card
 from utils import log
 
 
@@ -44,7 +44,7 @@ class TestCards(unittest.TestCase):
 
 
     def setUp(self):
-        self.cards = CardDb()
+        self.cards = Cards()
         self.cards.open(':memory:')
 
     def tearDown(self):

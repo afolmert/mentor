@@ -56,7 +56,7 @@ from utils_qt import lazyshow, tr, show_info
 from utils import log, run_command
 from config import config
 from models import CardModel, DrillModel
-from database import Card
+from cards import Card
 from views import CardContentView, CardMainView, CardGridView
 
 

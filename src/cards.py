@@ -105,12 +105,12 @@ class Card(object):
 # a crash, the data is always safe.
 #
 #
-class CardDb(object):
+class Cards(object):
     """Cards storage. This is an interface for sqlite database keeping cards."""
 
-    class CardDbError(Exception) : pass
-    class CannotOpenDatabaseError(CardDbError) : pass
-    class DataNotFoundError(CardDbError) : pass
+    class CardsError(Exception) : pass
+    class CannotOpenDatabaseError(CardsError) : pass
+    class DataNotFoundError(CardsError) : pass
 
 
     def __init__(self):
@@ -131,7 +131,7 @@ class CardDb(object):
             log(sys.exc_info())
             self.db_path = None
             self.db = None
-            raise CardDb.CannotOpenDatabaseError, "Cannot open database: %s" % dbpath
+            raise Cards.CannotOpenDatabaseError, "Cannot open database: %s" % dbpath
 
     def close(self):
         if self.db:
@@ -219,7 +219,7 @@ class CardDb(object):
             cur.close()
             return card
         else:
-            raise CardDb.DataNotFoundError, "Card not found = %d " % card_id
+            raise Cards.DataNotFoundError, "Card not found = %d " % card_id
 
     def get_card_headers(self, sqlwhere='', minrow=None, maxrow=None):
         """Returns card ids using sqlwhere and minrow, maxrow range
