@@ -1,0 +1,2 @@
+#!/bin/sh
+ctags-exuberant -R --languages=python --exclude=.git
