@@ -1,2 +1,23 @@
-Mentor is a flash-card program used as learning aid tool.
+Mentor is a desktop flashcard application used as learning aid tool.
 
+It lets you manage and review sets of flashcards, which are separate pieces of useful
+information, like foreign vocabulary, program commands, or other facts. 
+
+In order to memorize those facts, you need to review the flashcards at regular intervals. 
+Mentor optimizes this process by calculating optimum intervals, so that you
+spend minimal time at reviewing your memorized cards.
+
+
+You can create your own flashcard sets or use other people' cards.  There are
+many already prepared flashcard sets on the Net which you can download and use
+freely. 
+
+
+Creation of flashcards is done manually and, although educational, can be quite
+time-consuming. To quicked this process, Mentor also includes a tool called
+Probe which automates extracting of facts from text and html documents. 
+
+
+
+More information can be found on:
+http://code.google.com/p/mentor/
