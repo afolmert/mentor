@@ -227,17 +227,17 @@ def main():
     parser = MyOptionParser(version=get_version_info(), usage=get_usage_info())
 
 
-    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=True,
+    parser.addOption("-d", "--debug", action="store_true", dest="debug", default=True,
                       help="run program in debugged mode" )
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False,
+    parser.addOption("-v", "--verbose", action="store_true", dest="verbose", default=False,
                       help="print output verbosely")
-    parser.add_option("-f", "--freq", action="store", dest="frequency",
+    parser.addOption("-f", "--freq", action="store", dest="frequency",
                       metavar="FILE", help="specifices a frequency file in format: word occur; used with import command")
-    parser.add_option("-t", "--text", action="store", dest="text",
+    parser.addOption("-t", "--text", action="store", dest="text",
                       metavar="FILE", help="specifies a text file to import; used with import and show command")
-    parser.add_option("-p", "--print", action="store_true", dest="pretend", default=False,
+    parser.addOption("-p", "--print", action="store_true", dest="pretend", default=False,
                       help="run a a simulation only")
-    parser.add_option("-l", "--limit", action="store", type="int", dest="limit", default=100,
+    parser.addOption("-l", "--limit", action="store", type="int", dest="limit", default=100,
                       help="limit printing results to count; used with print command.")
 
     opts, args = parser.parse_args(sys.argv[1:])

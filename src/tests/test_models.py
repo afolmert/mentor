@@ -63,7 +63,7 @@ class TestCardModel(unittest.TestCase):
         self.model.close()
 
 
-    def testFilePath(self):
+    def test_filePath(self):
         # test on open model
         self.assertEqual(self.model.filepath(), ':memory:')
         # test on closed model
@@ -71,13 +71,13 @@ class TestCardModel(unittest.TestCase):
         self.assertEqual(self.model.filepath(), None)
 
 
-    def testIsActive(self):
+    def test_isActive(self):
         self.assertEqual(self.model.isActive(), True)
         # test on closed model
         self.model.close()
         self.assertEqual(self.model.isActive(), False)
 
-    def testCheckActive(self):
+    def test_checkActive(self):
         # open model should not raise any exception
         self.model._checkActive()
         # test if raises correct exception
@@ -85,7 +85,7 @@ class TestCardModel(unittest.TestCase):
         self.assertRaises(CardModel.ModelNotActiveError, self.model._checkActive)
 
 
-    def testColumnCount(self):
+    def test_columnCount(self):
         # test on empty model
         self.assertEqual(self.model.columnCount(), 5)
         # test on closed model
@@ -93,7 +93,7 @@ class TestCardModel(unittest.TestCase):
         self.assertEqual(self.model.columnCount(), 0)
 
 
-    def testRowCount(self):
+    def test_rowCount(self):
         # test on empty database
         self.assertEqual(self.model.rowCount(), 0)
         # add three empty rows
@@ -106,7 +106,7 @@ class TestCardModel(unittest.TestCase):
         self.assertEqual(self.model.rowCount(), 0)
 
 
-    def testCheckIndex(self):
+    def test_checkIndex(self):
         # test if _checkIndex raises correct exception
         # test on None
         self.assertRaises(CardModel.InvalidIndexError, self.model._checkIndex, None)
@@ -115,7 +115,7 @@ class TestCardModel(unittest.TestCase):
         self.assertRaises(CardModel.InvalidIndexError, self.model._checkIndex, idx)
 
 
-    def testIndex(self):
+    def test_index(self):
         # test index on empty model
         idx1 = self.model.index(0, 0)
         self.assertEqual(idx1, QModelIndex())
@@ -130,13 +130,13 @@ class TestCardModel(unittest.TestCase):
         self.assertEqual(idx3, QModelIndex())
 
 
-    def testData(self):
+    def test_data(self):
         # test if generates error with invalid index
         idx = QModelIndex()
         self.assertRaises(CardModel.InvalidIndexError, self.model.data, idx)
 
 
-    def testPreviousNextIndex(self):
+    def test_previousNextIndex(self):
         # previous index on empty index
         self.model.addNewCard()
         self.model.addNewCard()
@@ -148,7 +148,7 @@ class TestCardModel(unittest.TestCase):
         self.assertEqual(self.model.getNextIndex(idx1).internalId(), idx2.internalId())
 
 
-    def testAddNewCard(self):
+    def test_addNewCard(self):
         # test if adding new card generates a proper signal
         self.assertEqual(self.view.got_reset, False)
         self.model.addNewCard()
@@ -157,7 +157,7 @@ class TestCardModel(unittest.TestCase):
         self.assertEqual(self.view.got_reset, True)
 
 
-    def testDeleteCard(self):
+    def test_deleteCard(self):
         # test if deleting card generates a proper signal
         # add 2 cards
         self.assertEqual(self.view.got_reset, False)
@@ -190,11 +190,11 @@ class TestCardModel(unittest.TestCase):
 
 
 
-    def testUpdateCard(self):
+    def test_updateCard(self):
         self.model.addNewCard()
         idx = self.model.index(0, 0)
 
-        self.model.updateCard(idx, 'test_question', 'test_answer')
+        self.model.updateCard(idx, 'testquestion', 'testanswer')
 
         # test if got signal
         self.assertEqual(self.view.got_dataChanged, True)
@@ -202,11 +202,11 @@ class TestCardModel(unittest.TestCase):
         # test if data is correct
         data = self.model.data(idx, Qt.UserRole)
 
-        self.assertEqual(data.question, 'test_question')
-        self.assertEqual(data.answer, 'test_answer')
+        self.assertEqual(data.question, 'testquestion')
+        self.assertEqual(data.answer, 'testanswer')
 
 
-    def testImportQAFile(self):
+    def test_importQAFile(self):
         #
         # test if clean actually cleans the file
         self.model.addNewCard()

@@ -72,13 +72,13 @@ class CardModel(QAbstractItemModel):
 
     def filepath(self):
         """Returns path to currently open database"""
-        if self.cards.is_open():
+        if self.cards.isOpen():
             return self.cards.db_path
         else:
             return None
 
     def isActive(self):
-        return self.cards.is_open()
+        return self.cards.isOpen()
 
 
     def parent(self, index):
@@ -89,8 +89,8 @@ class CardModel(QAbstractItemModel):
         if parent.isValid():
             return 0
         else:
-            if self.cards.is_open():
-                return self.cards.get_cards_count()
+            if self.cards.isOpen():
+                return self.cards.getCardsCount()
             else:
                 return 0
 
@@ -99,18 +99,18 @@ class CardModel(QAbstractItemModel):
         if parent.isValid():
             return 0
         else:
-            if self.cards.is_open():
+            if self.cards.isOpen():
                 return 5
             else:
                 return 0
 
 
     def index(self, row, column, parent=QModelIndex()):
-        if row < 0 or column < 0 or not self.cards.is_open():
+        if row < 0 or column < 0 or not self.cards.isOpen():
             return QModelIndex()
         else:
             #  returns index with given card id
-            header = self.cards.get_card_headers('', row, row + 1)
+            header = self.cards.getCardHeaders('', row, row + 1)
             if len(header) == 1:
                 return self.createIndex(row, column, int(header[0][0]))
             else:
@@ -124,7 +124,7 @@ class CardModel(QAbstractItemModel):
         if role not in (Qt.DisplayRole, Qt.UserRole):
             return QVariant()
 
-        card = self.cards.get_card(index.internalId())
+        card = self.cards.getCard(index.internalId())
         if role == Qt.UserRole:
             return card
         else:
@@ -200,9 +200,9 @@ class CardModel(QAbstractItemModel):
         """Adds a new empty card."""
         self.emit(SIGNAL('modelAboutToBeReset()'))
 
-        rowid = self.cards.add_card(Card())
+        rowid = self.cards.addCard(Card())
         # TODO is it ok to return it here?
-        result = self.createIndex(self.cards.get_cards_count(), 0, rowid)
+        result = self.createIndex(self.cards.getCardsCount(), 0, rowid)
 
         # cards.addCard(Card())
         # TODO
@@ -217,12 +217,12 @@ class CardModel(QAbstractItemModel):
         self._checkIndex(index)
         self.emit(SIGNAL('modelAboutToBeReset()'))
 
-        self.cards.delete_card(index.internalId())
+        self.cards.deleteCard(index.internalId())
 
         # why these do not work??
         self.reset()
         # self.emit(SIGNAL('modelReset()'))
-        # cards - delete_card  card_id
+        # cards - deleteCard  card_id
 
     # TODO question
     # how to update card if peg is somewhere else ?
@@ -232,7 +232,7 @@ class CardModel(QAbstractItemModel):
         self._checkIndex(index)
 
         card = Card(index.internalId(), question, answer)
-        self.cards.update_card(card)
+        self.cards.updateCard(card)
 
         # update data in the model
         self.emit(SIGNAL('dataChanged(QModelIndex)'), index)
@@ -254,7 +254,7 @@ class CardModel(QAbstractItemModel):
         if isstring(file):
             file = open(file, 'rt')
         if clean:
-            self.cards.delete_all_cards()
+            self.cards.deleteAllCards()
         prefix = ''
         last_prefix = ''
         card = Card()
@@ -265,8 +265,8 @@ class CardModel(QAbstractItemModel):
                 line = line[3:]
                 # if new card then recreate
                 if prefix == 'Q:' and prefix != last_prefix:
-                    if not card.is_empty():
-                        self.cards.add_card(card, False)
+                    if not card.isEmpty():
+                        self.cards.addCard(card, False)
                     card = Card()
                 if line.strip() != '':
                     if prefix == 'Q:':
@@ -274,8 +274,8 @@ class CardModel(QAbstractItemModel):
                     else: # prefix == a
                         card.answer += line
         # add last card
-        if not card.is_empty():
-            self.cards.add_card(card)
+        if not card.isEmpty():
+            self.cards.addCard(card)
 
         # TODO do it in a real transaction way
         # in case of error do a rollback

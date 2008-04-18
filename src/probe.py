@@ -52,7 +52,7 @@ EscapePattern = r'#&prbbar;|#&prbbsp;|#&prbslash;|#&prbbrcleft;|#&prbbrcright;|#
 
 
 
-def escape_special_chars(text):
+def escapeSpecialChars(text):
     """Escapes special chars with custom codes.
     This prepares text for processing.
     """
@@ -66,12 +66,12 @@ def escape_special_chars(text):
     return text
 
 
-def unescape_special_chars(text):
+def unescapeSpecialChars(text):
     """Unescapes special chars with custom codes.
     This fixes text after processing.
     """
-    # see escape_special_chars on comment how to do it the right way
-    # currently, this is symmetric to escape_special_chars
+    # see escapeSpecialChars on comment how to do it the right way
+    # currently, this is symmetric to escapeSpecialChars
     for sequence, escape in EscapeChars:
     # obviously, I have to omit the backslash in output text
         text = text.replace(escape, sequence[1:])
@@ -115,16 +115,16 @@ class ASTOptions(object):
     def clear(self):
         pass
 
-    def add_option(self, name, type=None, default=None, values=None):
+    def addOption(self, name, type=None, default=None, values=None):
         # possible types String, Number, Enumeration
         # exlucding options, should exist or not
         # see opt parse syntax and do something like this
         self.options[name] = default
 
-    def has_option(self, name):
+    def hasOption(self, name):
         return self.options.has_key(name)
 
-    def set_option(self, name, value):
+    def setOption(self, name, value):
         """This will check the type and value and existance."""
         assert self.options.has_key(name), "Option not available: " + name
         if value == "":
@@ -132,7 +132,7 @@ class ASTOptions(object):
         self.options[name] = value
 
 
-    def get_option(self, name):
+    def getOption(self, name):
         """This will be overriden in parse object to return option as attribute"""
         assert self.options.has_key(name), "Option not available: " + name
         return self.options[name]
@@ -147,10 +147,10 @@ class ASTObject(object):
         self.content = content
         self.options = ASTOptions()
         self.children = []
-        self.init_options()
+        self.initOptions()
 
 
-    def calculate_hierarchy_level(self):
+    def calculateHierarchyLevel(self):
         """Calculate it's level in parent-children hierarchy so that I know where to print myself."""
         level = 0
         parent = self.parent
@@ -160,38 +160,38 @@ class ASTObject(object):
         return level
 
 
-    def get_print_indent(self):
-        return ' ' * 2 * self.calculate_hierarchy_level()
+    def getPrintIndent(self):
+        return ' ' * 2 * self.calculateHierarchyLevel()
 
-    def get_print_name(self):
+    def getPrintName(self):
         return self.__class__.__name__.upper().replace('AST', '')
 
 
-    def add_child(self, child):
+    def addChild(self, child):
         """Appends child to parse object children."""
         assert issubclass(child.__class__, ASTObject)
         child.parent = self
         self.children.append(child)
 
-    def set_option(self, name, value):
-        self.options.set_option(name, value)
+    def setOption(self, name, value):
+        self.options.setOption(name, value)
 
-    def get_option(self, name):
-        return self.options.get_option(name)
+    def getOption(self, name):
+        return self.options.getOption(name)
 
-    def init_options(self):
+    def initOptions(self):
         # here might register possible options and their types, and default values
         # and required, not required options
         # should just exist or should have a value etc.
         # declarative way of setting possible option values
-        # self.add_option
+        # self.addOption
         self.options.clear()
-        self.options.add_option('init', ASTOptions.String, default='OK')
-        self.options.add_option('sample', ASTOptions.Enumeration, values=['yes', 'no'])
+        self.options.addOption('init', ASTOptions.String, default='OK')
+        self.options.addOption('sample', ASTOptions.Enumeration, values=['yes', 'no'])
 
     def __str__(self):
-        indent = self.get_print_indent()
-        name = self.get_print_name()
+        indent = self.getPrintIndent()
+        name = self.getPrintName()
         # use str_* to get rid of annoying space at the end
         str_content = str(self.content).strip()
         str_options = str(self.options).strip()
@@ -213,15 +213,15 @@ class ASTWord(ASTObject):
         self.content = content
 
 
-    def init_options(self):
+    def initOptions(self):
         self.options.clear()
         # should the word be included in questioning
-        self.options.add_option('marked', ASTOptions.Boolean, default=False)
+        self.options.addOption('marked', ASTOptions.Boolean, default=False)
         # should the word be ignored from questioning
-        self.options.add_option('ignored', ASTOptions.Boolean, default=False)
+        self.options.addOption('ignored', ASTOptions.Boolean, default=False)
         # question and answer hint connected with the word
-        self.options.add_option('question_hint', ASTOptions.String, default='')
-        self.options.add_option('answer_hint', ASTOptions.String, default='')
+        self.options.addOption('question_hint', ASTOptions.String, default='')
+        self.options.addOption('answer_hint', ASTOptions.String, default='')
 
 
 class ASTSeparatorWord(ASTWord):
@@ -247,9 +247,9 @@ class ASTPunctationWord(ASTWord):
 class ASTBlock(ASTObject):
     """ASTBlock is a block of content. It usually consists of ASTWord objects."""
 
-    def init_options(self):
+    def initOptions(self):
         self.options.clear()
-        self.options.add_option('ignored', ASTOptions.Boolean)
+        self.options.addOption('ignored', ASTOptions.Boolean)
 
 
 class ASTHint(ASTObject):
@@ -275,37 +275,37 @@ class ASTCommand(ASTObject):
         ASTObject.__init__(self, parent, name, content)
         self.command = None
 
-    def init_options(self):
-        self.options.add_option('ask', ASTOptions.Enumeration, values=('all', 'marked', 'corpus'))
+    def initOptions(self):
+        self.options.addOption('ask', ASTOptions.Enumeration, values=('all', 'marked', 'corpus'))
 
 
 
 
 class ASTTitle(ASTCommand):
     """AST object for titles."""
-    def init_options(self):
+    def initOptions(self):
         self.options.clear()
-        self.options.add_option('big')
-        self.options.add_option('a12pt')
-        self.options.add_option('title')
+        self.options.addOption('big')
+        self.options.addOption('a12pt')
+        self.options.addOption('title')
 
 
 class ASTSection(ASTCommand):
-    def init_options(self):
+    def initOptions(self):
         self.options.clear()
-        self.options.add_option('sec2')
+        self.options.addOption('sec2')
 
 
 class ASTSubsection(ASTCommand):
-    def init_options(self):
+    def initOptions(self):
         self.options.clear()
-        self.options.add_option('sec2')
+        self.options.addOption('sec2')
 
 
 class ASTSubsubsection(ASTCommand):
-    def init_options(self):
+    def initOptions(self):
         self.options.clear()
-        self.options.add_option('sec2')
+        self.options.addOption('sec2')
 
 
 class ASTClassCommand(ASTCommand):
@@ -356,34 +356,34 @@ class OutputItem(object):
         self.question_hint = question_hint
         self.answer_hint   = answer_hint
 
-    def get_prefix(self):
+    def getPrefix(self):
         return self.prefix
 
-    def set_prefix(self, prefix):
+    def setPrefix(self, prefix):
         self.prefix = prefix
 
-    def get_question(self):
+    def getQuestion(self):
         return self.question
 
-    def set_question(self, question):
+    def setQuestion(self, question):
         self.question = question
 
-    def get_question_hint(self):
+    def getQuestionHint(self):
         return self.question_hint
 
-    def set_question_hint(self, question_hint):
+    def setQuestionHint(self, question_hint):
         self.question_hint = question_hint
 
-    def get_answer(self):
+    def getAnswer(self):
         return self.answer
 
-    def set_answer(self, answer):
+    def setAnswer(self, answer):
         self.answer = answer
 
-    def get_answer_hint(self):
+    def getAnswerHint(self):
         return self.answer_hint
 
-    def set_answer_hint(self, answer_hint):
+    def setAnswerHint(self, answer_hint):
         self.answer_hint = answer_hint
 
     def __str__(self):
@@ -397,10 +397,10 @@ class OutputItems(object):
     def __init__(self):
         self.items = []
 
-    def add_item(self, item):
+    def addItem(self, item):
         self.items.append(item)
 
-    def debug_items(self):
+    def debugItems(self):
         print "OutputItems of length %d" % len(self.items)
         for it in self.items:
             print str(it)
@@ -419,7 +419,7 @@ class OutputItems(object):
 # TODO this will be more elaborate to enable dynamically creating parse classes
 # will be a function , register parse command - or not a function
 # i will just put this file in plugins and it will read it's name and change it to command class
-# will have to provide function for parse_content returning list of child object
+# will have to provide function for parseContent returning list of child object
 ParseCommands = Enumeration('ParseCommands', ['title', 'section', 'subsection', 'tabbed', 'sentence', 'paragraph', 'definition'
                                              'subsubsection', 'verbatim', 'code', 'pythoncode'])
 # main regexp used to search for parsed object
@@ -430,9 +430,9 @@ class ParseObject(object):
 
     def parse(self, text=''):
         """Returns ast object which is the result of the parsing procedure"""
-        return self.init_ast_object()
+        return self.initAstObject()
 
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTObject()
 
 
@@ -441,37 +441,37 @@ class ParseCommand(ParseObject):
 
     def parse(self, text=''):
         """Parse procedure for commands."""
-        ast_obj = self.init_ast_object()
+        ast_obj = self.initAstObject()
 
         match = re.match(ParseRegexp, text, re.M)
         if match:
-            self.parse_command(ast_obj, match.groups()[0])
-            self.parse_options(ast_obj, match.groups()[1])
-            self.parse_content(ast_obj, match.groups()[2])
+            self.parseCommand(ast_obj, match.groups()[0])
+            self.parseOptions(ast_obj, match.groups()[1])
+            self.parseContent(ast_obj, match.groups()[2])
             return ast_obj
         else:
             error("No match found in parsing command for text = " + text)
 
-    def init_ast_object(self):
+    def initAstObject(self):
         """This is to be overriden to return the object to be returned."""
         return ASTCommand()
 
-    def parse_command(self, ast_obj, command):
+    def parseCommand(self, ast_obj, command):
         """Returns command from ParseCommands enumeration type."""
-        log('parse_command for command = $command')
+        log('parseCommand for command = $command')
         ast_obj.command = ParseCommands.lookup[command]
         # ! enumaration not working !!!!
         # right now it does not do anything
         # TODO command should be enumerations which shall be returned in here
 
-    def parse_content(self, ast_obj, content):
+    def parseContent(self, ast_obj, content):
         """Returns content."""
         if len(content) > 2:
-            ast_obj.content = unescape_special_chars(content[1:-1])
+            ast_obj.content = unescapeSpecialChars(content[1:-1])
         else:
             ast_obj.content = None
 
-    def parse_options(self, ast_obj, options):
+    def parseOptions(self, ast_obj, options):
         """This will parse options embedded in begin or option statement."""
         log("parsing options $options")
         if options != None:
@@ -483,51 +483,51 @@ class ParseCommand(ParseObject):
                 name = name.strip()
                 value = value.strip()
                 if name != "":
-                    ast_obj.set_option(name, value)
+                    ast_obj.setOption(name, value)
 
 
 class ParseTitle(ParseCommand):
     """This is parser for the \\title command."""
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTTitle()
 
 
 
 class ParseSection(ParseCommand):
     """This is parser for the \\section command."""
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTSection()
 
 
 
 class ParseSubsection(ParseCommand):
     """This is a parser for the \\subsection command."""
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTSubsection()
 
 
 class ParseClassCommand(ParseCommand):
     """This is generic class for class commands which process text."""
 
-    def get_block_split_regex(self):
+    def getBlockSplitRegex(self):
         """Virtual function to be overriden in subclasses.
         This regex will be used to split content into blocks.
-        Function parse_content uses this to parse content."""
+        Function parseContent uses this to parse content."""
         return '[\.]+|#&prbquest;|#&prbexclam;'
 
-    def get_word_split_regex(self):
+    def getWordSplitRegex(self):
         """Virtual function to be overriden in subclasses.
         This regex will be used to split words in blocks.
-        Function parse_content uses this to parse content."""
+        Function parseContent uses this to parse content."""
         return '[ \t\n]+'
 
 
-    def parse_marked_content(self, ast_block, content):
+    def parseMarkedContent(self, ast_block, content):
         """Parses a group of words | | which should be included in repetition.
         This group is treated as single entity.
         Optionally it may contain question and answer hints.
         """
-        log('parse_marked_content for block $content')
+        log('parseMarkedContent for block $content')
         # strip off | | chars
         if len(content) > 1:
             content = content[1:-1]
@@ -535,52 +535,52 @@ class ParseClassCommand(ParseCommand):
         # |question hint? answer hint! text|
         regexp = r'([^\?\!]*\?)?([^\?\!]*\!)?(.*)'
         match = re.match(regexp, content)
-        log('parse_marked_content match groups $match.groups()')
+        log('parseMarkedContent match groups $match.groups()')
         if match:
             # add word with content
-            ast_word = ASTWord(ast_block, unescape_special_chars(match.groups()[2]))
+            ast_word = ASTWord(ast_block, unescapeSpecialChars(match.groups()[2]))
             # add hints if they exist
             # question hint (?)
             if match.groups()[0]:
                 hint = match.groups()[0].strip()
-                hint = unescape_special_chars(hint)[:-1].strip() # remove the question mark ?
-                ast_word.set_option('question_hint', hint)
+                hint = unescapeSpecialChars(hint)[:-1].strip() # remove the question mark ?
+                ast_word.setOption('question_hint', hint)
             if match.groups()[1]:
                 hint = match.groups()[1].strip()
-                hint = unescape_special_chars(hint)[:-1].strip() # remove the exclamation !
-                ast_word.set_option('answer_hint', hint)
+                hint = unescapeSpecialChars(hint)[:-1].strip() # remove the exclamation !
+                ast_word.setOption('answer_hint', hint)
         else:
             raise "Invalid include block - not matched! %s " % content
-        ast_word.set_option('marked', True)
-        ast_block.add_child(ast_word)
+        ast_word.setOption('marked', True)
+        ast_block.addChild(ast_word)
 
 
-    def parse_ignored_content(self, ast_block, content):
+    def parseIgnoredContent(self, ast_block, content):
         """Parses group of words / /  which should be excluded from repetition.
         The group is treated as a single entity.
         """
-        log('parse_ignored_content $content')
+        log('parseIgnoredContent $content')
         # strip ending and beginning / /
         if len(content) > 1:
             content = content[1:-1]
-        ast_word = ASTWord(ast_block, unescape_special_chars(content))
-        ast_word.set_option('ignored', True)
-        ast_block.add_child(ast_word)
+        ast_word = ASTWord(ast_block, unescapeSpecialChars(content))
+        ast_word.setOption('ignored', True)
+        ast_block.addChild(ast_word)
 
 
 
-    def parse_content(self, ast_obj, content):
+    def parseContent(self, ast_obj, content):
         """Parses content to ast syntax tree."""
-        log('parse_content for content $content')
+        log('parseContent for content $content')
         if len(content) > 2:
             content = content[1:-1]
 
             # split to blocks using block seperators
-            blocks = re.split(self.get_block_split_regex(), content)
+            blocks = re.split(self.getBlockSplitRegex(), content)
             # for each block :
             # split content looking for content groups
             for block in blocks:
-                log('parse_content processing block: $block')
+                log('parseContent processing block: $block')
                 ast_block = ASTBlock()
                 # go through text finding
                 # find |   |    /    /    and unmarked blocks
@@ -594,38 +594,38 @@ class ParseClassCommand(ParseCommand):
                 while pos < len(block) and match:
                     match = regexp.search(block, pos)
                     if match:
-                        log('parse_content matches: $match.groups()')
+                        log('parseContent matches: $match.groups()')
                         # process unmarked block between
                         if match.start() > pos:
-                            self.parse_unmarked_content(ast_block, block[pos:match.start()])
+                            self.parseUnmarkedContent(ast_block, block[pos:match.start()])
                         # process include block | |
                         if match.groups()[0]:
-                            self.parse_marked_content(ast_block, block[match.start():match.end()])
+                            self.parseMarkedContent(ast_block, block[match.start():match.end()])
                         # process ignored block / /
                         elif match.groups()[1]:
-                            self.parse_ignored_content(ast_block, block[match.start():match.end()])
+                            self.parseIgnoredContent(ast_block, block[match.start():match.end()])
                         else:
                             raise "Unknown group!"
                         pos = match.end()
 
                 if pos < len(block):
-                    self.parse_unmarked_content(ast_block, block[pos:])
+                    self.parseUnmarkedContent(ast_block, block[pos:])
 
                 # add block to parent
-                ast_obj.add_child(ast_block)
+                ast_obj.addChild(ast_block)
 
 
-    def parse_unmarked_content(self, ast_block, content):
+    def parseUnmarkedContent(self, ast_block, content):
         """This will parse content and result a list of words with info on marked, unmarked."""
         log("parsing unmarked content: $content")
         # first split text into blocks
         # and then into words
-        # using regex as defined in functions get_block_split_regex and
-        words = re.split(self.get_word_split_regex(), content)
+        # using regex as defined in functions getBlockSplitRegex and
+        words = re.split(self.getWordSplitRegex(), content)
         for w in words:
             if w.strip() != "":
-                ast_word = ASTWord(ast_block, unescape_special_chars(w.strip()))
-                ast_block.add_child(ast_word)
+                ast_word = ASTWord(ast_block, unescapeSpecialChars(w.strip()))
+                ast_block.addChild(ast_word)
 
 
 
@@ -634,10 +634,10 @@ class ParseSentence(ParseClassCommand):
     """This is a customized importer working on sentences.
     By sentence I mean a set words characters, seperated by dot .
     """
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTSentence()
 
-    def get_block_split_regex(self):
+    def getBlockSplitRegex(self):
         return '[\.]+|#&prbquest;|#&prbexclam;'
 
 
@@ -645,7 +645,7 @@ class ParseParagraph(ParseClassCommand):
     """This is a customized importer working on paragraphs.
     By paragraph I mean a block of text seperated by double \n chars.
     """
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTParagraph()
 
 
@@ -656,7 +656,7 @@ class ParseDefinition(ParseClassCommand):
     answer
     The while answer is taken as question.
     """
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTDefinition()
 
 
@@ -664,19 +664,19 @@ class ParseDefinition(ParseClassCommand):
 class ParseTabbed(ParseClassCommand):
     """This is parser the the \\tabbed class command."""
 
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTSet()
 
-    def get_block_split_regex(self):
+    def getBlockSplitRegex(self):
         """Virtual function to be overriden in subclasses.
         This regex will be used to split content into blocks.
-        Function parse_content uses this to parse content."""
+        Function parseContent uses this to parse content."""
         return '[\n]+'
 
-    def get_word_split_regex(self):
+    def getWordSplitRegex(self):
         """Virtual function to be overriden in subclasses.
         This regex will be used to split words in blocks.
-        Function parse_content uses this to parse content."""
+        Function parseContent uses this to parse content."""
         return '[\t,]+'
         # but it should format question in another way
         # q
@@ -689,17 +689,17 @@ class ParseVerbatim(ParseCommand):
     # it's own way
 
     """This is verbatim code parse command."""
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTVerbatim()
 
 
-    def parse_unmarked_content(self, ast_block, content):
+    def parseUnmarkedContent(self, ast_block, content):
         """Parses block which is not in any group || or //
         All text is split to ident , punct , whitespace and entity patterns
         """
         # I can unescape them now, because this parsing does not need special markup
         log('parse_unmarked_block $content ' )
-        content = unescape_special_chars(content)
+        content = unescapeSpecialChars(content)
         ident_pattern = r'[\w]+'
         punct_pattern = r'[^\w\s]+'
         whitespace_pattern = r'\s+'
@@ -720,7 +720,7 @@ class ParseVerbatim(ParseCommand):
                 raise "Match not found for content: %s" % content
 
             log('adding word $str(ast_word)')
-            ast_block.add_child(ast_word)
+            ast_block.addChild(ast_word)
 
 
 
@@ -729,13 +729,13 @@ class ParseCode(ParseVerbatim):
     It uses knowledge about given programming language to include/exclude specific words from questioning.
     It is used by many other class as parent class.
     """
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTCode()
 
 
 class ParsePythonCode(ParseCode):
     """This is a customized code importer working on Python code."""
-    def init_ast_object(self):
+    def initAstObject(self):
         return ASTPythonCode()
 
 
@@ -765,7 +765,7 @@ class ParseFile(ParseObject):
 
 
 
-    def remove_comments(self, text=''):
+    def removeComments(self, text=''):
         """Preprocesses given text, removes comments """
         # remove lines beginning with $ or after not-escaped $
         return re.sub("(?m)(^|[^\\\\])(%.*$)", "", text)
@@ -775,11 +775,11 @@ class ParseFile(ParseObject):
 
         # preprocess the file
         # remove the comments
-        text = self.remove_comments(text)
-        text = escape_special_chars(text)
+        text = self.removeComments(text)
+        text = escapeSpecialChars(text)
 
         # initialize search#
-        root = self.init_ast_object()
+        root = self.initAstObject()
         pos = 0
 
         match = -1
@@ -795,7 +795,7 @@ class ParseFile(ParseObject):
                     if re.sub('\s', '', subtext) != '':
                         parse_obj = ParseSentence()
                         ast_obj = parse_obj.parse(r'\[]{' + subtext + r'}')
-                        root.add_child(ast_obj)
+                        root.addChild(ast_obj)
                 # parse what's in match with
                 # corresponding class
                 command = match.groups()[0]
@@ -826,7 +826,7 @@ class ParseFile(ParseObject):
 
                 subtext = text[match.start():match.end()]
                 ast_obj = parse_obj.parse(subtext)
-                root.add_child(ast_obj)
+                root.addChild(ast_obj)
                 # pos now points after last match
                 pos = match.end() + 1
 
@@ -837,7 +837,7 @@ class ParseFile(ParseObject):
                 log('Found non-marked text: $subtext' )
                 parse_obj = ParseSentence()
                 ast_obj = parse_obj.parse(r'\sentence[]{' + subtext + r'}')
-                root.add_child(ast_obj)
+                root.addChild(ast_obj)
 #
         return root
 
@@ -855,7 +855,7 @@ class Exporter(object):
     def __init__(self):
         pass
 
-    def export_file(fname, items):
+    def exportFile(fname, items):
         """This is a procedure to export files to a file by given algorithm.
         It get's customized in lower algorithms.
         """
@@ -866,7 +866,7 @@ class QAExporter(Exporter):
     def __init__(self):
         Exporter.__init__(self)
 
-    def export_file(self, items, output=None):
+    def exportFile(self, items, output=None):
         """Exports given items to output in 'question and answer' style."""
         if output is None:
             f = sys.stdout
@@ -913,7 +913,7 @@ class MentorExporter(Exporter):
     def __init__(self):
         Exporter.__init__(self)
 
-    def export_file(self, fname, items):
+    def exportFile(self, fname, items):
         pass
         # TODO to be implemented
 
@@ -934,7 +934,7 @@ class Processor(object):
         self.corpus_db_cache = {}
 
 
-    def build_question(self, words, hidenth, verbatim=False):
+    def buildQuestion(self, words, hidenth, verbatim=False):
         """Builds question from words but constructing them in intact way.
         It is used with verbatim style questions. """
         result = []
@@ -950,7 +950,7 @@ class Processor(object):
             return ' '.join(result)
 
 
-    def build_prefix(self, title, section, subsection, subsubsection):
+    def buildPrefix(self, title, section, subsection, subsubsection):
         """Returns prefix basing on section settings."""
         result = []
         if title is not None and title.strip() != "":
@@ -964,7 +964,7 @@ class Processor(object):
         return "".join(result)
 
 
-    def is_word_ignored(self, word):
+    def isWordIgnored(self, word):
         """Returns true if corpus is used and word is ignored at current level."""
         if config.LANG_CORPUS_USED:
             word = word.strip().lower()
@@ -1016,7 +1016,7 @@ class Processor(object):
             print str(ast_tree)
 
         for obj in ast_tree.children:
-            prefix = self.build_prefix(title, section, subsection, subsubsection)
+            prefix = self.buildPrefix(title, section, subsection, subsubsection)
             if type(obj) is ASTTitle:
                 title = obj.content
             elif type(obj) is ASTSection:
@@ -1031,29 +1031,29 @@ class Processor(object):
                 for block in obj.children:
                     words = block.children
                     # which words it should ask for?
-                    if obj.get_option('ask') == 'marked' or obj.get_option('ask') == '':
+                    if obj.getOption('ask') == 'marked' or obj.get_option('ask') == '':
                         hide_words_idx = [i for i in range(len(block.children)) \
-                                            if words[i].get_option('marked')]
+                                            if words[i].getOption('marked')]
                     else: # default option is set asking for all words
                         hide_words_idx =  [i for i in range(len(block.children)) \
-                                            if not words[i].get_option('ignored') and \
+                                            if not words[i].getOption('ignored') and \
                                                 type(words[i]) != ASTSeparatorWord]
 
                     # build question (output item) for each hidden words
                     for hide_idx in hide_words_idx:
-                        question = self.build_question(words, hide_idx, isinstance(obj, ASTVerbatim))
+                        question = self.buildQuestion(words, hide_idx, isinstance(obj, ASTVerbatim))
                         answer = words[hide_idx].content.strip()
 
-                        question_hint = words[hide_idx].get_option('question_hint')
-                        answer_hint = words[hide_idx].get_option('answer_hint')
+                        question_hint = words[hide_idx].getOption('question_hint')
+                        answer_hint = words[hide_idx].getOption('answer_hint')
 
                         item = OutputItem(ensure_endswith(prefix, ': '), question, answer, question_hint, answer_hint)
-                        items.add_item(item)
+                        items.addItem(item)
 
 
         # now export items using exporter
         exporter = QAExporter()
-        exporter.export_file(items, output=None)
+        exporter.exportFile(items, output=None)
 
 
         # now export items using exporter

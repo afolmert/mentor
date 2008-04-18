@@ -95,7 +95,7 @@ class Card(object):
         self.answer_hint   = ''
         self.score         = None
 
-    def is_empty(self):
+    def isEmpty(self):
         return self.question == '' and self.answer == ''
 
 
@@ -126,7 +126,7 @@ class Cards(object):
         try:
             self.db_path = dbpath
             self.db = sqlite3.connect(dbpath)
-            self.init_db()
+            self.initDb()
         except:
             log(sys.exc_info())
             self.db_path = None
@@ -140,14 +140,14 @@ class Cards(object):
         self.db = None
 
 
-    def is_open(self):
+    def isOpen(self):
         return self.db is not None
 
-    def check_db_open(self):
+    def checkDbOpen(self):
         assert self.db is not None, "Database not open."
 
-    def init_db(self):
-        self.check_db_open()
+    def initDb(self):
+        self.checkDbOpen()
         cur = self.db.cursor()
         # check if tables exist
         try:
@@ -174,13 +174,13 @@ class Cards(object):
 
 
     def commit(self):
-        self.check_db_open()
+        self.checkDbOpen()
         self.db.commit()
 
 
-    def add_card(self, card, commit=True):
+    def addCard(self, card, commit=True):
         """Adds a card object to database and returns it's id object."""
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
         cur.execute(r'''INSERT INTO TCARDS ( QUESTION, ANSWER, QUESTION_HINT, ANSWER_HINT, SCORE )
                           VALUES ( ? , ? , ? , ?, ? ) ''', \
@@ -204,10 +204,10 @@ class Cards(object):
         return result
 
 
-    def get_card(self, card_id):
+    def getCard(self, card_id):
         """Retrieves a card from database given it's id or None if it does not exist."""
         # TODO
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
         rows = cur.execute(r'''SELECT ID, QUESTION, ANSWER, QUESTION_HINT, ANSWER_HINT, SCORE
                                  FROM TCARDS
@@ -221,12 +221,12 @@ class Cards(object):
         else:
             raise Cards.DataNotFoundError, "Card not found = %d " % card_id
 
-    def get_card_headers(self, sqlwhere='', minrow=None, maxrow=None):
+    def getCardHeaders(self, sqlwhere='', minrow=None, maxrow=None):
         """Returns card ids using sqlwhere and minrow, maxrow range
         Params: minrow and maxrows are both counted from 0.
         Params: minrow is inclusive and maxrows is exclusive - this is similar to
         how range works:
-        e.g.  get_card_headers('', 1, 3) will return rows: 1 and 2
+        e.g.  getCardHeaders('', 1, 3) will return rows: 1 and 2
         """
         # using sqlite-only LIMIT clause for getting the result
         # from http://sqlite.org/lang_select.html:
@@ -240,7 +240,7 @@ class Cards(object):
         # in other words:
         # it firsts skips OFFSET records and then the rest is limited to max
         # LIMIT records
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
         if sqlwhere.strip():
             sqlwhere = 'WHERE ' + sqlwhere
@@ -261,9 +261,9 @@ class Cards(object):
         return result
 
 
-    def exists_card(self, card_id):
+    def existsCard(self, card_id):
         """Returns True if given card_id exists in database."""
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
         rows = cur.execute('SELECT ID FROM TCARDS WHERE ID = ?', (card_id,))
         row = rows.fetchone()
@@ -272,9 +272,9 @@ class Cards(object):
         return exists
 
 
-    def delete_card(self, card_id):
+    def deleteCard(self, card_id):
         """Deletes a card from database given it's id"""
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
 
         cur.execute(r'''DELETE FROM TCARDS WHERE ID = ? ''', (card_id,))
@@ -283,9 +283,9 @@ class Cards(object):
         self.db.commit()
 
 
-    def delete_all_cards(self):
+    def deleteAllCards(self):
         """Deletes all cards from database"""
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
 
         cur.execute(r'''DELETE FROM TCARDS''')
@@ -294,9 +294,9 @@ class Cards(object):
 
 
 
-    def update_card(self, card):
+    def updateCard(self, card):
         """Updates a card in database using it's id and other fields. """
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
         cur.execute(r'''UPDATE TCARDS
                           SET QUESTION    =  ?
@@ -316,9 +316,9 @@ class Cards(object):
         self.db.commit()
 
 
-    def get_cards_count(self):
+    def getCardsCount(self):
         """Returns number of cards in the database."""
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
 
         rows = cur.execute('''SELECT COUNT(*) FROM TCARDS''')
@@ -327,9 +327,9 @@ class Cards(object):
         return result
 
 
-    def log_cards(self, sqlwhere='', max=None):
+    def logCards(self, sqlwhere='', max=None):
         """Helper function for logging cards with given sqlwhere condition."""
-        self.check_db_open()
+        self.checkDbOpen()
         cur = self.db.cursor()
         if sqlwhere.strip() != '':
             sqlwhere = 'WHERE %s' % sqlwhere

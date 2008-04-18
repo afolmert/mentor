@@ -197,7 +197,7 @@ class Enumeration:
         return self.reverseLookup[value]
 
 
-def test_Enumeration():
+def testEnumeration():
     """Test of enumeration function."""
     Volkswagen = Enumeration("Volkswagen",
                              ["JETTA",
