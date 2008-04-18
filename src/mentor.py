@@ -52,7 +52,7 @@ import sys
 import os
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from utils_qt import lazyshow, tr, show_info
+from utils_qt import lazyshow, tr, show_info, propagate_fonts
 from utils import log, run_command
 from config import config
 from models import CardModel, DrillModel
@@ -73,6 +73,7 @@ except:
 
 
 
+
 class DrillWindow(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -84,6 +85,7 @@ class DrillWindow(QDialog):
         self.currentCard = Card()
 
 
+
         # card view
         self.cardView = CardMainView()
 
@@ -92,7 +94,6 @@ class DrillWindow(QDialog):
         self.cardListView = QListView(self)
         self.cardListView.setModel(self.model)
         self.cardListView.setMinimumWidth(200)
-        self.cardListView.setFont(QFont("Fixed", 8))
         self.cardListView.setVisible(False)
 
 
@@ -145,6 +146,8 @@ class DrillWindow(QDialog):
         self.setGeometry(100, 100, 500, 500)
 
         self.cardView.displayCard(self.currentCard)
+
+        propagate_fonts(self, config.GUI_FONT)
 
 
     def loadCards(self, cards):
@@ -297,7 +300,7 @@ class MainWindow(QMainWindow):
 
         config.load()
 
-        self.setFont(QFont("Fixed", 8))
+        self.setFont(config.GUI_FONT)
 
         # set up controls
         # items panel
@@ -317,19 +320,11 @@ class MainWindow(QMainWindow):
         self.createStatusBar()
 
 
-        self.propagateFonts(self, QFont("Fixed", 8))
+        propagate_fonts(self, config.GUI_FONT)
 
         self.connect(qApp, SIGNAL('aboutToQuit()'), self.qApp_aboutToQuit)
 
         QTimer.singleShot(0, self._openRecentFile)
-
-
-    # FIXME there must be a way to configure another way!
-    def propagateFonts(self, widget, font):
-        for c in widget.children():
-            if isinstance(c, QWidget):
-                c.setFont(font)
-                self.propagateFonts(c, font)
 
 
 

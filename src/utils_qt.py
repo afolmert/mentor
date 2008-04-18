@@ -74,6 +74,7 @@ def show_info(message, parent=None):
             layout.addWidget(self.btn)
             self.setLayout(layout)
             self.connect(self.btn, SIGNAL("clicked()"), SLOT("accept()"))
+            propagate_fonts(self, QFont("Fixed", 8))
 
     widget = InfoWidget(parent)
     widget.lbl.setText(message)
@@ -507,4 +508,11 @@ def lazyshow(widget):
         _lazyWidget.show()
 
 
+
+# FIXME there must be a way to configure another way!
+def propagate_fonts(widget, font):
+    for c in widget.children():
+        if isinstance(c, QWidget):
+            c.setFont(font)
+            propagate_fonts(c, font)
 

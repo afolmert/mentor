@@ -28,6 +28,7 @@ managing the settings.
 """
 import os
 from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 from utils import log
 import release
 
@@ -71,6 +72,8 @@ class Config(object):
 
 
         self.GUI_LAZY_SHOW          = False
+
+        self.GUI_FONT               = QFont("Fixed", 8)
 
         # override them with user settings
         self._settings = QSettings(QSettings.IniFormat, QSettings.UserScope, 'Mentor', 'mentor')
