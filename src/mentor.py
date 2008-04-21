@@ -192,6 +192,103 @@ class DrillWindow(QDialog):
         return QDialog.event(self, event)
 
 
+class OptionsDialog(QDialog):
+    """Dialog for setting Mentor preferences."""
+    def __init__(self, parent=None):
+        QDialog.__init__(self, parent)
+
+        self.setWindowTitle("Options")
+
+        layout = QGridLayout()
+
+        list = QListWidget()
+        layout.addWidget(list, 0, 0, 5, 1)
+        list.addItem(QListWidgetItem(QIcon(QPixmap(":images/star.png")), "Startup"))
+        list.addItem(QListWidgetItem(QIcon(QPixmap(":images/book.png")), "Interface"))
+        list.addItem(QListWidgetItem(QIcon(QPixmap(":images/find.png")), "Learning"))
+        list.addItem(QListWidgetItem(QIcon(QPixmap(":images/next.png")), "Items"))
+        list.addItem(QListWidgetItem(QIcon(QPixmap(":images/previous.png")), "Advanced"))
+        list.addItem(QListWidgetItem(QIcon(QPixmap(":images/zoomin.png")), "Connection"))
+        list.addItem(QListWidgetItem(QIcon(QPixmap(":images/zoomout.png")), "Plugins"))
+
+
+        list.setFixedWidth(120)
+        list.setMinimumWidth(120)
+        list.setMaximumWidth(120)
+        list.setViewMode(QListView.IconMode)
+        list.setMovement(QListView.Static)
+        list.setSpacing(10)
+        list.setFlow(QListView.TopToBottom)
+
+
+        tab = QTabWidget()
+        tab.addTab(self.createTableWidget(), "Tab 1")
+        tab.addTab(self.createTableWidget(), "Tab 2")
+        tab.addTab(self.createButtonsWidget(), "Tab 3")
+
+        blayout = QHBoxLayout()
+        btnOk = QPushButton("OK")
+        btnOk.setMaximumHeight(25)
+        btnCancel = QPushButton("Cancel")
+        btnCancel.setMaximumHeight(25)
+        blayout.addItem(QSpacerItem(150, 25, QSizePolicy.Fixed, QSizePolicy.Fixed))
+        blayout.addWidget(btnOk)
+        blayout.addWidget(btnCancel)
+        blayout.setSpacing(0)
+        blayout.setMargin(0)
+
+        self.connect(btnOk, SIGNAL('clicked()'), SLOT('close()'))
+        self.connect(btnCancel, SIGNAL('clicked()'), SLOT('close()'))
+
+        layout.addWidget(tab, 0, 1, 5, 1)
+
+
+        mainlayout = QVBoxLayout()
+        mainlayout.addLayout(layout)
+        mainlayout.addLayout(blayout)
+        self.setLayout(mainlayout)
+
+
+
+    def buttonClicked(self):
+        log('button was clicked!')
+
+
+    def createButtonsWidget(self):
+        w = QWidget()
+        l = QVBoxLayout()
+        b = QPushButton("Hello", w)
+        t = QTextEdit()
+        l.addWidget(b)
+        l.addWidget(t)
+        self.connect(b, SIGNAL('clicked()'), self.buttonClicked)
+        w.setLayout(l)
+        return w
+
+
+    def createTableWidget(self):
+        w = QWidget()
+        g = QGridLayout()
+        for x in range(3):
+            for y in range(3):
+                t = QTabWidget()
+                g.addWidget(t, x, y)
+        g.setSpacing(0)
+        g.setMargin(0)
+        w.setLayout(g)
+        return w
+
+
+
+
+
+
+
+
+
+
+
+
 class MainWindow(QMainWindow):
     """Central window for the Mentor app"""
 
@@ -1083,7 +1180,9 @@ class MainWindow(QMainWindow):
 
 
     def on_actOptions_triggered(self):
-        pass
+        dialog = OptionsDialog(self)
+        dialog.setGeometry(200, 200, 600, 500)
+        dialog.exec_()
 
     def on_actRecentFiles_triggered(self):
         self._openDeckFile(self.sender().text())
