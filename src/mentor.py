@@ -252,6 +252,9 @@ class OptionsDialog(QDialog):
         self.setLayout(mainlayout)
 
 
+        propagate_fonts(self, config.GUI_FONT)
+
+
 
     def buttonClicked(self):
         log('button was clicked!')
