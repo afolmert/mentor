@@ -1031,7 +1031,7 @@ class Processor(object):
                 for block in obj.children:
                     words = block.children
                     # which words it should ask for?
-                    if obj.getOption('ask') == 'marked' or obj.get_option('ask') == '':
+                    if obj.getOption('ask') == 'marked' or obj.getOption('ask') == '':
                         hide_words_idx = [i for i in range(len(block.children)) \
                                             if words[i].getOption('marked')]
                     else: # default option is set asking for all words
