@@ -35,60 +35,57 @@ import release
 
 __version__ = release.version
 
-# TODO
-# reading settings from user files
-# user-files and system wide files
-
-# TODO
-# split to gui and probe settings files ?
-#
 
 class Config(object):
     def __init__(self):
+        self._settings = QSettings(QSettings.IniFormat, QSettings.UserScope, 'Mentor', 'mentor')
+
         # const settings - don't change
         self.DB_VERSION             = '01'
 
         # program command-line parameters
         self.DEBUG                  = False
         self.VERBOSE                = False
-        self.PRETEND                = False
-        self.TEST                   = False
-
-        # language corpus settings
-        self.LANG_CORPUS_USED       = 1
-        self.LANG_CORPUS_DB         = 'd:/Projects/Mentor/Sources/draft/tools/freq/corpus_en.db'
-        self.LANG_CORPUS_IGNORE_LVL = 2
-
-        # window position and sizes
-        #self.GUI_POSITION
-        #self.GUI_SIZES
-        #self.GUI_LAYOUT             = QGuiLayout()
-
-        self.GUI_RECENTFILES_MAX    = 4
-        self.GUI_RECENTFILES        = []
-
-        self.GUI_GEOMETRY           = QRect(100, 100, 400, 400)
-        self.GUI_MAXIMIZED          = False
 
 
-        self.GUI_LAZY_SHOW          = False
 
-        self.GUI_FONT               = QFont("Fixed", 8)
+    def load(self):
+        """Loads user settings from user settings file"""
+        self.DEBUG = self._settings.value('debug', QVariant(self.DEBUG)).toBool()
+        self.VERBOSE = self._settings.value('verbose', QVariant(self.VERBOSE)).toBool()
+
+
+    def save(self):
+        """Saves user settings to user settings file"""
+        self._settings.setValue('debug', QVariant(self.DEBUG))
+        self._settings.setValue('verbose', QVariant(self.VERBOSE))
+
+
 
         # override them with user settings
         self._settings = QSettings(QSettings.IniFormat, QSettings.UserScope, 'Mentor', 'mentor')
 
 
+
+class GuiConfig(Config):
+    """This class stores GUI specific settings"""
+    def __init__(self):
+        Config.__init__(self)
+
+        self.GUI_RECENTFILES_MAX    = 4
+        self.GUI_RECENTFILES        = []
+
+        self.GUI_GEOMETRY           = QRect(100, 100, 700, 500)
+        self.GUI_MAXIMIZED          = False
+
+        self.GUI_LAZY_SHOW          = False
+
+        self.GUI_FONT               = QFont("Fixed", 8)
+
+
+
     def load(self):
-        self._load_user_settings()
-
-    def save(self):
-        self._save_user_settings()
-
-
-    def _load_user_settings(self):
-        """Loads user settings from user settings file"""
-
+        Config.load(self)
         # load recent files
         self.GUI_RECENTFILES_MAX = self._settings.value('Gui/recent_max', \
                                         QVariant(self.GUI_RECENTFILES_MAX)).toInt()[0]
@@ -101,8 +98,8 @@ class Config(object):
         self.GUI_MAXIMIZED = self._settings.value('Gui/maximized', QVariant(self.GUI_MAXIMIZED)).toBool()
 
 
-    def _save_user_settings(self):
-        """Saves user settings to user settings file"""
+    def save(self):
+        Config.save(self)
 
         # save recent files
         self._settings.setValue('Gui/recent_max', QVariant(self.GUI_RECENTFILES_MAX))
@@ -113,35 +110,43 @@ class Config(object):
         self._settings.setValue('Gui/maximized', QVariant(self.GUI_MAXIMIZED))
 
 
-    # recent file routines
-    # TODO is it the right way for these functions?
-    def get_most_recent_file(self):
-        """Returns most recently used file if valid."""
-        if len(self.GUI_RECENTFILES) > 0 and os.path.isfile(self.GUI_RECENTFILES[0]):
-            return self.GUI_RECENTFILES[0]
-        else:
-            return None
+class ProbeConfig(Config):
+    """This class stores Probe specific settings"""
+    def __init__(self):
+        Config.__init__(self)
 
-    def remove_recent_file(self, fname):
-        """Removes given fname from recent files list"""
-        try:
-            self.GUI_RECENTFILES.remove(fname)
-        except:
-            pass
+        # language corpus settings
+        self.LANG_CORPUS_USED       = True
+        self.LANG_CORPUS_DB         = 'data/corpus_en.db'
+        self.LANG_CORPUS_IGNORE_LVL = 2
 
-    def add_most_recent_file(self, fname):
-        """Adds fname to most recently used files"""
-        # remove file if already on the list
-        try:
-            self.GUI_RECENTFILES.remove(fname)
-        except:
-            pass
-        # put it in front of all
-        self.GUI_RECENTFILES.insert(0, fname)
-        # trim to maximum number
-        while len(self.GUI_RECENTFILES) > self.GUI_RECENTFILES_MAX:
-            self.GUI_RECENTFILES = self.GUI_RECENTFILES[:-1]
+    def load(self):
+        Config.load(self)
+
+        # lang corpus settings
+        self.LANG_CORPUS_USED = self._settings.value('Probe/lang_corpus_used', \
+            QVariant(self.LANG_CORPUS_USED)).toBool()
+        self.LANG_CORPUS_DB = self._settings.value('Probe/lang_corpus_db', \
+            QVariant(self.LANG_CORPUS_DB)).toString()
+        self.LANG_CORPUS_IGNORE_LVL = self._settings.value('Probe/lang_corpus_ignore_lvl',
+            QVariant(self.LANG_CORPUS_IGNORE_LVL)).toInt()[0]
 
 
+    def save(self):
+        Config.save(self)
 
-config = Config()
+        # lang corpus settings
+        self._settings.setValue('Probe/lang_corpus_used', \
+            QVariant(self.LANG_CORPUS_USED))
+        self._settings.setValue('Probe/lang_corpus_db', \
+            QVariant(self.LANG_CORPUS_DB))
+        self._settings.setValue('Probe/lang_corpus_ignore_lvl', \
+            QVariant(self.LANG_CORPUS_IGNORE_LVL))
+
+
+
+
+
+
+gui_config = GuiConfig()
+probe_config = ProbeConfig()

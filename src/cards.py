@@ -24,7 +24,7 @@ scheduling etc."""
 
 import release
 import sqlite3
-from config import config
+from config import gui_config as config
 import sys
 from utils import nvl, log
 

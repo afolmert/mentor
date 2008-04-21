@@ -54,7 +54,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from utils_qt import lazyshow, tr, show_info, propagate_fonts
 from utils import log, run_command
-from config import config
+from config import gui_config as config
 from models import CardModel, DrillModel
 from cards import Card
 from views import CardContentView, CardMainView, CardGridView
@@ -969,6 +969,39 @@ class MainWindow(QMainWindow):
 
 
 
+    # recent file routines
+    # TODO is it the right way for these functions?
+    def getMostRecentFile(self):
+        """Returns most recently used file if valid."""
+        if len(config.GUI_RECENTFILES) > 0 and os.path.isfile(config.GUI_RECENTFILES[0]):
+            return config.GUI_RECENTFILES[0]
+        else:
+            return None
+
+
+    def removeRecentFile(self, fname):
+        """Removes given fname from recent files list"""
+        try:
+            config.GUI_RECENTFILES.remove(fname)
+        except:
+            pass
+
+
+    def addMostRecentFile(self, fname):
+        """Adds fname to most recently used files"""
+        # remove file if already on the list
+        try:
+            config.GUI_RECENTFILES.remove(fname)
+        except:
+            pass
+        # put it in front of all
+        config.GUI_RECENTFILES.insert(0, fname)
+        # trim to maximum number
+        while len(config.GUI_RECENTFILES) > config.GUI_RECENTFILES_MAX:
+            config.GUI_RECENTFILES = config.GUI_RECENTFILES[:-1]
+
+
+
     def createStatusBar(self):
         self.statusBar().showMessage(tr("Ready."))
 
@@ -1009,9 +1042,9 @@ class MainWindow(QMainWindow):
         try:
             self.cardModel().open(fname)
             self.setCardModelIndex(self.cardModel().index(0, 0))
-            config.add_most_recent_file(fname)
+            self.addMostRecentFile(fname)
         except:
-            config.remove_recent_file(fname)
+            self.removeRecentFile(fname)
             self.setCardModelIndex(QModelIndex())
             problem = True
         finally:
@@ -1035,7 +1068,7 @@ class MainWindow(QMainWindow):
                 os.remove(fname)
             self.cardModel().open(fname)
             self.setCardModelIndex(self.cardModel().index(0, 0))
-            config.add_most_recent_file(fname)
+            self.addMostRecentFile(fname)
         except:
             config.remove_most_recent_file(fname)
             self.setCardModelIndex(QModelIndex())
@@ -1047,8 +1080,8 @@ class MainWindow(QMainWindow):
 
 
     def _openRecentFile(self):
-        if config.get_most_recent_file():
-            self._openDeckFile(config.get_most_recent_file())
+        if self.getMostRecentFile():
+            self._openDeckFile(self.getMostRecentFile())
         self._refreshAppState()
 
 

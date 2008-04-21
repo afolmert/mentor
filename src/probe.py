@@ -29,7 +29,7 @@ like Mentor or SuperMemo.
 
 
 from utils import log, info, enable_logging, Enumeration, error, ensure_endswith
-from config import config
+from config import probe_config as config
 from StringIO import StringIO
 import re
 import sys
@@ -1077,9 +1077,9 @@ def main():
                       help="run program in debugged mode" )
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=config.VERBOSE,
                       help="print output verbosely")
-    parser.add_option("-p", "--pretend", action="store_true", dest="pretend", default=config.PRETEND,
+    parser.add_option("-p", "--pretend", action="store_true", dest="pretend", default=False,
                       help="run a a simulation only")
-    parser.add_option("-t", "--test", action="store_true", dest="test", default=config.TEST,
+    parser.add_option("-t", "--test", action="store_true", dest="test", default=False,
                       help="runs a series of tests")
 
     opts, args = parser.parse_args(sys.argv[1:])
