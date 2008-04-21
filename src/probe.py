@@ -1114,10 +1114,14 @@ def main():
     if len(args) == 0:
         print "No input file specified. "
         sys.exit()
+ 
 
-    input = args[0]
+
     processor = Processor()
-    processor.process(input)
+
+    for input in args:
+        processor.process(input)
+ 
 
 
 if __name__ == "__main__":
